@@ -28,7 +28,7 @@ public class ModPackingTape
 {
     public static final String MODID = "packingtape";
     public static final String MODNAME = "Packing Tape";
-    public static final String VERSION = "1.0";
+    public static final String VERSION = "@VERSION@";
 
     public static final Set<String> blackList = new HashSet<String>();
     public static final Set<String> whiteList = new HashSet<String>();

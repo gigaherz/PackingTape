@@ -3,7 +3,7 @@ plugins {
     id "net.minecraftforge.gradle.forge" version "2.0.2"
 }
 
-version = "0.1alpha"
+version = "0.2beta"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "Packing Tape"
 

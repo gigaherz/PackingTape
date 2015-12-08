@@ -44,18 +44,6 @@ public class BlockPackaged extends Block
         return new TilePackaged();
     }
 
-    ThreadLocal<TilePackaged> lastHarvestedTE = new ThreadLocal<TilePackaged>();
-
-    @Override
-    public void harvestBlock(World worldIn, EntityPlayer player, BlockPos pos, IBlockState state, TileEntity te)
-    {
-        if(te instanceof TilePackaged)
-        {
-            lastHarvestedTE.set((TilePackaged)te);
-        }
-        super.harvestBlock(worldIn, player, pos, state, te);
-    }
-
     @Override
     public ItemStack getPickBlock(MovingObjectPosition target, World world, BlockPos pos, EntityPlayer player)
     {
@@ -66,20 +54,36 @@ public class BlockPackaged extends Block
     }
 
     @Override
+    public boolean removedByPlayer(World world, BlockPos pos, EntityPlayer player, boolean willHarvest)
+    {
+        // If it will harvest, delay deletion of the block until after getDrops.
+        return willHarvest || super.removedByPlayer(world, pos, player, false);
+    }
+
+    @Override
     public List<ItemStack> getDrops(IBlockAccess world, BlockPos pos, IBlockState state, int fortune)
     {
         List<ItemStack> drops = new ArrayList<ItemStack>();
 
-        if(lastHarvestedTE.get() != null)
+        TileEntity teWorld = world.getTileEntity(pos);
+        if(teWorld != null && teWorld instanceof TilePackaged)
         {
-            ItemStack stack = getPackedStack(lastHarvestedTE.get());
+            // TE is here because of the willHarvest above.
+            TilePackaged packaged = (TilePackaged) teWorld;
+            ItemStack stack = getPackedStack(packaged);
 
             drops.add(stack);
-
-            lastHarvestedTE.set(null);
         }
 
         return drops;
+    }
+
+    @Override
+    public void harvestBlock(World world, EntityPlayer player, BlockPos pos, IBlockState state, TileEntity te)
+    {
+        super.harvestBlock(world, player, pos, state, te);
+        // Finished making use of the TE, so we can now safely destroy the block.
+        world.setBlockToAir(pos);
     }
 
     private ItemStack getPackedStack(TilePackaged tilePackaged)
