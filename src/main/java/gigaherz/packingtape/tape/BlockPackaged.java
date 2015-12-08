@@ -6,6 +6,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -14,10 +15,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,12 +44,6 @@ public class BlockPackaged extends Block
         return new TilePackaged();
     }
 
-    @SideOnly(Side.CLIENT)
-    public Item getItem(World worldIn, BlockPos pos)
-    {
-        return ModPackingTape.itemTape;
-    }
-
     ThreadLocal<TilePackaged> lastHarvestedTE = new ThreadLocal<TilePackaged>();
 
     @Override
@@ -60,7 +54,15 @@ public class BlockPackaged extends Block
             lastHarvestedTE.set((TilePackaged)te);
         }
         super.harvestBlock(worldIn, player, pos, state, te);
+    }
 
+    @Override
+    public ItemStack getPickBlock(MovingObjectPosition target, World world, BlockPos pos, EntityPlayer player)
+    {
+        if(GuiScreen.isCtrlKeyDown())
+            return new ItemStack(Item.getItemFromBlock(this),1);
+        else
+            return new ItemStack(ModPackingTape.itemTape,1);
     }
 
     @Override
@@ -70,19 +72,7 @@ public class BlockPackaged extends Block
 
         if(lastHarvestedTE.get() != null)
         {
-            ItemStack stack = new ItemStack(Item.getItemFromBlock(this), 1);
-
-            NBTTagCompound tag0 = new NBTTagCompound();
-            NBTTagCompound tag = new NBTTagCompound();
-
-            lastHarvestedTE.get().writeToNBT(tag);
-
-            tag.removeTag("x");
-            tag.removeTag("y");
-            tag.removeTag("z");
-
-            tag0.setTag("BlockEntityTag", tag);
-            stack.setTagCompound(tag0);
+            ItemStack stack = getPackedStack(lastHarvestedTE.get());
 
             drops.add(stack);
 
@@ -92,7 +82,28 @@ public class BlockPackaged extends Block
         return drops;
     }
 
+    private ItemStack getPackedStack(TilePackaged tilePackaged)
+    {
+        ItemStack stack = new ItemStack(Item.getItemFromBlock(this), 1);
 
+        NBTTagCompound tag0 = new NBTTagCompound();
+        NBTTagCompound tag = new NBTTagCompound();
+
+        tilePackaged.writeToNBT(tag);
+
+        tag.removeTag("x");
+        tag.removeTag("y");
+        tag.removeTag("z");
+
+        tag0.setTag("BlockEntityTag", tag);
+        stack.setTagCompound(tag0);
+
+        ModPackingTape.logger.warn("Created Packed stack with " + tilePackaged.containedBlock + "[" + tilePackaged.containedBlockMetadata + "]");
+
+        return stack;
+    }
+
+    @SuppressWarnings("unchecked")
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumFacing side, float hitX, float hitY, float hitZ)
     {
@@ -105,8 +116,16 @@ public class BlockPackaged extends Block
             return false;
 
         Block b = Block.getBlockFromName(te.containedBlock);
+        if(b == null)
+            return false;
+
         IBlockState newState = b.getStateFromMeta(te.containedBlockMetadata);
+        if(newState == null)
+            return false;
+
         NBTTagCompound tag = te.containedTile;
+        if(tag == null)
+            return false;
 
         EnumFacing preferred = te.getPreferredDirection();
         if(preferred != null)

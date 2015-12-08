@@ -48,5 +48,4 @@ public class ClientProxy implements ISideProxy
         ModelLoader.setCustomModelResourceLocation(item, meta, new ModelResourceLocation(ModPackingTape.MODID + ":" + itemName, "inventory"));
         ModelBakery.addVariantName(item, ModPackingTape.MODID + ":" + itemName);
     }
-
 }

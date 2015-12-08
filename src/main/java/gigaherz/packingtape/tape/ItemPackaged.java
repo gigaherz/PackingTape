@@ -22,6 +22,7 @@ public class ItemPackaged extends ItemBlock
         return damage;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void addInformation(ItemStack stack, EntityPlayer playerIn, List tooltip, boolean advanced)
     {
