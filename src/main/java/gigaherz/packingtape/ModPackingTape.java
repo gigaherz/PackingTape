@@ -23,11 +23,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-@Mod(modid = ModPackingTape.MODID, name = ModPackingTape.MODNAME, version = ModPackingTape.VERSION)
+@Mod(modid = ModPackingTape.MODID,
+        version = ModPackingTape.VERSION,
+        acceptedMinecraftVersions = "1.8,1.8.9")
 public class ModPackingTape
 {
     public static final String MODID = "packingtape";
-    public static final String MODNAME = "Packing Tape";
     public static final String VERSION = "@VERSION@";
 
     public static final Set<String> blackList = new HashSet<String>();
@@ -51,7 +52,7 @@ public class ModPackingTape
 
         Configuration config = new Configuration(event.getSuggestedConfigurationFile());
         config.load();
-        if(config.hasCategory("blacklist"))
+        if (config.hasCategory("blacklist"))
             config.removeCategory(config.getCategory("blacklist"));
         Collections.addAll(blackList, config.get("tileEntities", "blacklist", new String[0]).getStringList());
         Collections.addAll(whiteList, config.get("tileEntities", "whitelist", new String[0]).getStringList());

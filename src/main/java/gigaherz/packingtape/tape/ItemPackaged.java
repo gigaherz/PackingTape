@@ -3,9 +3,12 @@ package gigaherz.packingtape.tape;
 import gigaherz.packingtape.ModPackingTape;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ResourceLocation;
+
 import java.util.List;
 
 public class ItemPackaged extends ItemBlock
@@ -22,13 +25,10 @@ public class ItemPackaged extends ItemBlock
         return damage;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List tooltip, boolean advanced)
+    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced)
     {
         super.addInformation(stack, playerIn, tooltip, advanced);
-
-        List<String> tooltips = (List<String>)tooltip;
 
         NBTTagCompound tag = stack.getTagCompound();
         NBTTagCompound info = (NBTTagCompound) tag.getTag("BlockEntityTag");
@@ -36,7 +36,14 @@ public class ItemPackaged extends ItemBlock
         String blockname = info.getString("containedBlock");
         int meta = info.getInteger("containedBlockMetadata");
 
-        tooltips.add("Contains: " + blockname + "[" + meta + "]");
+        tooltip.add("Contains:");
 
+        Block block = Block.blockRegistry.getObject(new ResourceLocation(blockname));
+        ItemStack stack1 = new ItemStack(Item.getItemFromBlock(block), 1, meta);
+
+        for (String s : stack1.getTooltip(playerIn, advanced))
+        {
+            tooltip.add("  " + s);
+        }
     }
 }

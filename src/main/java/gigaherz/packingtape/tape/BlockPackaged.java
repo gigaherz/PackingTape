@@ -20,12 +20,12 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class BlockPackaged extends Block
 {
-    public BlockPackaged() {
+    public BlockPackaged()
+    {
         super(Material.cloth);
         this.setUnlocalizedName(ModPackingTape.MODID + ".packedBlock");
         setHardness(0.5F);
@@ -47,10 +47,10 @@ public class BlockPackaged extends Block
     @Override
     public ItemStack getPickBlock(MovingObjectPosition target, World world, BlockPos pos, EntityPlayer player)
     {
-        if(GuiScreen.isCtrlKeyDown())
-            return new ItemStack(Item.getItemFromBlock(this),1);
+        if (GuiScreen.isCtrlKeyDown())
+            return new ItemStack(Item.getItemFromBlock(this), 1);
         else
-            return new ItemStack(ModPackingTape.itemTape,1);
+            return new ItemStack(ModPackingTape.itemTape, 1);
     }
 
     @Override
@@ -66,7 +66,7 @@ public class BlockPackaged extends Block
         List<ItemStack> drops = new ArrayList<ItemStack>();
 
         TileEntity teWorld = world.getTileEntity(pos);
-        if(teWorld != null && teWorld instanceof TilePackaged)
+        if (teWorld != null && teWorld instanceof TilePackaged)
         {
             // TE is here because of the willHarvest above.
             TilePackaged packaged = (TilePackaged) teWorld;
@@ -102,7 +102,7 @@ public class BlockPackaged extends Block
         tag0.setTag("BlockEntityTag", tag);
         stack.setTagCompound(tag0);
 
-        ModPackingTape.logger.warn("Created Packed stack with " + tilePackaged.containedBlock + "[" + tilePackaged.containedBlockMetadata + "]");
+        ModPackingTape.logger.debug("Created Packed stack with " + tilePackaged.containedBlock + "[" + tilePackaged.containedBlockMetadata + "]");
 
         return stack;
     }
@@ -111,47 +111,86 @@ public class BlockPackaged extends Block
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumFacing side, float hitX, float hitY, float hitZ)
     {
-        if(worldIn.isRemote)
+        if (worldIn.isRemote)
             return false;
 
         TilePackaged te = (TilePackaged) worldIn.getTileEntity(pos);
 
-        if(te == null || te.containedBlock == null)
+        if (te == null || te.containedBlock == null)
             return false;
 
         Block b = Block.getBlockFromName(te.containedBlock);
-        if(b == null)
+        if (b == null)
             return false;
 
         IBlockState newState = b.getStateFromMeta(te.containedBlockMetadata);
-        if(newState == null)
+        if (newState == null)
             return false;
 
         NBTTagCompound tag = te.containedTile;
-        if(tag == null)
+        if (tag == null)
             return false;
 
-        EnumFacing preferred = te.getPreferredDirection();
-        if(preferred != null)
-        {
-            for(IProperty prop : (Collection<IProperty>)newState.getPropertyNames())
-            {
-                if(prop.getName().equalsIgnoreCase("facing") && prop instanceof PropertyEnum)
-                {
-                    PropertyEnum pe = (PropertyEnum)prop;
-                    if(pe.getValueClass() == EnumFacing.class && prop.getAllowedValues().contains(preferred))
-                    {
-                        newState = newState.withProperty(pe, preferred);
-                    }
+        worldIn.setBlockState(pos, newState);
 
+        EnumFacing preferred = te.getPreferredDirection();
+        if (preferred != null)
+        {
+            PropertyEnum facing = null;
+            for (IProperty prop : newState.getPropertyNames())
+            {
+                if (prop.getName().equalsIgnoreCase("facing"))
+                {
+                    if (prop instanceof PropertyEnum)
+                    {
+                        facing = (PropertyEnum) prop;
+                    }
                     break;
                 }
             }
 
+            if (facing != null)
+            {
+                if (facing.getValueClass() == EnumFacing.class && facing.getAllowedValues().contains(preferred))
+                {
+                    if (!rotateBlockToward(worldIn, pos, preferred, facing))
+                    {
+                        worldIn.setBlockState(pos, newState);
+                    }
+                }
+            }
         }
 
-        worldIn.setBlockState(pos, newState);
         setTileEntityNBT(worldIn, pos, tag, playerIn);
+
+        return false;
+    }
+
+    private static boolean rotateBlockToward(World worldIn, BlockPos pos, EnumFacing preferred, PropertyEnum prop)
+    {
+        IBlockState stored = worldIn.getBlockState(pos);
+        Block block = stored.getBlock();
+        IBlockState actual = block.getActualState(stored, worldIn, pos);
+        if (actual.getValue(prop) == preferred)
+        {
+            return true;
+        }
+
+        for (Object ignored : prop.getAllowedValues())
+        {
+            if (preferred.getAxis() == EnumFacing.Axis.Y)
+                block.rotateBlock(worldIn, pos, EnumFacing.WEST);
+            else
+                block.rotateBlock(worldIn, pos, EnumFacing.UP);
+
+            stored = worldIn.getBlockState(pos);
+            block = stored.getBlock();
+            actual = block.getActualState(stored, worldIn, pos);
+            if (actual.getValue(prop) == preferred)
+            {
+                return true;
+            }
+        }
 
         return false;
     }
@@ -159,9 +198,9 @@ public class BlockPackaged extends Block
     @Override
     public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack)
     {
-        if(!placer.isSneaking() && placer instanceof EntityPlayer)
+        if (!placer.isSneaking() && placer instanceof EntityPlayer)
         {
-            EntityPlayer player = (EntityPlayer)placer;
+            EntityPlayer player = (EntityPlayer) placer;
             TilePackaged te = (TilePackaged) worldIn.getTileEntity(pos);
             te.setPreferredDirection(EnumFacing.fromAngle(player.getRotationYawHead()).getOpposite());
         }
@@ -182,7 +221,7 @@ public class BlockPackaged extends Block
                         (server == null || !server.getConfigurationManager().canSendCommands(player.getGameProfile())))
                     return false;
                 NBTTagCompound existingData = new NBTTagCompound();
-                NBTTagCompound originalTag = (NBTTagCompound)existingData.copy();
+                NBTTagCompound originalTag = (NBTTagCompound) existingData.copy();
                 tileentity.writeToNBT(existingData);
                 existingData.merge(tag);
                 existingData.setInteger("x", pos.getX());
@@ -200,5 +239,4 @@ public class BlockPackaged extends Block
 
         return false;
     }
-
 }

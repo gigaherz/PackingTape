@@ -15,13 +15,14 @@ import net.minecraft.world.World;
 
 public class ItemTape extends Item
 {
-
-    public ItemTape() {
+    public ItemTape()
+    {
         this.maxStackSize = 16;
         this.setUnlocalizedName(ModPackingTape.MODID + ".packingTape");
         this.setCreativeTab(CreativeTabs.tabMisc);
     }
 
+    @Override
     public boolean onItemUse(ItemStack stack, EntityPlayer playerIn, World worldIn, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ)
     {
         if (stack.stackSize == 0)
@@ -41,7 +42,7 @@ public class ItemTape extends Item
             return true;
         }
 
-        if(!ModPackingTape.instance.checkWhitelist(te))
+        if (!ModPackingTape.instance.checkWhitelist(te))
         {
             return false;
         }

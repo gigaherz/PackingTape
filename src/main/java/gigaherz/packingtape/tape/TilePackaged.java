@@ -10,7 +10,7 @@ import net.minecraft.world.World;
 public class TilePackaged extends TileEntity
 {
     String containedBlock;
-    int    containedBlockMetadata;
+    int containedBlockMetadata;
     NBTTagCompound containedTile;
     EnumFacing preferredDirection;
 
@@ -25,12 +25,12 @@ public class TilePackaged extends TileEntity
     {
         super.writeToNBT(compound);
 
-        if(containedBlock != null && containedBlock.length() > 0)
+        if (containedBlock != null && containedBlock.length() > 0)
         {
             compound.setString("containedBlock", containedBlock);
             compound.setInteger("containedBlockMetadata", containedBlockMetadata);
             compound.setTag("containedTile", containedTile.copy());
-            if(preferredDirection != null)
+            if (preferredDirection != null)
             {
                 compound.setInteger("preferredDirection", preferredDirection.ordinal());
             }
@@ -44,8 +44,8 @@ public class TilePackaged extends TileEntity
 
         containedBlock = compound.getString("containedBlock");
         containedBlockMetadata = compound.getInteger("containedBlockMetadata");
-        containedTile = (NBTTagCompound)compound.getCompoundTag("containedTile").copy();
-        if(compound.hasKey("preferredDirection"))
+        containedTile = (NBTTagCompound) compound.getCompoundTag("containedTile").copy();
+        if (compound.hasKey("preferredDirection"))
         {
             preferredDirection = EnumFacing.values()[compound.getInteger("preferredDirection")];
         }

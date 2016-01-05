@@ -1,9 +1,20 @@
-// for people who want stable
-plugins {
-    id "net.minecraftforge.gradle.forge" version "2.0.2"
+// For those who want the bleeding edge
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+    }
 }
 
-version = "0.2beta"
+apply plugin: 'net.minecraftforge.gradle.forge'
+
+version = "0.3"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "Packing Tape"
 
@@ -12,24 +23,19 @@ task deobfJar(type: Jar) {
     classifier = 'deobf'
 }
 
-task srcJar(type: Jar) {
-    from sourceSets.main.allSource
-    classifier = 'sources'
-}
-
 artifacts {
-    archives srcJar
+    archives sourceJar
     archives deobfJar
     archives jar
 }
 
-tasks.build.dependsOn('srcJar', 'deobfJar')
+tasks.build.dependsOn('deobfJar')
 
 minecraft {
-    version = "1.8-11.14.4.1577"
+    version = "1.8.9-11.15.0.1677"
     runDir = "run"
 
-    mappings = "stable_18"
+    mappings = "snapshot_20160103"
 
     replace "@VERSION@", project.version
     replaceIn "ModPackingTape.java"
@@ -44,11 +50,11 @@ processResources
     // replace stuff in mcmod.info, nothing else
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
-                
+
         // replace version and mcversion
         expand 'version':project.version, 'mcversion':project.minecraft.version
     }
-        
+
     // copy everything else, thats not the mcmod.info
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
