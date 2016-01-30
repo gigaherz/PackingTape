@@ -1,18 +1,23 @@
 package gigaherz.packingtape.tape;
 
+import gigaherz.packingtape.updatable.IPackedTickHandler;
+import gigaherz.packingtape.updatable.PackedUpdateHandlerRegistry;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ITickable;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
-public class TilePackaged extends TileEntity
+public class TilePackaged extends TileEntity /* implements ITickable */
 {
-    String containedBlock;
+    ResourceLocation containedBlock;
     int containedBlockMetadata;
     NBTTagCompound containedTile;
     EnumFacing preferredDirection;
+    boolean continueUpdating = true;
 
     @Override
     public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate)
@@ -25,9 +30,9 @@ public class TilePackaged extends TileEntity
     {
         super.writeToNBT(compound);
 
-        if (containedBlock != null && containedBlock.length() > 0)
+        if (containedBlock != null)
         {
-            compound.setString("containedBlock", containedBlock);
+            compound.setString("containedBlock", containedBlock.toString());
             compound.setInteger("containedBlockMetadata", containedBlockMetadata);
             compound.setTag("containedTile", containedTile.copy());
             if (preferredDirection != null)
@@ -42,7 +47,7 @@ public class TilePackaged extends TileEntity
     {
         super.readFromNBT(compound);
 
-        containedBlock = compound.getString("containedBlock");
+        containedBlock = new ResourceLocation(compound.getString("containedBlock"));
         containedBlockMetadata = compound.getInteger("containedBlockMetadata");
         containedTile = (NBTTagCompound) compound.getCompoundTag("containedTile").copy();
         if (compound.hasKey("preferredDirection"))
@@ -51,13 +56,17 @@ public class TilePackaged extends TileEntity
         }
     }
 
-    public void setContainedBlock(String blockName, int meta, NBTTagCompound tag)
+    public void setContainedBlock(ResourceLocation blockName, int meta, NBTTagCompound tag)
     {
         containedBlock = blockName;
         containedBlockMetadata = meta;
         containedTile = tag;
     }
 
+    public ResourceLocation getContainedBlock()
+    {
+        return containedBlock;
+    }
 
     public void setPreferredDirection(EnumFacing preferredDirection)
     {
@@ -67,5 +76,21 @@ public class TilePackaged extends TileEntity
     public EnumFacing getPreferredDirection()
     {
         return preferredDirection;
+    }
+
+    //@Override
+    public void update()
+    {
+        if(!continueUpdating)
+            return;
+
+        IPackedTickHandler update = PackedUpdateHandlerRegistry.find(this);
+        if(update == null)
+        {
+            continueUpdating = false;
+            return;
+        }
+
+        continueUpdating = update.tickPlaced(this);
     }
 }

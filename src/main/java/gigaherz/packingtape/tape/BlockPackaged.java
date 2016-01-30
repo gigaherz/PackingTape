@@ -119,7 +119,7 @@ public class BlockPackaged extends Block
         if (te == null || te.containedBlock == null)
             return false;
 
-        Block b = Block.getBlockFromName(te.containedBlock);
+        Block b = Block.blockRegistry.getObject(te.containedBlock);
         if (b == null)
             return false;
 

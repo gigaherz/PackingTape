@@ -11,6 +11,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
 public class ItemTape extends Item
@@ -42,7 +43,7 @@ public class ItemTape extends Item
             return true;
         }
 
-        if (!ModPackingTape.instance.checkWhitelist(te))
+        if (!ModPackingTape.isTileEntityAllowed(te))
         {
             return false;
         }
@@ -54,7 +55,7 @@ public class ItemTape extends Item
         IBlockState state = worldIn.getBlockState(pos);
         Block block = state.getBlock();
 
-        String blockName = Block.blockRegistry.getNameForObject(block).toString();
+        ResourceLocation blockName = Block.blockRegistry.getNameForObject(block);
         int meta = block.getMetaFromState(state);
 
         te.writeToNBT(tag);

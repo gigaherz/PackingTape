@@ -9,7 +9,9 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntitySkull;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -23,9 +25,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-@Mod(modid = ModPackingTape.MODID,
-        version = ModPackingTape.VERSION,
-        acceptedMinecraftVersions = "1.8,1.8.9")
+@Mod(modid = ModPackingTape.MODID, version = ModPackingTape.VERSION)
 public class ModPackingTape
 {
     public static final String MODID = "packingtape";
@@ -51,11 +51,12 @@ public class ModPackingTape
         logger = event.getModLog();
 
         Configuration config = new Configuration(event.getSuggestedConfigurationFile());
+        Property bl = config.get("tileEntities", "blacklist", new String[0]);
+        Property wl = config.get("tileEntities", "whitelist", new String[0]);
+
         config.load();
-        if (config.hasCategory("blacklist"))
-            config.removeCategory(config.getCategory("blacklist"));
-        Collections.addAll(blackList, config.get("tileEntities", "blacklist", new String[0]).getStringList());
-        Collections.addAll(whiteList, config.get("tileEntities", "whitelist", new String[0]).getStringList());
+        Collections.addAll(blackList, bl.getStringList());
+        Collections.addAll(whiteList, wl.getStringList());
         config.save();
 
         itemTape = new ItemTape();
@@ -77,15 +78,52 @@ public class ModPackingTape
         GameRegistry.addShapelessRecipe(new ItemStack(itemTape, 1), Items.slime_ball, Items.string, Items.paper);
     }
 
-    public boolean checkWhitelist(TileEntity te)
+    public static boolean isTileEntityAllowed(TileEntity te)
     {
-        if (whiteList.contains(te.getClass().getName()))
+        String cn = te.getClass().getCanonicalName();
+
+        if (whiteList.contains(cn))
             return true;
 
-        if (blackList.contains(te.getClass().getName()))
+        if (blackList.contains(cn))
             return false;
 
-        // TODO: Integrated blacklist of any blocks I may have found that just simply don't work.
+        // Security concern: moving command blocks may allow things to happen that shouldn't happen.
+        if(te.getClass().equals(net.minecraft.tileentity.TileEntityCommandBlock.class))
+            return false;
+
+        // Security/gameplay concern: Moving end portal blocks could cause issues.
+        if(te.getClass().equals(net.minecraft.tileentity.TileEntityEndPortal.class))
+            return false;
+
+        // Balance concern: moving block spawners can be cheaty and should be reserved to hard-to-obtain methods.
+        if(te.getClass().equals(net.minecraft.tileentity.TileEntityMobSpawner.class))
+            return false;
+
+        // Placed skulls don't have an ItemBlock form, and can be moved away easily regardless.
+        if(te.getClass().equals(net.minecraft.tileentity.TileEntitySkull.class))
+            return false;
+
+        // The rest: There's no point to packing them.
+        if(te.getClass().equals(net.minecraft.tileentity.TileEntityBanner.class))
+            return false;
+
+        if(te.getClass().equals(net.minecraft.tileentity.TileEntityComparator.class))
+            return false;
+
+        if(te.getClass().equals(net.minecraft.tileentity.TileEntityDaylightDetector.class))
+            return false;
+
+        if(te.getClass().equals(net.minecraft.tileentity.TileEntityPiston.class))
+            return false;
+
+        if(te.getClass().equals(net.minecraft.tileentity.TileEntityNote.class))
+            return false;
+
+        if(te.getClass().equals(net.minecraft.tileentity.TileEntitySign.class))
+            return false;
+
+        // TODO: Blacklist more Vanilla stuffs.
 
         return true;
     }
