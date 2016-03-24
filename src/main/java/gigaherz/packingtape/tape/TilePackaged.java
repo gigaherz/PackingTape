@@ -1,23 +1,21 @@
 package gigaherz.packingtape.tape;
 
-import gigaherz.packingtape.updatable.IPackedTickHandler;
-import gigaherz.packingtape.updatable.PackedUpdateHandlerRegistry;
+import gigaherz.packingtape.ModPackingTape;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-public class TilePackaged extends TileEntity /* implements ITickable */
+public class TilePackaged extends TileEntity
 {
     ResourceLocation containedBlock;
     int containedBlockMetadata;
     NBTTagCompound containedTile;
     EnumFacing preferredDirection;
-    boolean continueUpdating = true;
 
     @Override
     public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate)
@@ -78,19 +76,22 @@ public class TilePackaged extends TileEntity /* implements ITickable */
         return preferredDirection;
     }
 
-    //@Override
-    public void update()
+    public ItemStack getPackedStack()
     {
-        if(!continueUpdating)
-            return;
+        ItemStack stack = new ItemStack(ModPackingTape.packagedBlock);
 
-        IPackedTickHandler update = PackedUpdateHandlerRegistry.find(this);
-        if(update == null)
-        {
-            continueUpdating = false;
-            return;
-        }
+        NBTTagCompound tileEntityData = new NBTTagCompound();
+        writeToNBT(tileEntityData);
+        tileEntityData.removeTag("x");
+        tileEntityData.removeTag("y");
+        tileEntityData.removeTag("z");
 
-        continueUpdating = update.tickPlaced(this);
+        NBTTagCompound stackTag = new NBTTagCompound();
+        stackTag.setTag("BlockEntityTag", tileEntityData);
+        stack.setTagCompound(stackTag);
+
+        ModPackingTape.logger.debug("Created Packed stack with " + containedBlock + "[" + containedBlockMetadata + "]");
+
+        return stack;
     }
 }

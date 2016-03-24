@@ -14,28 +14,15 @@ buildscript {
 
 apply plugin: 'net.minecraftforge.gradle.forge'
 
-version = "0.3.5"
+version = "0.5"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "Packing Tape"
 
-task deobfJar(type: Jar) {
-    from sourceSets.main.output
-    classifier = 'deobf'
-}
-
-artifacts {
-    archives sourceJar
-    archives deobfJar
-    archives jar
-}
-
-tasks.build.dependsOn('deobfJar')
-
 minecraft {
-    version = "1.8.9-11.15.0.1677"
+    version = "1.9-12.16.0.1804-1.9"
     runDir = "run"
 
-    mappings = "snapshot_20160103"
+    mappings = "snapshot_20160324"
 
     replace "@VERSION@", project.version
     replaceIn "ModPackingTape.java"

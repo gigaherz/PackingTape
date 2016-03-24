@@ -62,10 +62,12 @@ public class ModPackingTape
         itemTape = new ItemTape();
         GameRegistry.registerItem(itemTape, "itemTape");
 
-        packagedBlock = new BlockPackaged().setHardness(0.5F).setStepSound(Block.soundTypeWood);
+        packagedBlock = new BlockPackaged().setHardness(0.5F);
         GameRegistry.registerBlock(packagedBlock, ItemPackaged.class, "packagedBlock");
 
         GameRegistry.registerTileEntity(TilePackaged.class, "tilePackagedBlock");
+
+
 
         proxy.preInit();
     }
@@ -104,6 +106,10 @@ public class ModPackingTape
         if(te.getClass().equals(net.minecraft.tileentity.TileEntitySkull.class))
             return false;
 
+        // Was this also a security concern?
+        if(te.getClass().equals(net.minecraft.tileentity.TileEntitySign.class))
+            return false;
+
         // The rest: There's no point to packing them.
         if(te.getClass().equals(net.minecraft.tileentity.TileEntityBanner.class))
             return false;
@@ -120,8 +126,6 @@ public class ModPackingTape
         if(te.getClass().equals(net.minecraft.tileentity.TileEntityNote.class))
             return false;
 
-        if(te.getClass().equals(net.minecraft.tileentity.TileEntitySign.class))
-            return false;
 
         // TODO: Blacklist more Vanilla stuffs.
 

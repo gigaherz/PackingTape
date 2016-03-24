@@ -1,18 +1,13 @@
 package gigaherz.packingtape.tape;
 
 import gigaherz.packingtape.ModPackingTape;
-import gigaherz.packingtape.updatable.IPackedTickHandler;
-import gigaherz.packingtape.updatable.PackedUpdateHandlerRegistry;
 import net.minecraft.block.Block;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 
 import java.util.List;
@@ -85,23 +80,4 @@ public class ItemPackaged extends ItemBlock
             tooltip.add("  " + s);
         }
     }
-
-    /*
-    @Override
-    public boolean onEntityItemUpdate(EntityItem entityItem)
-    {
-        IPackedTickHandler update = PackedUpdateHandlerRegistry.find(entityItem);
-        return update == null || update.tickAsEntity(entityItem);
-    }
-
-    @Override
-    public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected)
-    {
-        IPackedTickHandler update = PackedUpdateHandlerRegistry.find(stack);
-        if(update == null)
-            return;
-
-        super.onUpdate(stack, worldIn, entityIn, itemSlot, isSelected);
-    }
-    */
 }
