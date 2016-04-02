@@ -1,5 +1,6 @@
 package gigaherz.packingtape;
 
+import com.google.common.collect.Sets;
 import gigaherz.packingtape.tape.BlockPackaged;
 import gigaherz.packingtape.tape.ItemPackaged;
 import gigaherz.packingtape.tape.ItemTape;
@@ -31,8 +32,8 @@ public class ModPackingTape
     public static final String MODID = "packingtape";
     public static final String VERSION = "@VERSION@";
 
-    public static final Set<String> blackList = new HashSet<String>();
-    public static final Set<String> whiteList = new HashSet<String>();
+    public static final Set<String> blackList = Sets.newHashSet();
+    public static final Set<String> whiteList = Sets.newHashSet();
 
     public static Block packagedBlock;
     public static Item itemTape;
@@ -59,15 +60,13 @@ public class ModPackingTape
         Collections.addAll(whiteList, wl.getStringList());
         config.save();
 
-        itemTape = new ItemTape();
-        GameRegistry.registerItem(itemTape, "itemTape");
+        itemTape = new ItemTape("itemTape");
+        GameRegistry.registerItem(itemTape);
 
-        packagedBlock = new BlockPackaged().setHardness(0.5F);
-        GameRegistry.registerBlock(packagedBlock, ItemPackaged.class, "packagedBlock");
+        packagedBlock = new BlockPackaged("packagedBlock").setHardness(0.5F);
+        GameRegistry.registerBlock(packagedBlock, ItemPackaged.class);
 
         GameRegistry.registerTileEntity(TilePackaged.class, "tilePackagedBlock");
-
-
 
         proxy.preInit();
     }

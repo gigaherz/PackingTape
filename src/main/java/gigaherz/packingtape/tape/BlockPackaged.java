@@ -27,10 +27,11 @@ import java.util.List;
 
 public class BlockPackaged extends Block
 {
-    public BlockPackaged()
+    public BlockPackaged(String name)
     {
         super(Material.cloth);
-        this.setUnlocalizedName(ModPackingTape.MODID + ".packedBlock");
+        setRegistryName(name);
+        setUnlocalizedName(ModPackingTape.MODID + "." + name);
         setHardness(0.5F);
         setSoundType(SoundType.WOOD);
     }
@@ -109,18 +110,18 @@ public class BlockPackaged extends Block
 
         TilePackaged te = (TilePackaged) worldIn.getTileEntity(pos);
 
-        if (te == null || te.containedBlock == null)
+        if (te == null || te.getContainedBlock() == null)
             return false;
 
-        Block b = Block.blockRegistry.getObject(te.containedBlock);
+        Block b = Block.blockRegistry.getObject(te.getContainedBlock());
         if (b == null)
             return false;
 
-        IBlockState newState = b.getStateFromMeta(te.containedBlockMetadata);
+        IBlockState newState = b.getStateFromMeta(te.getContainedMetadata());
         if (newState == null)
             return false;
 
-        NBTTagCompound tag = te.containedTile;
+        NBTTagCompound tag = te.getContainedTile();
         if (tag == null)
             return false;
 

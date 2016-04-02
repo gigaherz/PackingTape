@@ -12,10 +12,10 @@ import net.minecraft.world.World;
 
 public class TilePackaged extends TileEntity
 {
-    ResourceLocation containedBlock;
-    int containedBlockMetadata;
-    NBTTagCompound containedTile;
-    EnumFacing preferredDirection;
+    private ResourceLocation containedBlock;
+    private int containedBlockMetadata;
+    private NBTTagCompound containedTile;
+    private EnumFacing preferredDirection;
 
     @Override
     public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate)
@@ -54,26 +54,36 @@ public class TilePackaged extends TileEntity
         }
     }
 
-    public void setContainedBlock(ResourceLocation blockName, int meta, NBTTagCompound tag)
+    public ResourceLocation getContainedBlock()
+    {
+        return containedBlock;
+    }
+
+    public int getContainedMetadata()
+    {
+        return containedBlockMetadata;
+    }
+
+    public NBTTagCompound getContainedTile()
+    {
+        return containedTile;
+    }
+
+    public void setContents(ResourceLocation blockName, int meta, NBTTagCompound tag)
     {
         containedBlock = blockName;
         containedBlockMetadata = meta;
         containedTile = tag;
     }
 
-    public ResourceLocation getContainedBlock()
+    public EnumFacing getPreferredDirection()
     {
-        return containedBlock;
+        return preferredDirection;
     }
 
     public void setPreferredDirection(EnumFacing preferredDirection)
     {
         this.preferredDirection = preferredDirection;
-    }
-
-    public EnumFacing getPreferredDirection()
-    {
-        return preferredDirection;
     }
 
     public ItemStack getPackedStack()

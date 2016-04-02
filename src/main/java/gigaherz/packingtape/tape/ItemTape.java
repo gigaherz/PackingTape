@@ -18,11 +18,12 @@ import net.minecraft.world.World;
 
 public class ItemTape extends Item
 {
-    public ItemTape()
+    public ItemTape(String name)
     {
-        this.maxStackSize = 16;
-        this.setUnlocalizedName(ModPackingTape.MODID + ".packingTape");
-        this.setCreativeTab(CreativeTabs.tabMisc);
+        maxStackSize = 16;
+        setRegistryName(name);
+        setUnlocalizedName(ModPackingTape.MODID + "." + name);
+        setCreativeTab(CreativeTabs.tabMisc);
     }
 
     @Override
@@ -64,7 +65,7 @@ public class ItemTape extends Item
 
         worldIn.setBlockState(pos, ModPackingTape.packagedBlock.getDefaultState());
         TilePackaged packaged = (TilePackaged) worldIn.getTileEntity(pos);
-        packaged.setContainedBlock(blockName, meta, tag);
+        packaged.setContents(blockName, meta, tag);
 
         worldIn.restoringBlockSnapshots = false;
 
