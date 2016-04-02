@@ -61,10 +61,11 @@ public class ModPackingTape
         config.save();
 
         itemTape = new ItemTape("itemTape");
-        GameRegistry.registerItem(itemTape);
+        GameRegistry.register(itemTape);
 
         packagedBlock = new BlockPackaged("packagedBlock").setHardness(0.5F);
-        GameRegistry.registerBlock(packagedBlock, ItemPackaged.class);
+        GameRegistry.register(packagedBlock);
+        GameRegistry.<Item>register(new ItemPackaged(packagedBlock));
 
         GameRegistry.registerTileEntity(TilePackaged.class, "tilePackagedBlock");
 

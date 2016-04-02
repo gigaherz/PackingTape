@@ -17,6 +17,7 @@ public class ItemPackaged extends ItemBlock
     public ItemPackaged(Block b)
     {
         super(b);
+        setRegistryName(b.getRegistryName());
         this.setUnlocalizedName(ModPackingTape.MODID + ".packedBlock");
     }
 
