@@ -26,7 +26,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-@Mod(modid = ModPackingTape.MODID, version = ModPackingTape.VERSION)
+@Mod(modid = ModPackingTape.MODID, version = ModPackingTape.VERSION, dependencies = "required-after:Forge@[12.16.0.1825,)")
 public class ModPackingTape
 {
     public static final String MODID = "packingtape";
