@@ -23,7 +23,7 @@ public class ItemTape extends Item
         maxStackSize = 16;
         setRegistryName(name);
         setUnlocalizedName(ModPackingTape.MODID + "." + name);
-        setCreativeTab(CreativeTabs.tabMisc);
+        setCreativeTab(CreativeTabs.MISC);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class ItemTape extends Item
         IBlockState state = worldIn.getBlockState(pos);
         Block block = state.getBlock();
 
-        ResourceLocation blockName = Block.blockRegistry.getNameForObject(block);
+        ResourceLocation blockName = Block.REGISTRY.getNameForObject(block);
         int meta = block.getMetaFromState(state);
 
         te.writeToNBT(tag);

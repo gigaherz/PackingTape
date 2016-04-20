@@ -1,5 +1,6 @@
 package gigaherz.packingtape.tape;
 
+import com.google.common.collect.Lists;
 import gigaherz.packingtape.ModPackingTape;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
@@ -22,14 +23,13 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class BlockPackaged extends Block
 {
     public BlockPackaged(String name)
     {
-        super(Material.cloth);
+        super(Material.CLOTH);
         setRegistryName(name);
         setUnlocalizedName(ModPackingTape.MODID + "." + name);
         setHardness(0.5F);
@@ -67,7 +67,7 @@ public class BlockPackaged extends Block
     @Override
     public List<ItemStack> getDrops(IBlockAccess world, BlockPos pos, IBlockState state, int fortune)
     {
-        List<ItemStack> drops = new ArrayList<ItemStack>();
+        List<ItemStack> drops = Lists.newArrayList();
 
         TileEntity teWorld = world.getTileEntity(pos);
         if (teWorld != null && teWorld instanceof TilePackaged)
@@ -113,7 +113,7 @@ public class BlockPackaged extends Block
         if (te == null || te.getContainedBlock() == null)
             return false;
 
-        Block b = Block.blockRegistry.getObject(te.getContainedBlock());
+        Block b = Block.REGISTRY.getObject(te.getContainedBlock());
         if (b == null)
             return false;
 
@@ -133,7 +133,7 @@ public class BlockPackaged extends Block
             PropertyEnum facing = null;
             for (IProperty prop : newState.getPropertyNames())
             {
-                if (prop.getName().equalsIgnoreCase("facing"))
+                if (prop.getName().equalsIgnoreCase("facing") || prop.getName().equalsIgnoreCase("rotation"))
                 {
                     if (prop instanceof PropertyEnum)
                     {
@@ -205,23 +205,23 @@ public class BlockPackaged extends Block
 
                 if (tileentity != null)
                 {
-                    if (!worldIn.isRemote && tileentity.func_183000_F() &&
+                    if (!worldIn.isRemote && tileentity.onlyOpsCanSetNbt() &&
                             (playerIn == null || !minecraftserver.getPlayerList().canSendCommands(playerIn.getGameProfile())))
                     {
                         return false;
                     }
 
-                    NBTTagCompound nbttagcompound = new NBTTagCompound();
-                    NBTTagCompound nbttagcompound1 = (NBTTagCompound)nbttagcompound.copy();
-                    tileentity.writeToNBT(nbttagcompound);
-                    nbttagcompound.merge(tag);
-                    nbttagcompound.setInteger("x", pos.getX());
-                    nbttagcompound.setInteger("y", pos.getY());
-                    nbttagcompound.setInteger("z", pos.getZ());
+                    NBTTagCompound merged = new NBTTagCompound();
+                    NBTTagCompound empty = (NBTTagCompound) merged.copy();
+                    tileentity.writeToNBT(merged);
+                    merged.merge(tag);
+                    merged.setInteger("x", pos.getX());
+                    merged.setInteger("y", pos.getY());
+                    merged.setInteger("z", pos.getZ());
 
-                    if (!nbttagcompound.equals(nbttagcompound1))
+                    if (!merged.equals(empty))
                     {
-                        tileentity.readFromNBT(nbttagcompound);
+                        tileentity.readFromNBT(merged);
                         tileentity.markDirty();
                         return true;
                     }

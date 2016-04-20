@@ -33,14 +33,14 @@ public class ItemPackaged extends ItemBlock
         super.addInformation(stack, playerIn, tooltip, advanced);
 
         NBTTagCompound tag = stack.getTagCompound();
-        if(tag == null)
+        if (tag == null)
         {
             tooltip.add("Missing data (no nbt)!");
             return;
         }
 
         NBTTagCompound info = (NBTTagCompound) tag.getTag("BlockEntityTag");
-        if(info == null)
+        if (info == null)
         {
             tooltip.add("Missing data (no tag)!");
             return;
@@ -48,29 +48,29 @@ public class ItemPackaged extends ItemBlock
 
 
         if (!info.hasKey("containedBlock", Constants.NBT.TAG_STRING) ||
-            !info.hasKey("containedBlockMetadata", Constants.NBT.TAG_INT) ||
-            !info.hasKey("containedTile", Constants.NBT.TAG_COMPOUND))
+                !info.hasKey("containedBlockMetadata", Constants.NBT.TAG_INT) ||
+                !info.hasKey("containedTile", Constants.NBT.TAG_COMPOUND))
         {
             tooltip.add("Missing data (no block info)!");
             return;
         }
 
-        String blockname = info.getString("containedBlock");
+        String blockName = info.getString("containedBlock");
         int meta = info.getInteger("containedBlockMetadata");
 
-        Block block = Block.blockRegistry.getObject(new ResourceLocation(blockname));
-        if(block == null)
+        Block block = Block.REGISTRY.getObject(new ResourceLocation(blockName));
+        if (block == null)
         {
             tooltip.add("Unknown block:");
-            tooltip.add("  " + blockname);
+            tooltip.add("  " + blockName);
             return;
         }
 
         Item item = Item.getItemFromBlock(block);
-        if(item == null)
+        if (item == null)
         {
             tooltip.add("No ItemBlock:");
-            tooltip.add("  " + blockname);
+            tooltip.add("  " + blockName);
             return;
         }
 

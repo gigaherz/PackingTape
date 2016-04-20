@@ -2,10 +2,11 @@ package gigaherz.packingtape.client;
 
 import gigaherz.packingtape.ISideProxy;
 import gigaherz.packingtape.ModPackingTape;
-import net.minecraft.block.Block;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
+import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.fml.server.FMLServerHandler;
 
 public class ClientProxy implements ISideProxy
 {
@@ -23,27 +24,12 @@ public class ClientProxy implements ISideProxy
 
     private void registerModels()
     {
-        registerItemModel(ModPackingTape.itemTape, "packing_tape");
-        registerBlockModelAsItem(ModPackingTape.packagedBlock, "packagedBlock");
+        registerItemModel(ModPackingTape.itemTape);
+        registerItemModel(Item.getItemFromBlock(ModPackingTape.packagedBlock));
     }
 
-    public void registerBlockModelAsItem(final Block block, final String blockName)
+    public void registerItemModel(final Item item)
     {
-        registerBlockModelAsItem(block, 0, blockName);
-    }
-
-    public void registerBlockModelAsItem(final Block block, int meta, final String blockName)
-    {
-        ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(block), meta, new ModelResourceLocation(ModPackingTape.MODID + ":" + blockName, "inventory"));
-    }
-
-    public void registerItemModel(final Item item, final String itemName)
-    {
-        registerItemModel(item, 0, itemName);
-    }
-
-    public void registerItemModel(final Item item, int meta, final String itemName)
-    {
-        ModelLoader.setCustomModelResourceLocation(item, meta, new ModelResourceLocation(ModPackingTape.MODID + ":" + itemName, "inventory"));
+        ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
     }
 }
