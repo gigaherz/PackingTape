@@ -113,13 +113,11 @@ public class BlockPackaged extends Block
         if (te == null || te.getContainedBlock() == null)
             return false;
 
-        Block b = Block.REGISTRY.getObject(te.getContainedBlock());
-        if (b == null)
+        if (!Block.REGISTRY.containsKey(te.getContainedBlock()))
             return false;
 
+        Block b = Block.REGISTRY.getObject(te.getContainedBlock());
         IBlockState newState = b.getStateFromMeta(te.getContainedMetadata());
-        if (newState == null)
-            return false;
 
         NBTTagCompound tag = te.getContainedTile();
         if (tag == null)
@@ -164,7 +162,7 @@ public class BlockPackaged extends Block
     {
         IBlockState stored = worldIn.getBlockState(pos);
         Block block = stored.getBlock();
-        IBlockState actual = block.getActualState(stored, worldIn, pos);
+        IBlockState actual = stored.getActualState(worldIn, pos);
         if (actual.getValue(prop) == preferred)
         {
             return true;
@@ -179,7 +177,7 @@ public class BlockPackaged extends Block
 
             stored = worldIn.getBlockState(pos);
             block = stored.getBlock();
-            actual = block.getActualState(stored, worldIn, pos);
+            actual = stored.getActualState(worldIn, pos);
             if (actual.getValue(prop) == preferred)
             {
                 return true;

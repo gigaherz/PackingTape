@@ -1,3 +1,4 @@
+
 // For those who want the bleeding edge
 buildscript {
     repositories {
@@ -8,24 +9,37 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+    }
+}
+
+repositories {
+    maven {
+        url "http://dvs1.progwml6.com/files/maven"
     }
 }
 
 apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'maven-publish'
 
 version = "0.5.1"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "Packing Tape"
+archivesBaseName = "PackingTape-1.9.4"
 
 minecraft {
-    version = "1.9-12.16.1.1907"
+    version = "1.9.4-12.17.0.1909-1.9.4"
     runDir = "run"
 
-    mappings = "stable_24"
+    mappings = "snapshot_20160518"
 
     replace "@VERSION@", project.version
     replaceIn "ModPackingTape.java"
+}
+
+compileJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+    options.encoding = 'UTF-8'
 }
 
 processResources
@@ -45,6 +59,22 @@ processResources
     // copy everything else, thats not the mcmod.info
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            artifact sourceJar
+        }
+    }
+
+    repositories {
+        maven {
+            url "$buildDir/repo"
+        }
     }
 }
 

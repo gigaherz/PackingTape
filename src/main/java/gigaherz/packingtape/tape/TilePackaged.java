@@ -24,9 +24,9 @@ public class TilePackaged extends TileEntity
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound compound)
+    public NBTTagCompound writeToNBT(NBTTagCompound compound)
     {
-        super.writeToNBT(compound);
+        compound = super.writeToNBT(compound);
 
         if (containedBlock != null)
         {
@@ -38,6 +38,8 @@ public class TilePackaged extends TileEntity
                 compound.setInteger("preferredDirection", preferredDirection.ordinal());
             }
         }
+
+        return compound;
     }
 
     @Override
