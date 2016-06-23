@@ -10,6 +10,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+import javax.annotation.Nullable;
+
 public class TilePackaged extends TileEntity
 {
     private ResourceLocation containedBlock;
@@ -56,6 +58,7 @@ public class TilePackaged extends TileEntity
         }
     }
 
+    @Nullable
     public ResourceLocation getContainedBlock()
     {
         return containedBlock;
@@ -78,6 +81,7 @@ public class TilePackaged extends TileEntity
         containedTile = tag;
     }
 
+    @Nullable
     public EnumFacing getPreferredDirection()
     {
         return preferredDirection;

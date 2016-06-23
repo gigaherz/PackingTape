@@ -23,6 +23,7 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class BlockPackaged extends Block
@@ -51,8 +52,10 @@ public class BlockPackaged extends Block
     @Override
     public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player)
     {
+        Item item = Item.getItemFromBlock(this);
+        assert item != null;
         if (player.capabilities.isCreativeMode && GuiScreen.isCtrlKeyDown())
-            return new ItemStack(Item.getItemFromBlock(this), 1);
+            return new ItemStack(item, 1);
         else
             return new ItemStack(ModPackingTape.itemTape, 1);
     }
@@ -83,7 +86,7 @@ public class BlockPackaged extends Block
     }
 
     @Override
-    public void harvestBlock(World worldIn, EntityPlayer player, BlockPos pos, IBlockState state, TileEntity te, ItemStack stack)
+    public void harvestBlock(World worldIn, EntityPlayer player, BlockPos pos, IBlockState state, TileEntity te, @Nullable ItemStack stack)
     {
         super.harvestBlock(worldIn, player, pos, state, te, stack);
         // Finished making use of the TE, so we can now safely destroy the block.
@@ -97,20 +100,22 @@ public class BlockPackaged extends Block
         {
             EntityPlayer player = (EntityPlayer) placer;
             TilePackaged te = (TilePackaged) worldIn.getTileEntity(pos);
+            assert te != null;
             te.setPreferredDirection(EnumFacing.fromAngle(player.getRotationYawHead()).getOpposite());
         }
         super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
     }
 
     @Override
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ)
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ)
     {
         if (worldIn.isRemote)
             return false;
 
         TilePackaged te = (TilePackaged) worldIn.getTileEntity(pos);
+        assert te != null;
 
-        if (te == null || te.getContainedBlock() == null)
+        if (te.getContainedBlock() == null)
             return false;
 
         if (!Block.REGISTRY.containsKey(te.getContainedBlock()))
@@ -187,7 +192,9 @@ public class BlockPackaged extends Block
         return false;
     }
 
-    public static boolean setTileEntityNBT(World worldIn, BlockPos pos, NBTTagCompound tag, EntityPlayer playerIn)
+    public static boolean setTileEntityNBT(World worldIn, BlockPos pos,
+                                           @Nullable NBTTagCompound tag,
+                                           @Nullable EntityPlayer playerIn)
     {
         MinecraftServer minecraftserver = worldIn.getMinecraftServer();
 
