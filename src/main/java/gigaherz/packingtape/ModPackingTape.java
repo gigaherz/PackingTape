@@ -44,6 +44,8 @@ public class ModPackingTape
 
     public static Logger logger;
 
+    public static int tapeRollUses;
+
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
@@ -52,11 +54,13 @@ public class ModPackingTape
         Configuration config = new Configuration(event.getSuggestedConfigurationFile());
         Property bl = config.get("tileEntities", "blacklist", new String[0]);
         Property wl = config.get("tileEntities", "whitelist", new String[0]);
+        Property ru = config.get("tapeRoll", "numberOfUses", 8);
 
-        config.load();
         Collections.addAll(blackList, bl.getStringList());
         Collections.addAll(whiteList, wl.getStringList());
-        config.save();
+        tapeRollUses = ru.getInt();
+        if (!bl.wasRead() || !wl.wasRead() || !ru.wasRead())
+            config.save();
 
         itemTape = new ItemTape("itemTape");
         GameRegistry.register(itemTape);

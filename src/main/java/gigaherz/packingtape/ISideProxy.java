@@ -5,4 +5,6 @@ public interface ISideProxy
     void preInit();
 
     void init();
+
+    void showPaperMessage();
 }

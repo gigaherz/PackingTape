@@ -6,6 +6,9 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.init.Items;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -25,7 +28,7 @@ public class ItemTape extends Item
         setRegistryName(name);
         setUnlocalizedName(ModPackingTape.MODID + "." + name);
         setCreativeTab(CreativeTabs.MISC);
-        setMaxDamage(8);
+        setMaxDamage(ModPackingTape.tapeRollUses);
     }
 
     @Override
@@ -47,6 +50,12 @@ public class ItemTape extends Item
         if (te == null)
         {
             return EnumActionResult.PASS;
+        }
+
+        if (!playerIn.capabilities.isCreativeMode && !hasPaper(playerIn))
+        {
+            ModPackingTape.proxy.showPaperMessage();
+            return EnumActionResult.FAIL;
         }
 
         if (worldIn.isRemote)
@@ -83,6 +92,8 @@ public class ItemTape extends Item
 
         if (!playerIn.capabilities.isCreativeMode)
         {
+            usePaper(playerIn);
+
             if (stack.stackSize > 1)
             {
                 ItemStack split = stack.copy();
@@ -102,5 +113,47 @@ public class ItemTape extends Item
         }
 
         return EnumActionResult.SUCCESS;
+    }
+
+    private boolean hasPaper(EntityPlayer playerIn)
+    {
+        ItemStack stack = playerIn.getItemStackFromSlot(EntityEquipmentSlot.OFFHAND);
+        if (stack != null && stack.getItem() == Items.PAPER)
+        {
+            return true;
+        }
+        InventoryPlayer inv = playerIn.inventory;
+        for (int i = 0; i < inv.getSizeInventory(); i++)
+        {
+            stack = inv.getStackInSlot(i);
+            if (stack != null && stack.getItem() == Items.PAPER)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void usePaper(EntityPlayer playerIn)
+    {
+        ItemStack stack = playerIn.getItemStackFromSlot(EntityEquipmentSlot.OFFHAND);
+        if (stack != null && stack.getItem() == Items.PAPER)
+        {
+            stack.stackSize--;
+            if (stack.stackSize <= 0)
+                playerIn.setItemStackToSlot(EntityEquipmentSlot.OFFHAND, null);
+        }
+        InventoryPlayer inv = playerIn.inventory;
+        for (int i = 0; i < inv.getSizeInventory(); i++)
+        {
+            stack = inv.getStackInSlot(i);
+            if (stack != null && stack.getItem() == Items.PAPER)
+            {
+                stack.stackSize--;
+                if (stack.stackSize <= 0)
+                    inv.setInventorySlotContents(i, null);
+                return;
+            }
+        }
     }
 }

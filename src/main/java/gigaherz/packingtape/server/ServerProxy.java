@@ -15,4 +15,10 @@ public class ServerProxy implements ISideProxy
     {
 
     }
+
+    @Override
+    public void showPaperMessage()
+    {
+
+    }
 }
