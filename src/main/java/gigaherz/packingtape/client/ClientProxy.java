@@ -4,9 +4,7 @@ import gigaherz.packingtape.ISideProxy;
 import gigaherz.packingtape.ModPackingTape;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
-import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.fml.server.FMLServerHandler;
 
 public class ClientProxy implements ISideProxy
 {

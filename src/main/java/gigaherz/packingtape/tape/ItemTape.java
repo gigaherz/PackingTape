@@ -4,6 +4,7 @@ import gigaherz.packingtape.ModPackingTape;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -24,6 +25,13 @@ public class ItemTape extends Item
         setRegistryName(name);
         setUnlocalizedName(ModPackingTape.MODID + "." + name);
         setCreativeTab(CreativeTabs.MISC);
+        setMaxDamage(8);
+    }
+
+    @Override
+    public int getItemStackLimit(ItemStack stack)
+    {
+        return stack.getItemDamage() == 0 ? super.getItemStackLimit(stack) : 1;
     }
 
     @Override
@@ -51,8 +59,6 @@ public class ItemTape extends Item
             return EnumActionResult.PASS;
         }
 
-        worldIn.restoringBlockSnapshots = true;
-
         NBTTagCompound tag = new NBTTagCompound();
 
         IBlockState state = worldIn.getBlockState(pos);
@@ -63,13 +69,37 @@ public class ItemTape extends Item
 
         te.writeToNBT(tag);
 
+        worldIn.restoringBlockSnapshots = true;
         worldIn.setBlockState(pos, ModPackingTape.packagedBlock.getDefaultState());
-        TilePackaged packaged = (TilePackaged) worldIn.getTileEntity(pos);
-        packaged.setContents(blockName, meta, tag);
-
         worldIn.restoringBlockSnapshots = false;
 
-        stack.stackSize--;
+        TileEntity te2 = worldIn.getTileEntity(pos);
+        if (te2 instanceof TilePackaged)
+        {
+            TilePackaged packaged = (TilePackaged) te2;
+
+            packaged.setContents(blockName, meta, tag);
+        }
+
+        if (!playerIn.capabilities.isCreativeMode)
+        {
+            if (stack.stackSize > 1)
+            {
+                ItemStack split = stack.copy();
+                split.stackSize = 1;
+                split.damageItem(1, playerIn);
+                if (split.stackSize > 0)
+                {
+                    EntityItem ei = new EntityItem(worldIn, playerIn.posX, playerIn.posY, playerIn.posZ, split);
+                    worldIn.spawnEntityInWorld(ei);
+                }
+                stack.stackSize--;
+            }
+            else
+            {
+                stack.damageItem(1, playerIn);
+            }
+        }
 
         return EnumActionResult.SUCCESS;
     }

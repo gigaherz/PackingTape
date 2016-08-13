@@ -2,10 +2,8 @@ package gigaherz.packingtape;
 
 import com.google.common.collect.Sets;
 import gigaherz.packingtape.tape.BlockPackaged;
-import gigaherz.packingtape.tape.ItemPackaged;
 import gigaherz.packingtape.tape.ItemTape;
 import gigaherz.packingtape.tape.TilePackaged;
-import net.minecraft.block.Block;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -23,7 +21,10 @@ import org.apache.logging.log4j.Logger;
 import java.util.Collections;
 import java.util.Set;
 
-@Mod(modid = ModPackingTape.MODID, version = ModPackingTape.VERSION, dependencies = "required-after:Forge@[12.16.0.1825,)")
+@Mod(modid = ModPackingTape.MODID,
+        version = ModPackingTape.VERSION,
+        acceptedMinecraftVersions = "[1.9.4,1.11.0)",
+        dependencies = "required-after:Forge@[12.16.0.1825,)")
 public class ModPackingTape
 {
     public static final String MODID = "packingtape";
@@ -32,7 +33,7 @@ public class ModPackingTape
     public static final Set<String> blackList = Sets.newHashSet();
     public static final Set<String> whiteList = Sets.newHashSet();
 
-    public static Block packagedBlock;
+    public static BlockPackaged packagedBlock;
     public static Item itemTape;
 
     @Mod.Instance(value = ModPackingTape.MODID)
@@ -60,9 +61,9 @@ public class ModPackingTape
         itemTape = new ItemTape("itemTape");
         GameRegistry.register(itemTape);
 
-        packagedBlock = new BlockPackaged("packagedBlock").setHardness(0.5F);
+        packagedBlock = new BlockPackaged("packagedBlock");
         GameRegistry.register(packagedBlock);
-        GameRegistry.<Item>register(new ItemPackaged(packagedBlock));
+        GameRegistry.register(packagedBlock.createItemBlock());
 
         GameRegistry.registerTileEntity(TilePackaged.class, "tilePackagedBlock");
 

@@ -51,7 +51,7 @@ public class TilePackaged extends TileEntity
 
         containedBlock = new ResourceLocation(compound.getString("containedBlock"));
         containedBlockMetadata = compound.getInteger("containedBlockMetadata");
-        containedTile = (NBTTagCompound) compound.getCompoundTag("containedTile").copy();
+        containedTile = compound.getCompoundTag("containedTile").copy();
         if (compound.hasKey("preferredDirection"))
         {
             preferredDirection = EnumFacing.values()[compound.getInteger("preferredDirection")];

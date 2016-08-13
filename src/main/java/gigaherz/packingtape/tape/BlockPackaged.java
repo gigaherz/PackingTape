@@ -12,16 +12,19 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -110,7 +113,7 @@ public class BlockPackaged extends Block
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ)
     {
         if (worldIn.isRemote)
-            return false;
+            return true;
 
         TilePackaged te = (TilePackaged) worldIn.getTileEntity(pos);
         assert te != null;
@@ -122,6 +125,8 @@ public class BlockPackaged extends Block
             return false;
 
         Block b = Block.REGISTRY.getObject(te.getContainedBlock());
+
+        @SuppressWarnings("deprecation")
         IBlockState newState = b.getStateFromMeta(te.getContainedMetadata());
 
         NBTTagCompound tag = te.getContainedTile();
@@ -160,7 +165,7 @@ public class BlockPackaged extends Block
 
         setTileEntityNBT(worldIn, pos, tag, playerIn);
 
-        return false;
+        return true;
     }
 
     private static boolean rotateBlockToward(World worldIn, BlockPos pos, EnumFacing preferred, PropertyEnum prop)
@@ -210,14 +215,13 @@ public class BlockPackaged extends Block
 
                 if (tileentity != null)
                 {
-                    if (!worldIn.isRemote && tileentity.onlyOpsCanSetNbt() &&
-                            (playerIn == null || !minecraftserver.getPlayerList().canSendCommands(playerIn.getGameProfile())))
+                    if (!worldIn.isRemote && tileentity.onlyOpsCanSetNbt() && (playerIn == null || !playerIn.func_189808_dh()))
                     {
                         return false;
                     }
 
                     NBTTagCompound merged = new NBTTagCompound();
-                    NBTTagCompound empty = (NBTTagCompound) merged.copy();
+                    NBTTagCompound empty = merged.copy();
                     tileentity.writeToNBT(merged);
                     merged.merge(tag);
                     merged.setInteger("x", pos.getX());
@@ -235,5 +239,62 @@ public class BlockPackaged extends Block
 
             return false;
         }
+    }
+
+    @Override
+    public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced)
+    {
+        NBTTagCompound tag = stack.getTagCompound();
+        if (tag == null)
+        {
+            tooltip.add("Missing data (no nbt)!");
+            return;
+        }
+
+        NBTTagCompound info = (NBTTagCompound) tag.getTag("BlockEntityTag");
+        if (info == null)
+        {
+            tooltip.add("Missing data (no tag)!");
+            return;
+        }
+
+        if (!info.hasKey("containedBlock", Constants.NBT.TAG_STRING) ||
+                !info.hasKey("containedBlockMetadata", Constants.NBT.TAG_INT) ||
+                !info.hasKey("containedTile", Constants.NBT.TAG_COMPOUND))
+        {
+            tooltip.add("Missing data (no block info)!");
+            return;
+        }
+
+        String blockName = info.getString("containedBlock");
+        int meta = info.getInteger("containedBlockMetadata");
+
+        Block block = Block.REGISTRY.getObject(new ResourceLocation(blockName));
+        if (block == null)
+        {
+            tooltip.add("Unknown block:");
+            tooltip.add("  " + blockName);
+            return;
+        }
+
+        Item item = Item.getItemFromBlock(block);
+        if (item == null)
+        {
+            tooltip.add("No ItemBlock:");
+            tooltip.add("  " + blockName);
+            return;
+        }
+
+        tooltip.add("Contains:");
+        ItemStack stack1 = new ItemStack(item, 1, meta);
+        for (String s : stack1.getTooltip(player, advanced))
+        {
+            tooltip.add("  " + s);
+        }
+    }
+
+    public Item createItemBlock()
+    {
+        return new ItemBlock(this).setRegistryName(getRegistryName());
     }
 }
