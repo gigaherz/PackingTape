@@ -215,7 +215,7 @@ public class BlockPackaged extends Block
 
                 if (tileentity != null)
                 {
-                    if (!worldIn.isRemote && tileentity.onlyOpsCanSetNbt() && (playerIn == null || !playerIn.func_189808_dh()))
+                    if (!worldIn.isRemote && tileentity.onlyOpsCanSetNbt() && (playerIn == null || !playerIn.canUseCommandBlock()))
                     {
                         return false;
                     }

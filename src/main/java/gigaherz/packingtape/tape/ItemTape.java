@@ -1,5 +1,6 @@
 package gigaherz.packingtape.tape;
 
+import gigaherz.packingtape.Config;
 import gigaherz.packingtape.ModPackingTape;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -28,7 +29,24 @@ public class ItemTape extends Item
         setRegistryName(name);
         setUnlocalizedName(ModPackingTape.MODID + "." + name);
         setCreativeTab(CreativeTabs.MISC);
-        setMaxDamage(ModPackingTape.tapeRollUses);
+    }
+
+    @Override
+    public int getMaxDamage()
+    {
+        return Config.tapeRollUses;
+    }
+
+    @Override
+    public boolean isDamageable()
+    {
+        return true;
+    }
+
+    @Override
+    public Item setMaxDamage(int maxDamageIn)
+    {
+        return this;
     }
 
     @Override
@@ -63,7 +81,7 @@ public class ItemTape extends Item
             return EnumActionResult.SUCCESS;
         }
 
-        if (!ModPackingTape.isTileEntityAllowed(te))
+        if (!Config.isTileEntityAllowed(te))
         {
             return EnumActionResult.PASS;
         }
