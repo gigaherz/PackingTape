@@ -1,6 +1,7 @@
 package gigaherz.packingtape.tape;
 
 import com.google.common.collect.Lists;
+import gigaherz.common.BlockRegistered;
 import gigaherz.packingtape.ModPackingTape;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
@@ -29,13 +30,11 @@ import net.minecraftforge.common.util.Constants;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class BlockPackaged extends Block
+public class BlockPackaged extends BlockRegistered
 {
     public BlockPackaged(String name)
     {
-        super(Material.CLOTH);
-        setRegistryName(name);
-        setUnlocalizedName(ModPackingTape.MODID + "." + name);
+        super(name, Material.CLOTH);
         setHardness(0.5F);
         setSoundType(SoundType.WOOD);
     }
@@ -56,7 +55,7 @@ public class BlockPackaged extends Block
     public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player)
     {
         Item item = Item.getItemFromBlock(this);
-        assert item != null;
+
         if (player.capabilities.isCreativeMode && GuiScreen.isCtrlKeyDown())
             return new ItemStack(item, 1);
         else
@@ -110,7 +109,7 @@ public class BlockPackaged extends Block
     }
 
     @Override
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ)
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ)
     {
         if (worldIn.isRemote)
             return true;
@@ -291,10 +290,5 @@ public class BlockPackaged extends Block
         {
             tooltip.add("  " + s);
         }
-    }
-
-    public Item createItemBlock()
-    {
-        return new ItemBlock(this).setRegistryName(getRegistryName());
     }
 }

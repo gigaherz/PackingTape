@@ -1,5 +1,6 @@
 package gigaherz.packingtape.tape;
 
+import gigaherz.common.ItemRegistered;
 import gigaherz.packingtape.Config;
 import gigaherz.packingtape.ModPackingTape;
 import net.minecraft.block.Block;
@@ -21,13 +22,12 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-public class ItemTape extends Item
+public class ItemTape extends ItemRegistered
 {
     public ItemTape(String name)
     {
+        super(name);
         maxStackSize = 16;
-        setRegistryName(name);
-        setUnlocalizedName(ModPackingTape.MODID + "." + name);
         setCreativeTab(CreativeTabs.MISC);
     }
 
@@ -56,9 +56,10 @@ public class ItemTape extends Item
     }
 
     @Override
-    public EnumActionResult onItemUse(ItemStack stack, EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
+    public EnumActionResult onItemUse(EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
     {
-        if (stack.stackSize == 0)
+        ItemStack stack = playerIn.getHeldItem(hand);
+        if (stack.func_190916_E() <= 0)
         {
             return EnumActionResult.PASS;
         }
@@ -112,17 +113,17 @@ public class ItemTape extends Item
         {
             usePaper(playerIn);
 
-            if (stack.stackSize > 1)
+            if (stack.func_190916_E() > 1)
             {
                 ItemStack split = stack.copy();
-                split.stackSize = 1;
+                split.func_190920_e(1);
                 split.damageItem(1, playerIn);
-                if (split.stackSize > 0)
+                if (split.func_190916_E() > 0)
                 {
                     EntityItem ei = new EntityItem(worldIn, playerIn.posX, playerIn.posY, playerIn.posZ, split);
                     worldIn.spawnEntityInWorld(ei);
                 }
-                stack.stackSize--;
+                stack.func_190917_f(-1);
             }
             else
             {
@@ -157,8 +158,8 @@ public class ItemTape extends Item
         ItemStack stack = playerIn.getItemStackFromSlot(EntityEquipmentSlot.OFFHAND);
         if (stack != null && stack.getItem() == Items.PAPER)
         {
-            stack.stackSize--;
-            if (stack.stackSize <= 0)
+            stack.func_190917_f(-1);
+            if (stack.func_190916_E() <= 0)
                 playerIn.setItemStackToSlot(EntityEquipmentSlot.OFFHAND, null);
         }
         InventoryPlayer inv = playerIn.inventory;
@@ -167,8 +168,8 @@ public class ItemTape extends Item
             stack = inv.getStackInSlot(i);
             if (stack != null && stack.getItem() == Items.PAPER)
             {
-                stack.stackSize--;
-                if (stack.stackSize <= 0)
+                stack.func_190917_f(-1);
+                if (stack.func_190916_E() <= 0)
                     inv.setInventorySlotContents(i, null);
                 return;
             }
