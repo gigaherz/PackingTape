@@ -62,17 +62,9 @@ public class ModPackingTape
         );
     }
 
-    @Deprecated
-    private static RegistryNamespaced<ResourceLocation, Class <? extends TileEntity >> field_190562_f = ReflectionHelper.getPrivateValue(TileEntity.class, null, "field_190562_f");
-
-    private static void tempRegisterTileEntity(ResourceLocation name, Class<? extends TileEntity> clazz)
-    {
-        field_190562_f.putObject(name, clazz);
-    }
-
     public static void registerTileEntities()
     {
-        tempRegisterTileEntity(packagedBlock.getRegistryName(), TilePackaged.class);
+        GameRegistry.registerTileEntity(TilePackaged.class, packagedBlock.getRegistryName().toString());
     }
 
     @EventHandler

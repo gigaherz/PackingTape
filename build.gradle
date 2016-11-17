@@ -29,7 +29,7 @@ group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-namin
 archivesBaseName = "PackingTape"
 
 minecraft {
-    version = "1.11-13.19.0.2130"
+    version = "1.11-13.19.0.2141"
     runDir = "run"
 
     mappings = "snapshot_20161116"
