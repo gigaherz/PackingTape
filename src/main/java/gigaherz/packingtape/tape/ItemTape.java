@@ -32,7 +32,7 @@ public class ItemTape extends ItemRegistered
     }
 
     @Override
-    public int getMaxDamage()
+    public int getMaxDamage(ItemStack stack)
     {
         return Config.tapeRollUses;
     }
@@ -59,7 +59,7 @@ public class ItemTape extends ItemRegistered
     public EnumActionResult onItemUse(EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
     {
         ItemStack stack = playerIn.getHeldItem(hand);
-        if (stack.func_190916_E() <= 0)
+        if (stack.getCount() <= 0)
         {
             return EnumActionResult.PASS;
         }
@@ -113,17 +113,17 @@ public class ItemTape extends ItemRegistered
         {
             usePaper(playerIn);
 
-            if (stack.func_190916_E() > 1)
+            if (stack.getCount() > 1)
             {
                 ItemStack split = stack.copy();
-                split.func_190920_e(1);
+                split.setCount(1);
                 split.damageItem(1, playerIn);
-                if (split.func_190916_E() > 0)
+                if (split.getCount() > 0)
                 {
                     EntityItem ei = new EntityItem(worldIn, playerIn.posX, playerIn.posY, playerIn.posZ, split);
-                    worldIn.spawnEntityInWorld(ei);
+                    worldIn.spawnEntity(ei);
                 }
-                stack.func_190917_f(-1);
+                stack.grow(-1);
             }
             else
             {
@@ -137,7 +137,7 @@ public class ItemTape extends ItemRegistered
     private boolean hasPaper(EntityPlayer playerIn)
     {
         ItemStack stack = playerIn.getItemStackFromSlot(EntityEquipmentSlot.OFFHAND);
-        if (stack != null && stack.getItem() == Items.PAPER)
+        if (stack.getItem() == Items.PAPER)
         {
             return true;
         }
@@ -145,7 +145,7 @@ public class ItemTape extends ItemRegistered
         for (int i = 0; i < inv.getSizeInventory(); i++)
         {
             stack = inv.getStackInSlot(i);
-            if (stack != null && stack.getItem() == Items.PAPER)
+            if (stack.getItem() == Items.PAPER)
             {
                 return true;
             }
@@ -156,21 +156,21 @@ public class ItemTape extends ItemRegistered
     private void usePaper(EntityPlayer playerIn)
     {
         ItemStack stack = playerIn.getItemStackFromSlot(EntityEquipmentSlot.OFFHAND);
-        if (stack != null && stack.getItem() == Items.PAPER)
+        if (stack.getItem() == Items.PAPER)
         {
-            stack.func_190917_f(-1);
-            if (stack.func_190916_E() <= 0)
-                playerIn.setItemStackToSlot(EntityEquipmentSlot.OFFHAND, null);
+            stack.grow(-1);
+            if (stack.getCount() <= 0)
+                playerIn.setItemStackToSlot(EntityEquipmentSlot.OFFHAND, ItemStack.EMPTY);
         }
         InventoryPlayer inv = playerIn.inventory;
         for (int i = 0; i < inv.getSizeInventory(); i++)
         {
             stack = inv.getStackInSlot(i);
-            if (stack != null && stack.getItem() == Items.PAPER)
+            if (stack.getItem() == Items.PAPER)
             {
-                stack.func_190917_f(-1);
-                if (stack.func_190916_E() <= 0)
-                    inv.setInventorySlotContents(i, null);
+                stack.grow(-1);
+                if (stack.getCount() <= 0)
+                    inv.setInventorySlotContents(i, ItemStack.EMPTY);
                 return;
             }
         }

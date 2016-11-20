@@ -18,7 +18,7 @@ public class ClientProxy implements ISideProxy
     @Override
     public void showPaperMessage()
     {
-        Minecraft.getMinecraft().ingameGUI.setRecordPlaying(I18n.format("text." + ModPackingTape.MODID + ".itemTape.requiresPaper"), false);
+        Minecraft.getMinecraft().ingameGUI.setOverlayMessage(I18n.format("text." + ModPackingTape.MODID + ".itemTape.requiresPaper"), false);
     }
 
     @SubscribeEvent

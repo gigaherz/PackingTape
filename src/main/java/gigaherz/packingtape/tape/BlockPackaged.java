@@ -13,7 +13,6 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
@@ -88,7 +87,7 @@ public class BlockPackaged extends BlockRegistered
     }
 
     @Override
-    public void harvestBlock(World worldIn, EntityPlayer player, BlockPos pos, IBlockState state, TileEntity te, @Nullable ItemStack stack)
+    public void harvestBlock(World worldIn, EntityPlayer player, BlockPos pos, IBlockState state, @Nullable TileEntity te, ItemStack stack)
     {
         super.harvestBlock(worldIn, player, pos, state, te, stack);
         // Finished making use of the TE, so we can now safely destroy the block.
@@ -138,7 +137,7 @@ public class BlockPackaged extends BlockRegistered
         if (preferred != null)
         {
             PropertyEnum facing = null;
-            for (IProperty prop : newState.getPropertyNames())
+            for (IProperty prop : newState.getPropertyKeys())
             {
                 if (prop.getName().equalsIgnoreCase("facing") || prop.getName().equalsIgnoreCase("rotation"))
                 {

@@ -4,7 +4,6 @@ import com.google.common.collect.Sets;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
-import net.minecraftforge.fml.common.Optional;
 
 import java.util.Collections;
 import java.util.Set;
