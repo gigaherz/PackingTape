@@ -24,15 +24,15 @@ repositories {
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'maven-publish'
 
-version = "1.11.0-0.6.1"
+version = "0.6.1"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "PackingTape"
+archivesBaseName = "PackingTape-1.11.0"
 
 minecraft {
-    version = "1.11-13.19.0.2153"
+    version = "1.11.2-13.20.0.2201"
     runDir = "run"
 
-    mappings = "snapshot_20161119"
+    mappings = "snapshot_20161210"
 
     replace "@VERSION@", project.version
     replaceIn "ModPackingTape.java"
@@ -86,6 +86,7 @@ processResources {
     }
 }
 
+tasks.publish.dependsOn build
 publishing {
     publications {
         mavenJava(MavenPublication) {
