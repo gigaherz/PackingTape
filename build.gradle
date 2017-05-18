@@ -24,15 +24,15 @@ repositories {
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'maven-publish'
 
-version = "0.6.1"
+version = "0.6.2"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "PackingTape-1.11.0"
+archivesBaseName = "PackingTape-1.11.2"
 
 minecraft {
-    version = "1.11.2-13.20.0.2201"
+    version = "1.11.2-13.20.0.2298"
     runDir = "run"
 
-    mappings = "snapshot_20161210"
+    mappings = "snapshot_20170518"
 
     replace "@VERSION@", project.version
     replaceIn "ModPackingTape.java"
@@ -48,7 +48,7 @@ shadowJar {
         include(dependency(':Commons:'))
         exclude '*CraftTweaker*'
     }
-    relocate 'gigaherz.common', 'gigaherz.survivalist.shadow.common'
+    relocate 'gigaherz.common', 'gigaherz.packingtape.shadow.common'
 }
 
 reobf {
