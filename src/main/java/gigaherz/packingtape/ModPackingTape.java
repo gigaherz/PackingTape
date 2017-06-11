@@ -4,9 +4,15 @@ import gigaherz.packingtape.tape.BlockPackaged;
 import gigaherz.packingtape.tape.ItemTape;
 import gigaherz.packingtape.tape.TilePackaged;
 import net.minecraft.block.Block;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.CraftingManager;
+import net.minecraft.item.crafting.Ingredient;
+import net.minecraft.item.crafting.ShapelessRecipes;
+import net.minecraft.util.NonNullList;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -23,7 +29,7 @@ import java.io.File;
 @Mod.EventBusSubscriber
 @Mod(modid = ModPackingTape.MODID,
         version = ModPackingTape.VERSION,
-        acceptedMinecraftVersions = "[1.11.0,1.12.0)")
+        acceptedMinecraftVersions = "[1.12.0,1.13.0)")
 public class ModPackingTape
 {
     public static final String MODID = "packingtape";
@@ -73,11 +79,34 @@ public class ModPackingTape
         File configurationFile = event.getSuggestedConfigurationFile();
         Configuration config = new Configuration(configurationFile);
         Config.loadConfig(config);
+
+        CraftingManager.func_193372_a(location("packingtape"), new ShapelessRecipes(
+                "packingtape", new ItemStack(itemTape), NonNullList.func_193580_a(Ingredient.field_193370_a,
+                fromItem(Items.SLIME_BALL),
+                fromItem(Items.STRING),
+                fromItem(Items.PAPER)
+                )
+        ));
+    }
+
+    private Ingredient fromItem(Item item)
+    {
+        if (!item.getHasSubtypes())
+            return Ingredient.func_193369_a(new ItemStack(item));
+
+        NonNullList<ItemStack> stacks = NonNullList.create();
+        item.getSubItems(CreativeTabs.SEARCH, stacks);
+        return Ingredient.func_193369_a(stacks.toArray(new ItemStack[stacks.size()]));
     }
 
     @EventHandler
     public void init(FMLInitializationEvent event)
     {
-        GameRegistry.addShapelessRecipe(new ItemStack(itemTape, 1), Items.SLIME_BALL, Items.STRING, Items.PAPER);
+        //GameRegistry.addShapelessRecipe(new ItemStack(itemTape, 1), Items.SLIME_BALL, Items.STRING, Items.PAPER);
+    }
+
+    public static ResourceLocation location(String path)
+    {
+        return new ResourceLocation(MODID, path);
     }
 }

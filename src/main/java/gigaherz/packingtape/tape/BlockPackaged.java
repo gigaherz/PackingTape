@@ -9,7 +9,9 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -240,7 +242,7 @@ public class BlockPackaged extends BlockRegistered
     }
 
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced)
+    public void addInformation(ItemStack stack, @Nullable World world, List<String> tooltip, ITooltipFlag advanced)
     {
         NBTTagCompound tag = stack.getTagCompound();
         if (tag == null)
@@ -285,7 +287,7 @@ public class BlockPackaged extends BlockRegistered
 
         tooltip.add("Contains:");
         ItemStack stack1 = new ItemStack(item, 1, meta);
-        for (String s : stack1.getTooltip(player, advanced))
+        for (String s : stack1.getTooltip(Minecraft.getMinecraft().player, advanced))
         {
             tooltip.add("  " + s);
         }
