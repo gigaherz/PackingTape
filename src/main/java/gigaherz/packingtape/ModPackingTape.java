@@ -79,30 +79,6 @@ public class ModPackingTape
         File configurationFile = event.getSuggestedConfigurationFile();
         Configuration config = new Configuration(configurationFile);
         Config.loadConfig(config);
-
-        CraftingManager.func_193372_a(location("packingtape"), new ShapelessRecipes(
-                "packingtape", new ItemStack(itemTape), NonNullList.func_193580_a(Ingredient.field_193370_a,
-                fromItem(Items.SLIME_BALL),
-                fromItem(Items.STRING),
-                fromItem(Items.PAPER)
-                )
-        ));
-    }
-
-    private Ingredient fromItem(Item item)
-    {
-        if (!item.getHasSubtypes())
-            return Ingredient.func_193369_a(new ItemStack(item));
-
-        NonNullList<ItemStack> stacks = NonNullList.create();
-        item.getSubItems(CreativeTabs.SEARCH, stacks);
-        return Ingredient.func_193369_a(stacks.toArray(new ItemStack[stacks.size()]));
-    }
-
-    @EventHandler
-    public void init(FMLInitializationEvent event)
-    {
-        //GameRegistry.addShapelessRecipe(new ItemStack(itemTape, 1), Items.SLIME_BALL, Items.STRING, Items.PAPER);
     }
 
     public static ResourceLocation location(String path)
