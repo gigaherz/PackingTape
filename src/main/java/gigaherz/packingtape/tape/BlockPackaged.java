@@ -124,6 +124,12 @@ public class BlockPackaged extends BlockRegistered
 
         Block b = ForgeRegistries.BLOCKS.getValue(te.getContainedBlock());
 
+        if (!b.canPlaceBlockAt(worldIn, pos))
+        {
+            ModPackingTape.proxy.showCantPlaceMessage();
+            return false;
+        }
+
         @SuppressWarnings("deprecation")
         IBlockState newState = b.getStateFromMeta(te.getContainedMetadata());
 

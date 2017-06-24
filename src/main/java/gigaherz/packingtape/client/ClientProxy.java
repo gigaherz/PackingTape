@@ -21,6 +21,12 @@ public class ClientProxy implements ISideProxy
         Minecraft.getMinecraft().ingameGUI.setOverlayMessage(I18n.format("text." + ModPackingTape.MODID + ".tape.requires_paper"), false);
     }
 
+    @Override
+    public void showCantPlaceMessage()
+    {
+        Minecraft.getMinecraft().ingameGUI.setOverlayMessage(I18n.format("text." + ModPackingTape.MODID + ".packaged.cant_place"), false);
+    }
+
     @SubscribeEvent
     public static void registerModels(ModelRegistryEvent event)
     {
