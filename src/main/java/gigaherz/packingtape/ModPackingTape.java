@@ -52,6 +52,8 @@ public class ModPackingTape
         event.getRegistry().registerAll(
                 packagedBlock = new BlockPackaged("packaged_block")
         );
+
+        GameRegistry.registerTileEntity(TilePackaged.class, packagedBlock.getRegistryName().toString());
     }
 
     @SubscribeEvent
@@ -64,17 +66,10 @@ public class ModPackingTape
         );
     }
 
-    public static void registerTileEntities()
-    {
-        GameRegistry.registerTileEntity(TilePackaged.class, packagedBlock.getRegistryName().toString());
-    }
-
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
         logger = event.getModLog();
-
-        registerTileEntities();
 
         File configurationFile = event.getSuggestedConfigurationFile();
         Configuration config = new Configuration(configurationFile);

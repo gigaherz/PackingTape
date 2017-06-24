@@ -21,12 +21,14 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -71,10 +73,8 @@ public class BlockPackaged extends BlockRegistered
     }
 
     @Override
-    public List<ItemStack> getDrops(IBlockAccess world, BlockPos pos, IBlockState state, int fortune)
+    public void getDrops(NonNullList<ItemStack> drops, IBlockAccess world, BlockPos pos, IBlockState state, int fortune)
     {
-        List<ItemStack> drops = Lists.newArrayList();
-
         TileEntity teWorld = world.getTileEntity(pos);
         if (teWorld != null && teWorld instanceof TilePackaged)
         {
@@ -84,8 +84,6 @@ public class BlockPackaged extends BlockRegistered
 
             drops.add(stack);
         }
-
-        return drops;
     }
 
     @Override
@@ -121,10 +119,10 @@ public class BlockPackaged extends BlockRegistered
         if (te.getContainedBlock() == null)
             return false;
 
-        if (!Block.REGISTRY.containsKey(te.getContainedBlock()))
+        if (!ForgeRegistries.BLOCKS.containsKey(te.getContainedBlock()))
             return false;
 
-        Block b = Block.REGISTRY.getObject(te.getContainedBlock());
+        Block b = ForgeRegistries.BLOCKS.getValue(te.getContainedBlock());
 
         @SuppressWarnings("deprecation")
         IBlockState newState = b.getStateFromMeta(te.getContainedMetadata());
@@ -269,7 +267,7 @@ public class BlockPackaged extends BlockRegistered
         String blockName = info.getString("containedBlock");
         int meta = info.getInteger("containedBlockMetadata");
 
-        Block block = Block.REGISTRY.getObject(new ResourceLocation(blockName));
+        Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(blockName));
         if (block == null)
         {
             tooltip.add("Unknown block:");

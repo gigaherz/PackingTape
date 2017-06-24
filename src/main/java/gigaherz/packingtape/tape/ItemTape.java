@@ -21,6 +21,7 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
 public class ItemTape extends ItemRegistered
 {
@@ -92,7 +93,7 @@ public class ItemTape extends ItemRegistered
         IBlockState state = worldIn.getBlockState(pos);
         Block block = state.getBlock();
 
-        ResourceLocation blockName = Block.REGISTRY.getNameForObject(block);
+        ResourceLocation blockName = ForgeRegistries.BLOCKS.getKey(block);
         int meta = block.getMetaFromState(state);
 
         te.writeToNBT(tag);
