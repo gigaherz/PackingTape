@@ -1,6 +1,5 @@
 package gigaherz.packingtape.tape;
 
-import com.google.common.collect.Lists;
 import gigaherz.common.BlockRegistered;
 import gigaherz.packingtape.ModPackingTape;
 import net.minecraft.block.Block;

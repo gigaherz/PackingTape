@@ -24,7 +24,7 @@ repositories {
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'maven-publish'
 
-version = "0.7.0"
+version = "0.7.1"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "PackingTape-1.12.0"
 
@@ -45,7 +45,7 @@ jar {
 shadowJar {
     classifier = ''
     dependencies {
-        include(dependency(':Commons:'))
+        include(dependency(':Commons-1.12.0:'))
         exclude '*CraftTweaker*'
     }
     relocate 'gigaherz.common', 'gigaherz.packingtape.shadow.common'
