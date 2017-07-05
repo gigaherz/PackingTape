@@ -6,7 +6,9 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
+import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyEnum;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -34,11 +36,19 @@ import java.util.List;
 
 public class BlockPackaged extends BlockRegistered
 {
+    public static final PropertyBool UNPACKING = PropertyBool.create("unpacking");
+
     public BlockPackaged(String name)
     {
         super(name, Material.CLOTH);
         setHardness(0.5F);
         setSoundType(SoundType.WOOD);
+    }
+
+    @Override
+    public boolean isReplaceable(IBlockAccess worldIn, BlockPos pos)
+    {
+        return worldIn.getBlockState(pos).getValue(UNPACKING);
     }
 
     @Override
@@ -51,6 +61,25 @@ public class BlockPackaged extends BlockRegistered
     public TileEntity createTileEntity(World world, IBlockState state)
     {
         return new TilePackaged();
+    }
+
+    @Override
+    protected BlockStateContainer createBlockState()
+    {
+        return new BlockStateContainer(this, UNPACKING);
+    }
+
+    @Deprecated
+    @Override
+    public IBlockState getStateFromMeta(int meta)
+    {
+        return getDefaultState();
+    }
+
+    @Override
+    public int getMetaFromState(IBlockState state)
+    {
+        return 0;
     }
 
     @Override
@@ -115,19 +144,26 @@ public class BlockPackaged extends BlockRegistered
         TilePackaged te = (TilePackaged) worldIn.getTileEntity(pos);
         assert te != null;
 
-        if (te.getContainedBlock() == null)
+        ResourceLocation containedBlock = te.getContainedBlock();
+
+        if (containedBlock == null)
             return false;
 
-        if (!ForgeRegistries.BLOCKS.containsKey(te.getContainedBlock()))
+        if (!ForgeRegistries.BLOCKS.containsKey(containedBlock))
             return false;
 
-        Block b = ForgeRegistries.BLOCKS.getValue(te.getContainedBlock());
+        Block b = ForgeRegistries.BLOCKS.getValue(containedBlock);
+        if (b == null)
+            return false;
 
+        worldIn.setBlockState(pos, state.withProperty(UNPACKING, true), 0);
         if (!b.canPlaceBlockAt(worldIn, pos))
         {
             ModPackingTape.proxy.showCantPlaceMessage();
+            worldIn.setBlockState(pos, state.withProperty(UNPACKING, false), 0);
             return false;
         }
+        worldIn.setBlockState(pos, state.withProperty(UNPACKING, false), 0);
 
         @SuppressWarnings("deprecation")
         IBlockState newState = b.getStateFromMeta(te.getContainedMetadata());
