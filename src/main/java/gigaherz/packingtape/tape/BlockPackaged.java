@@ -326,7 +326,7 @@ public class BlockPackaged extends BlockRegistered
 
         tooltip.add("Contains:");
         ItemStack stack1 = new ItemStack(item, 1, meta);
-        for (String s : stack1.getTooltip(Minecraft.getMinecraft().player, advanced))
+        for (String s : stack1.getTooltip(ModPackingTape.proxy.getPlayer(), advanced))
         {
             tooltip.add("  " + s);
         }
