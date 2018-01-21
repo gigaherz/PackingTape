@@ -5,8 +5,17 @@
     "item": "packingtape:tape"
   },
   "ingredients": [
-    { "item": "minecraft:slime_ball" },
-    { "item": "minecraft:string" },
-    { "item":"minecraft:paper" }
+    {
+      "type": "forge:ore_dict",
+      "ore": "slimeball"
+    },
+        {
+      "type": "forge:ore_dict",
+      "ore": "string"
+    },
+        {
+      "type": "forge:ore_dict",
+      "ore": "paper"
+    }
   ]
 }
