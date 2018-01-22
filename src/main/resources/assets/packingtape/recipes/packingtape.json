@@ -9,11 +9,11 @@
       "type": "forge:ore_dict",
       "ore": "slimeball"
     },
-        {
+    {
       "type": "forge:ore_dict",
       "ore": "string"
     },
-        {
+    {
       "type": "forge:ore_dict",
       "ore": "paper"
     }
