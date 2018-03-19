@@ -46,6 +46,9 @@ public class Config
         if (te.getClass().equals(net.minecraft.tileentity.TileEntityEndPortal.class))
             return false;
 
+        if (te.getClass().equals(net.minecraft.tileentity.TileEntityEndGateway.class))
+            return false;
+
         // Balance concern: moving block spawners can be cheaty and should be reserved to hard-to-obtain methods.
         if (te.getClass().equals(net.minecraft.tileentity.TileEntityMobSpawner.class))
             return false;
@@ -72,6 +75,12 @@ public class Config
             return false;
 
         if (te.getClass().equals(net.minecraft.tileentity.TileEntityNote.class))
+            return false;
+
+        if (te.getClass().equals(net.minecraft.tileentity.TileEntityEnchantmentTable.class))
+            return false;
+
+        if (te.getClass().equals(net.minecraft.tileentity.TileEntityBed.class))
             return false;
 
         // TODO: Blacklist more Vanilla stuffs.
