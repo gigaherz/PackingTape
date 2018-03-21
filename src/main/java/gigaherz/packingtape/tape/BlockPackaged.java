@@ -33,6 +33,7 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Random;
 
 public class BlockPackaged extends BlockRegistered
 {
@@ -43,6 +44,7 @@ public class BlockPackaged extends BlockRegistered
         super(name, Material.CLOTH);
         setHardness(0.5F);
         setSoundType(SoundType.WOOD);
+        setDefaultState(this.getBlockState().getBaseState().withProperty(UNPACKING, false));
     }
 
     @Override
@@ -134,6 +136,23 @@ public class BlockPackaged extends BlockRegistered
         }
         super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
     }
+
+    /** FIX for blocks placed in the previous version that have UNPACKING set to true */
+    @Override
+    public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state)
+    {
+        super.onBlockAdded(worldIn, pos, state);
+        if (state.getValue(UNPACKING))
+            worldIn.scheduleUpdate(pos, this, 1);
+    }
+
+    @Override
+    public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand)
+    {
+        if (state.getValue(UNPACKING))
+            worldIn.setBlockState(pos, state.withProperty(UNPACKING, false));
+    }
+    /** END FIX */
 
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ)
