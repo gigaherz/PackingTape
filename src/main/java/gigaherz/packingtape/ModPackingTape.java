@@ -10,7 +10,6 @@ import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
@@ -20,43 +19,21 @@ import java.io.File;
 
 @Mod.EventBusSubscriber
 @Mod(modid = ModPackingTape.MODID,
-        version = ModPackingTape.VERSION,
         acceptedMinecraftVersions = "[1.12.0,1.13.0)")
 public class ModPackingTape
 {
     public static final String MODID = "packingtape";
-    public static final String VERSION = "@VERSION@";
 
+    @GameRegistry.ObjectHolder(MODID + ":packaged_block")
     public static BlockPackaged packagedBlock;
+
+    @GameRegistry.ObjectHolder(MODID + ":tape")
     public static Item itemTape;
 
     @Mod.Instance(value = ModPackingTape.MODID)
     public static ModPackingTape instance;
 
-    @SidedProxy(clientSide = "gigaherz.packingtape.client.ClientProxy", serverSide = "gigaherz.packingtape.server.ServerProxy")
-    public static ISideProxy proxy;
-
     public static Logger logger;
-
-    @SubscribeEvent
-    public static void registerBlocks(RegistryEvent.Register<Block> event)
-    {
-        event.getRegistry().registerAll(
-                packagedBlock = new BlockPackaged("packaged_block")
-        );
-
-        GameRegistry.registerTileEntity(TilePackaged.class, packagedBlock.getRegistryName().toString());
-    }
-
-    @SubscribeEvent
-    public static void registerItems(RegistryEvent.Register<Item> event)
-    {
-        event.getRegistry().registerAll(
-                packagedBlock.createItemBlock(),
-
-                itemTape = new ItemTape("tape")
-        );
-    }
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
@@ -66,6 +43,27 @@ public class ModPackingTape
         File configurationFile = event.getSuggestedConfigurationFile();
         Configuration config = new Configuration(configurationFile);
         Config.loadConfig(config);
+    }
+
+    @SubscribeEvent
+    public static void registerBlocks(RegistryEvent.Register<Block> event)
+    {
+        event.getRegistry().registerAll(
+                new BlockPackaged("packaged_block")
+        );
+
+    }
+
+    @SubscribeEvent
+    public static void registerItems(RegistryEvent.Register<Item> event)
+    {
+        GameRegistry.registerTileEntity(TilePackaged.class, packagedBlock.getRegistryName());
+
+        event.getRegistry().registerAll(
+                packagedBlock.createItemBlock(),
+
+                new ItemTape("tape")
+        );
     }
 
     public static ResourceLocation location(String path)

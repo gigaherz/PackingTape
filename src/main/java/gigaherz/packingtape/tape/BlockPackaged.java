@@ -26,10 +26,13 @@ import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -137,7 +140,9 @@ public class BlockPackaged extends BlockRegistered
         super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
     }
 
-    /** FIX for blocks placed in the previous version that have UNPACKING set to true */
+    /**
+     * FIX for blocks placed in the previous version that have UNPACKING set to true
+     */
     @Override
     public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state)
     {
@@ -152,7 +157,10 @@ public class BlockPackaged extends BlockRegistered
         if (state.getValue(UNPACKING))
             worldIn.setBlockState(pos, state.withProperty(UNPACKING, false));
     }
-    /** END FIX */
+
+    /**
+     * END FIX
+     */
 
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ)
@@ -178,14 +186,15 @@ public class BlockPackaged extends BlockRegistered
         worldIn.setBlockState(pos, state.withProperty(UNPACKING, true), 0);
         if (!b.canPlaceBlockAt(worldIn, pos))
         {
-            ModPackingTape.proxy.showCantPlaceMessage();
+            TextComponentTranslation textComponent = new TextComponentTranslation("text.packingtape.packaged.cant_place");
+            playerIn.sendStatusMessage(textComponent, true);
             worldIn.setBlockState(pos, state.withProperty(UNPACKING, false), 0);
             return false;
         }
         worldIn.setBlockState(pos, state.withProperty(UNPACKING, false), 0);
 
         @SuppressWarnings("deprecation")
-        IBlockState newState = b.getStateFromMeta(te.getContainedMetadata());
+        IBlockState newState = te.getParsedBlockState(b);
 
         NBTTagCompound tag = te.getContainedTile();
         if (tag == null)
@@ -299,6 +308,7 @@ public class BlockPackaged extends BlockRegistered
         }
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void addInformation(ItemStack stack, @Nullable World world, List<String> tooltip, ITooltipFlag advanced)
     {
@@ -345,7 +355,7 @@ public class BlockPackaged extends BlockRegistered
 
         tooltip.add("Contains:");
         ItemStack stack1 = new ItemStack(item, 1, meta);
-        for (String s : stack1.getTooltip(ModPackingTape.proxy.getPlayer(), advanced))
+        for (String s : stack1.getTooltip(Minecraft.getMinecraft().player, advanced))
         {
             tooltip.add("  " + s);
         }

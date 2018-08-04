@@ -1,8 +1,11 @@
 package gigaherz.packingtape.tape;
 
+import gigaherz.packingtape.BlockStateNBT;
 import gigaherz.packingtape.ModPackingTape;
+import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -15,7 +18,7 @@ import javax.annotation.Nullable;
 public class TilePackaged extends TileEntity
 {
     private ResourceLocation containedBlock;
-    private int containedBlockMetadata;
+    private NBTBase containedBlockState;
     private NBTTagCompound containedTile;
     private EnumFacing preferredDirection;
 
@@ -33,7 +36,7 @@ public class TilePackaged extends TileEntity
         if (containedBlock != null)
         {
             compound.setString("containedBlock", containedBlock.toString());
-            compound.setInteger("containedBlockMetadata", containedBlockMetadata);
+            compound.setTag("containedBlockState", containedBlockState);
             compound.setTag("containedTile", containedTile.copy());
             if (preferredDirection != null)
             {
@@ -50,7 +53,7 @@ public class TilePackaged extends TileEntity
         super.readFromNBT(compound);
 
         containedBlock = new ResourceLocation(compound.getString("containedBlock"));
-        containedBlockMetadata = compound.getInteger("containedBlockMetadata");
+        containedBlockState = compound.getTag("containedBlockState");
         containedTile = compound.getCompoundTag("containedTile").copy();
         if (compound.hasKey("preferredDirection"))
         {
@@ -64,9 +67,9 @@ public class TilePackaged extends TileEntity
         return containedBlock;
     }
 
-    public int getContainedMetadata()
+    public NBTBase getContainedBlockState()
     {
-        return containedBlockMetadata;
+        return containedBlockState;
     }
 
     public NBTTagCompound getContainedTile()
@@ -74,10 +77,10 @@ public class TilePackaged extends TileEntity
         return containedTile;
     }
 
-    public void setContents(ResourceLocation blockName, int meta, NBTTagCompound tag)
+    public void setContents(ResourceLocation blockName, NBTBase propertyData, NBTTagCompound tag)
     {
         containedBlock = blockName;
-        containedBlockMetadata = meta;
+        containedBlockState = propertyData;
         containedTile = tag;
     }
 
@@ -106,8 +109,13 @@ public class TilePackaged extends TileEntity
         stackTag.setTag("BlockEntityTag", tileEntityData);
         stack.setTagCompound(stackTag);
 
-        ModPackingTape.logger.debug("Created Packed stack with " + containedBlock + "[" + containedBlockMetadata + "]");
+        ModPackingTape.logger.debug("Created Packed stack with " + containedBlock + "[" + containedBlockState + "]");
 
         return stack;
+    }
+
+    public IBlockState getParsedBlockState(Block b)
+    {
+        return BlockStateNBT.decodeBlockState(b, getContainedBlockState());
     }
 }

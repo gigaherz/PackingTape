@@ -29,10 +29,10 @@ group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-namin
 archivesBaseName = "PackingTape-1.12.2"
 
 minecraft {
-    version = "1.12.2-14.23.2.2629"
+    version = "1.12.2-14.23.4.2707"
     runDir = "run"
 
-    mappings = "snapshot_20180318"
+    mappings = "snapshot_20180601"
 
     replace "@VERSION@", project.version
     replaceIn "ModPackingTape.java"

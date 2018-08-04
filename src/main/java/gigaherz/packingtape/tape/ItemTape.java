@@ -1,6 +1,7 @@
 package gigaherz.packingtape.tape;
 
 import gigaherz.common.ItemRegistered;
+import gigaherz.packingtape.BlockStateNBT;
 import gigaherz.packingtape.Config;
 import gigaherz.packingtape.ModPackingTape;
 import net.minecraft.block.Block;
@@ -13,6 +14,7 @@ import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumActionResult;
@@ -20,8 +22,8 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
 public class ItemTape extends ItemRegistered
 {
@@ -72,9 +74,10 @@ public class ItemTape extends ItemRegistered
             return EnumActionResult.PASS;
         }
 
-        if (!playerIn.capabilities.isCreativeMode && !hasPaper(playerIn))
+        if (!playerIn.capabilities.isCreativeMode && Config.consumesPaper && !hasPaper(playerIn))
         {
-            ModPackingTape.proxy.showPaperMessage();
+            TextComponentTranslation textComponent = new TextComponentTranslation("text.packingtape.tape.requires_paper");
+            playerIn.sendStatusMessage(textComponent, true);
             return EnumActionResult.FAIL;
         }
 
@@ -93,8 +96,10 @@ public class ItemTape extends ItemRegistered
         IBlockState state = worldIn.getBlockState(pos);
         Block block = state.getBlock();
 
-        ResourceLocation blockName = ForgeRegistries.BLOCKS.getKey(block);
-        int meta = block.getMetaFromState(state);
+        ResourceLocation blockName = block.getRegistryName();
+        assert blockName != null; // Because the block is in the world so it must
+
+        NBTBase propertyData = BlockStateNBT.encodeBlockState(state);
 
         te.writeToNBT(tag);
 
@@ -107,12 +112,13 @@ public class ItemTape extends ItemRegistered
         {
             TilePackaged packaged = (TilePackaged) te2;
 
-            packaged.setContents(blockName, meta, tag);
+            packaged.setContents(blockName, propertyData, tag);
         }
 
         if (!playerIn.capabilities.isCreativeMode)
         {
-            usePaper(playerIn);
+            if (Config.consumesPaper)
+                usePaper(playerIn);
 
             if (stack.getCount() > 1)
             {
