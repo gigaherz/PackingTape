@@ -1,12 +1,10 @@
 package gigaherz.packingtape.tape;
 
-import gigaherz.common.ItemRegistered;
 import gigaherz.packingtape.BlockStateNBT;
 import gigaherz.packingtape.Config;
 import gigaherz.packingtape.ModPackingTape;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -25,13 +23,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 
-public class ItemTape extends ItemRegistered
+public class ItemTape extends Item
 {
-    public ItemTape(String name)
+    public ItemTape()
     {
-        super(name);
-        maxStackSize = 16;
-        setCreativeTab(CreativeTabs.MISC);
     }
 
     @Override

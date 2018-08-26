@@ -4,7 +4,9 @@ import gigaherz.packingtape.tape.BlockPackaged;
 import gigaherz.packingtape.tape.ItemTape;
 import gigaherz.packingtape.tape.TilePackaged;
 import net.minecraft.block.Block;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.RegistryEvent;
@@ -25,7 +27,7 @@ public class ModPackingTape
     public static final String MODID = "packingtape";
 
     @GameRegistry.ObjectHolder(MODID + ":packaged_block")
-    public static BlockPackaged packagedBlock;
+    public static Block packagedBlock;
 
     @GameRegistry.ObjectHolder(MODID + ":tape")
     public static Item itemTape;
@@ -49,7 +51,7 @@ public class ModPackingTape
     public static void registerBlocks(RegistryEvent.Register<Block> event)
     {
         event.getRegistry().registerAll(
-                new BlockPackaged("packaged_block")
+                withName(new BlockPackaged(), "packaged_block")
         );
 
     }
@@ -60,10 +62,25 @@ public class ModPackingTape
         GameRegistry.registerTileEntity(TilePackaged.class, packagedBlock.getRegistryName());
 
         event.getRegistry().registerAll(
-                packagedBlock.createItemBlock(),
+                forBlock(packagedBlock),
 
-                new ItemTape("tape")
+                withName(new ItemTape(), "tape").setMaxStackSize(16).setCreativeTab(CreativeTabs.MISC)
         );
+    }
+
+    private static Item withName(Item item, String name)
+    {
+        return item.setRegistryName(name).setTranslationKey(MODID + "." + name);
+    }
+
+    private static Block withName(Block block, String name)
+    {
+        return block.setRegistryName(name).setTranslationKey(MODID + "." + name);
+    }
+
+    private static Item forBlock(Block block)
+    {
+        return new ItemBlock(block).setRegistryName(block.getRegistryName());
     }
 
     public static ResourceLocation location(String path)

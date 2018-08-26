@@ -8,62 +8,24 @@ buildscript {
     }
 }
 
-plugins {
-    id 'com.github.johnrengelman.shadow' version '1.2.3'
-}
-
-repositories {
-    maven {
-        url "http://dvs1.progwml6.com/files/maven"
-    }
-    maven {
-        url 'http://dogforce-games.com/maven'
-    }
-}
-
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'maven-publish'
 
-version = "0.7.6"
+version = "0.8.0"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "PackingTape-1.12.2"
 
 minecraft {
-    version = "1.12.2-14.23.4.2707"
+    version = "1.12.2-14.23.4.2757"
     runDir = "run"
 
-    mappings = "snapshot_20180601"
+    mappings = "stable_39"
 
     replace "@VERSION@", project.version
     replaceIn "ModPackingTape.java"
 }
 
-jar {
-    classifier = 'slim'
-}
-
-shadowJar {
-    classifier = ''
-    dependencies {
-        include(dependency(':gigaherz.commons-1.12.1:'))
-        exclude '*CraftTweaker*'
-    }
-    relocate 'gigaherz.common', "gigaherz.packingtape.shadow.common"
-}
-
-reobf {
-    shadowJar { mappingType = 'SEARGE' }
-}
-
-tasks.build.dependsOn reobfShadowJar
-
-artifacts {
-    archives shadowJar
-    archives sourceJar
-}
-
 dependencies {
-    deobfCompile "gigaherz.commons:gigaherz.commons-1.12.1:0.6.4"
 }
 
 compileJava {

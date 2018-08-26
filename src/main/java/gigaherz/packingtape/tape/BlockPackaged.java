@@ -1,6 +1,5 @@
 package gigaherz.packingtape.tape;
 
-import gigaherz.common.BlockRegistered;
 import gigaherz.packingtape.ModPackingTape;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
@@ -38,13 +37,13 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
 
-public class BlockPackaged extends BlockRegistered
+public class BlockPackaged extends Block
 {
     public static final PropertyBool UNPACKING = PropertyBool.create("unpacking");
 
-    public BlockPackaged(String name)
+    public BlockPackaged()
     {
-        super(name, Material.CLOTH);
+        super(Material.CLOTH);
         setHardness(0.5F);
         setSoundType(SoundType.WOOD);
         setDefaultState(this.getBlockState().getBaseState().withProperty(UNPACKING, false));
