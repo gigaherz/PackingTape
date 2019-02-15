@@ -1,35 +1,65 @@
 package gigaherz.packingtape;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraftforge.common.ForgeConfigSpec;
+import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class Config
 {
-    private static final Set<String> blackList = Sets.newHashSet();
-    private static final Set<String> whiteList = Sets.newHashSet();
-
-    public static int tapeRollUses;
-    public static boolean consumesPaper;
-
-    /*
-    static void loadConfig(Configuration config)
-    {
-        Property bl = config.get("tileEntities", "blacklist", new String[0]);
-        Property wl = config.get("tileEntities", "whitelist", new String[0]);
-        Property ru = config.get("tapeRoll", "numberOfUses", 8);
-        Property cp = config.get("tapeRoll", "consumesPaper", true);
-
-        Collections.addAll(blackList, bl.getStringList());
-        Collections.addAll(whiteList, wl.getStringList());
-        tapeRollUses = ru.getInt();
-        consumesPaper = cp.getBoolean();
-        if (!bl.wasRead() || !wl.wasRead() || !ru.wasRead() || !cp.wasRead())
-            config.save();
+    public static final ServerConfig SERVER;
+    public static final ForgeConfigSpec SERVER_SPEC;
+    static {
+        final Pair<ServerConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(ServerConfig::new);
+        SERVER_SPEC = specPair.getRight();
+        SERVER = specPair.getLeft();
     }
-    */
+
+    public static Set<String> whiteList = Sets.newHashSet();
+    public static Set<String> blackList = Sets.newHashSet();
+    public static int tapeRollUses = 8;
+    public static boolean consumesPaper = true;
+
+    public static void load()
+    {
+        whiteList = Sets.newHashSet(SERVER.whitelist.get());
+        blackList = Sets.newHashSet(SERVER.blacklist.get());
+        tapeRollUses = SERVER.tapeRollUses.get();
+        consumesPaper = SERVER.consumesPaper.get();
+    }
+
+    public static class ServerConfig
+    {
+        public ForgeConfigSpec.ConfigValue<List<? extends String>> whitelist;
+        public ForgeConfigSpec.ConfigValue<List<? extends String>> blacklist;
+        public ForgeConfigSpec.IntValue tapeRollUses;
+        public ForgeConfigSpec.BooleanValue consumesPaper;
+
+        ServerConfig(ForgeConfigSpec.Builder builder) {
+            builder.push("general");
+            whitelist = builder
+                    .comment("TileEntities to allow regardless of the blacklist")
+                    .translation("text.packingtape.config.whitelist")
+                    .defineList("whitelist", Lists.newArrayList(), o -> o instanceof String);
+            blacklist = builder
+                    .comment("TileEntities to disallow (whitelist takes precedence)")
+                    .translation("text.packingtape.config.blacklist")
+                    .defineList("whitelist", Lists.newArrayList(), o -> o instanceof String);
+            tapeRollUses = builder
+                    .comment("How many times the rape roll can be used before it breaks")
+                    .translation("text.packingtape.config.tape_roll_uses")
+                    .defineInRange("tape_roll_uses", 8, 0, Integer.MAX_VALUE - 1);
+            consumesPaper = builder
+                    .comment("Whether the rape roll consumes paper when used")
+                    .translation("text.packingtape.config.consume_paper")
+                    .define("sound", true);
+            builder.pop();
+        }
+    }
 
     public static boolean isTileEntityAllowed(TileEntity te)
     {

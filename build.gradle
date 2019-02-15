@@ -30,7 +30,6 @@ compileJava {
 
 minecraft {
     mappings channel: 'snapshot', version: '20190215-1.13.1'
-    //mappings channel: 'stable', version: '43-1.13'
 
     // default run configurations.
     // these can be tweaked, removed, or duplicated as needed.
@@ -76,45 +75,5 @@ processResources {
     // copy everything else except the mcmod.info
     from(sourceSets.main.resources.srcDirs) {
         exclude 'META_INF/mods.toml'
-    }
-}
-
-task genIntellijRuns2 {
-    dependsOn extractNatives, downloadAssets
-    doLast {
-        def runConfigurationsDir = new File(project.projectDir.canonicalFile, ".idea/runConfigurations")
-        if (!runConfigurationsDir.exists())
-            runConfigurationsDir.mkdirs()
-
-        tasks.withType(JavaExec).each { task ->
-            def taskName = task.name.replaceAll("^run", "")
-            def mainClass = task.main
-            def props = task.systemProperties.collect { k, v -> "-D$k=$v" }.join(' ')
-            def args = task.args.join(" ")
-
-            def writer = new FileWriter(new File(runConfigurationsDir, "${taskName}.xml"))
-            def xml = new groovy.xml.MarkupBuilder(writer)
-
-            xml.component(name: "ProjectRunConfigurationManager") {
-                configuration(default: 'false', name: taskName, type: "Application", factoryName: "Application", singleton: "true") {
-                    option(name: 'MAIN_CLASS_NAME', value: mainClass)
-                    option(name: 'VM_PARAMETERS', value: props)
-                    option(name: 'PROGRAM_PARAMETERS', value: args)
-                    option(name: 'WORKING_DIRECTORY', value: 'file://$PROJECT_DIR$/run')
-                    module(name: project.group + "." + project.name + '.main')
-                    envs() {
-                        task.environment.forEach { k, v ->
-                            env(name: k, value: v)
-                        }
-                    }
-                    method(v: 2) {
-                        option(name:"Make", enabled:true)
-                        task.dependsOn.forEach { t ->
-                            option(name:"Gradle.BeforeRunTask", enabled:true, tasks:t.name, externalProjectPath:'$PROJECT_DIR$')
-                        }
-                    }
-                }
-            }
-        }
     }
 }
