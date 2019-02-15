@@ -9,9 +9,10 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
+import net.minecraft.init.Enchantments;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -21,6 +22,7 @@ import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.IProperty;
 import net.minecraft.state.StateContainer;
+import net.minecraft.stats.StatList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -32,7 +34,6 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -86,19 +87,10 @@ public class BlockPackaged extends Block implements ITileEntityProvider
             return new ItemStack(ModPackingTape.itemTape, 1);
     }
 
-
-    /*    @Override
-    public boolean removedByPlayer(IBlockState state, World world, BlockPos pos, EntityPlayer player, boolean willHarvest)
-    {
-        // If it will harvest, delay deletion of the block until after getDrops.
-        return willHarvest || super.removedByPlayer(state, world, pos, player, false);
-    }
-
     //@Override
-    public void getDrops(NonNullList<ItemStack> drops, IWorldReader world, BlockPos pos, IBlockState state, int fortune)
+    public void getDrops(NonNullList<ItemStack> drops, @Nullable TileEntity teWorld)
     {
-        TileEntity teWorld = world.getTileEntity(pos);
-        if (teWorld != null && teWorld instanceof TilePackaged)
+        if (teWorld instanceof TilePackaged)
         {
             // TE exists here thanks to the willHarvest above.
             TilePackaged packaged = (TilePackaged) teWorld;
@@ -111,11 +103,15 @@ public class BlockPackaged extends Block implements ITileEntityProvider
     @Override
     public void harvestBlock(World worldIn, EntityPlayer player, BlockPos pos, IBlockState state, @Nullable TileEntity te, ItemStack stack)
     {
-        super.harvestBlock(worldIn, player, pos, state, te, stack);
-        // Finished making use of the TE, so we can now safely destroy the block.
-        worldIn.setBlockState(pos, Blocks.AIR.getDefaultState());
+        player.addStat(StatList.BLOCK_MINED.get(this));
+        player.addExhaustion(0.005F);
+
+        NonNullList<ItemStack> items = NonNullList.create();
+        getDrops(items, te);
+        boolean isSilkTouch = this.canSilkHarvest(state, worldIn, pos, player) && EnchantmentHelper.getEnchantmentLevel(Enchantments.SILK_TOUCH, stack) > 0;
+        net.minecraftforge.event.ForgeEventFactory.fireBlockHarvesting(items, worldIn, pos, state, 0, 1.0f, isSilkTouch, player);
+        items.forEach(e -> spawnAsEntity(worldIn, pos, e));
     }
-    */
 
     @Override
     public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack)
