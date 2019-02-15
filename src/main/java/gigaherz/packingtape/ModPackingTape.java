@@ -4,83 +4,76 @@ import gigaherz.packingtape.tape.BlockPackaged;
 import gigaherz.packingtape.tape.ItemTape;
 import gigaherz.packingtape.tape.TilePackaged;
 import net.minecraft.block.Block;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.DeferredWorkQueue;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.ObjectHolder;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
-
-@Mod.EventBusSubscriber
-@Mod(modid = ModPackingTape.MODID,
-        acceptedMinecraftVersions = "[1.12.0,1.13.0)")
+@Mod(ModPackingTape.MODID)
 public class ModPackingTape
 {
     public static final String MODID = "packingtape";
 
-    @GameRegistry.ObjectHolder(MODID + ":packaged_block")
+    @ObjectHolder(MODID + ":packaged_block")
     public static Block packagedBlock;
 
-    @GameRegistry.ObjectHolder(MODID + ":tape")
+    @ObjectHolder(MODID + ":tape")
     public static Item itemTape;
 
-    @Mod.Instance(value = ModPackingTape.MODID)
+    @ObjectHolder(MODID + ":packaged_block")
+    public static Item packagedBlockItem;
+
+    @ObjectHolder(MODID + ":packaged_block")
+    public static TileEntityType<TilePackaged> packaged_block_tile;
+
     public static ModPackingTape instance;
 
-    public static Logger logger;
+    public static Logger logger = LogManager.getLogger(MODID);
 
-    @EventHandler
-    public void preInit(FMLPreInitializationEvent event)
+    public ModPackingTape()
     {
-        logger = event.getModLog();
+        // no @Instance anymore
+        instance = this;
 
-        File configurationFile = event.getSuggestedConfigurationFile();
-        Configuration config = new Configuration(configurationFile);
-        Config.loadConfig(config);
+        FMLJavaModLoadingContext.get().getModEventBus().addGenericListener(Block.class, this::registerBlocks);
+        FMLJavaModLoadingContext.get().getModEventBus().addGenericListener(Item.class, this::registerItems);
+        FMLJavaModLoadingContext.get().getModEventBus().addGenericListener(TileEntityType.class, this::registerTileEntities);
     }
 
     @SubscribeEvent
-    public static void registerBlocks(RegistryEvent.Register<Block> event)
+    public void registerBlocks(RegistryEvent.Register<Block> event)
     {
         event.getRegistry().registerAll(
-                withName(new BlockPackaged(), "packaged_block")
+                packagedBlock = new BlockPackaged().setRegistryName(location("packaged_block"))
         );
-
     }
 
     @SubscribeEvent
-    public static void registerItems(RegistryEvent.Register<Item> event)
+    public void registerItems(RegistryEvent.Register<Item> event)
     {
-        GameRegistry.registerTileEntity(TilePackaged.class, packagedBlock.getRegistryName());
-
         event.getRegistry().registerAll(
-                forBlock(packagedBlock),
-
-                withName(new ItemTape(), "tape").setMaxStackSize(16).setCreativeTab(CreativeTabs.MISC)
+                packagedBlockItem = new ItemBlock(packagedBlock, new Item.Properties()).setRegistryName(packagedBlock.getRegistryName()),
+                itemTape = new ItemTape(new Item.Properties().maxStackSize(16).group(ItemGroup.MISC)).setRegistryName(location("tape"))
         );
+
+        Item.BLOCK_TO_ITEM.put(packagedBlock, packagedBlockItem);
     }
 
-    private static Item withName(Item item, String name)
+    @SubscribeEvent
+    public void registerTileEntities(RegistryEvent.Register<TileEntityType<?>> event)
     {
-        return item.setRegistryName(name).setTranslationKey(MODID + "." + name);
-    }
-
-    private static Block withName(Block block, String name)
-    {
-        return block.setRegistryName(name).setTranslationKey(MODID + "." + name);
-    }
-
-    private static Item forBlock(Block block)
-    {
-        return new ItemBlock(block).setRegistryName(block.getRegistryName());
+        packaged_block_tile = TileEntityType.register(packagedBlock.getRegistryName().toString(), TileEntityType.Builder.create(TilePackaged::new));
     }
 
     public static ResourceLocation location(String path)

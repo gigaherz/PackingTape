@@ -12,7 +12,8 @@ import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
+import net.minecraft.item.ItemUseContext;
+import net.minecraft.nbt.INBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumActionResult;
@@ -25,8 +26,9 @@ import net.minecraft.world.World;
 
 public class ItemTape extends Item
 {
-    public ItemTape()
+    public ItemTape(Properties properties)
     {
+        super(properties);
     }
 
     @Override
@@ -42,21 +44,19 @@ public class ItemTape extends Item
     }
 
     @Override
-    public Item setMaxDamage(int maxDamageIn)
-    {
-        return this;
-    }
-
-    @Override
     public int getItemStackLimit(ItemStack stack)
     {
-        return stack.getItemDamage() == 0 ? super.getItemStackLimit(stack) : 1;
+        return stack.getDamage() == 0 ? super.getItemStackLimit(stack) : 1;
     }
 
     @Override
-    public EnumActionResult onItemUse(EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
+    public EnumActionResult onItemUse(ItemUseContext context)
     {
-        ItemStack stack = playerIn.getHeldItem(hand);
+        EntityPlayer playerIn = context.getPlayer();
+        World worldIn = context.getWorld();
+        BlockPos pos = context.getPos();
+
+        ItemStack stack = context.getItem();
         if (stack.getCount() <= 0)
         {
             return EnumActionResult.PASS;
@@ -69,7 +69,7 @@ public class ItemTape extends Item
             return EnumActionResult.PASS;
         }
 
-        if (!playerIn.capabilities.isCreativeMode && Config.consumesPaper && !hasPaper(playerIn))
+        if (!playerIn.abilities.isCreativeMode && Config.consumesPaper && !hasPaper(playerIn))
         {
             TextComponentTranslation textComponent = new TextComponentTranslation("text.packingtape.tape.requires_paper");
             playerIn.sendStatusMessage(textComponent, true);
@@ -94,13 +94,14 @@ public class ItemTape extends Item
         ResourceLocation blockName = block.getRegistryName();
         assert blockName != null; // Because the block is in the world so it must
 
-        NBTBase propertyData = BlockStateNBT.encodeBlockState(state);
+        INBTBase propertyData = BlockStateNBT.encodeBlockState(state);
 
-        te.writeToNBT(tag);
+        te.write(tag);
 
-        worldIn.restoringBlockSnapshots = true;
+        //worldIn.restoringBlockSnapshots = true;
+        worldIn.removeTileEntity(pos);
         worldIn.setBlockState(pos, ModPackingTape.packagedBlock.getDefaultState());
-        worldIn.restoringBlockSnapshots = false;
+        //worldIn.restoringBlockSnapshots = false;
 
         TileEntity te2 = worldIn.getTileEntity(pos);
         if (te2 instanceof TilePackaged)
@@ -110,7 +111,7 @@ public class ItemTape extends Item
             packaged.setContents(blockName, propertyData, tag);
         }
 
-        if (!playerIn.capabilities.isCreativeMode)
+        if (!playerIn.abilities.isCreativeMode)
         {
             if (Config.consumesPaper)
                 usePaper(playerIn);

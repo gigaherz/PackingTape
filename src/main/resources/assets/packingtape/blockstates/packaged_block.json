@@ -1,5 +1,5 @@
 {
   "variants":{
-    "normal": { "model": "packingtape:packaged_block" }
+    "": { "model": "packingtape:block/packaged_block" }
   }
 }

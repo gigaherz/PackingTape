@@ -2,8 +2,6 @@ package gigaherz.packingtape;
 
 import com.google.common.collect.Sets;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.common.config.Property;
 
 import java.util.Collections;
 import java.util.Set;
@@ -16,6 +14,7 @@ public class Config
     public static int tapeRollUses;
     public static boolean consumesPaper;
 
+    /*
     static void loadConfig(Configuration config)
     {
         Property bl = config.get("tileEntities", "blacklist", new String[0]);
@@ -30,6 +29,7 @@ public class Config
         if (!bl.wasRead() || !wl.wasRead() || !ru.wasRead() || !cp.wasRead())
             config.save();
     }
+    */
 
     public static boolean isTileEntityAllowed(TileEntity te)
     {
@@ -77,9 +77,6 @@ public class Config
             return false;
 
         if (net.minecraft.tileentity.TileEntityPiston.class.isAssignableFrom(teClass))
-            return false;
-
-        if (net.minecraft.tileentity.TileEntityNote.class.isAssignableFrom(teClass))
             return false;
 
         if (net.minecraft.tileentity.TileEntityEnchantmentTable.class.isAssignableFrom(teClass))

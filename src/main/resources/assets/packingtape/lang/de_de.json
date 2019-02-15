@@ -1,0 +1,6 @@
+{
+  "item.packingtape.tape":"Packband",
+  "block.packingtape.packaged_block":"Verpackter Block",
+  "text.packingtape.tape.requires_paper":"Benötigt Papier zum Packen!",
+  "text.packingtape.packaged.cant_place":"Can not unpack the contents here!"
+}

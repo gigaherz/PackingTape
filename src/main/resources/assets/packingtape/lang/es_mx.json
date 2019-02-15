@@ -1,0 +1,6 @@
+{
+  "item.packingtape.tape":"Cinta de embalaje",
+  "block.packingtape.packaged_block":"Bloque empaquetado",
+  "text.packingtape.tape.requires_paper":"¡Requiere papel para trabajar!",
+  "text.packingtape.packaged.cant_place":"Can not unpack the contents here!"
+}

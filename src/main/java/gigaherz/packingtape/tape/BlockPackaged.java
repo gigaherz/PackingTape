@@ -2,22 +2,25 @@ package gigaherz.packingtape.tape;
 
 import gigaherz.packingtape.ModPackingTape;
 import net.minecraft.block.Block;
+import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
-import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.EnumProperty;
+import net.minecraft.state.IProperty;
+import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -25,34 +28,35 @@ import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Random;
 
-public class BlockPackaged extends Block
+public class BlockPackaged extends Block implements ITileEntityProvider
 {
-    public static final PropertyBool UNPACKING = PropertyBool.create("unpacking");
+    public static final BooleanProperty UNPACKING = BooleanProperty.create("unpacking");
 
     public BlockPackaged()
     {
-        super(Material.CLOTH);
-        setHardness(0.5F);
-        setSoundType(SoundType.WOOD);
-        setDefaultState(this.getBlockState().getBaseState().withProperty(UNPACKING, false));
+        super(Block.Properties.create(Material.CLOTH)
+                .hardnessAndResistance(0.5f,0.5f).sound(SoundType.WOOD));
+        setDefaultState(this.getStateContainer().getBaseState().with(UNPACKING, false));
     }
 
+    @Deprecated
     @Override
-    public boolean isReplaceable(IBlockAccess worldIn, BlockPos pos)
+    public boolean isReplaceable(IBlockState state, BlockItemUseContext useContext)
     {
-        return worldIn.getBlockState(pos).getValue(UNPACKING);
+        return state.get(UNPACKING);
     }
 
     @Override
@@ -61,51 +65,37 @@ public class BlockPackaged extends Block
         return true;
     }
 
-    @Override
-    public TileEntity createTileEntity(World world, IBlockState state)
+    //@Override
+    public TileEntity createTileEntity(IBlockReader world, IBlockState state)
     {
         return new TilePackaged();
     }
 
     @Override
-    protected BlockStateContainer createBlockState()
+    protected void fillStateContainer(StateContainer.Builder<Block, IBlockState> builder)
     {
-        return new BlockStateContainer(this, UNPACKING);
-    }
-
-    @Deprecated
-    @Override
-    public IBlockState getStateFromMeta(int meta)
-    {
-        return getDefaultState();
+        builder.add(UNPACKING);
     }
 
     @Override
-    public int getMetaFromState(IBlockState state)
+    public ItemStack getPickBlock(IBlockState state, RayTraceResult target, IBlockReader world, BlockPos pos, EntityPlayer player)
     {
-        return 0;
-    }
-
-    @Override
-    public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player)
-    {
-        Item item = Item.getItemFromBlock(this);
-
-        if (player.capabilities.isCreativeMode && GuiScreen.isCtrlKeyDown())
-            return new ItemStack(item, 1);
+        if (player.abilities.isCreativeMode && GuiScreen.isCtrlKeyDown())
+            return new ItemStack(asItem(), 1);
         else
             return new ItemStack(ModPackingTape.itemTape, 1);
     }
 
-    @Override
+
+    /*    @Override
     public boolean removedByPlayer(IBlockState state, World world, BlockPos pos, EntityPlayer player, boolean willHarvest)
     {
         // If it will harvest, delay deletion of the block until after getDrops.
         return willHarvest || super.removedByPlayer(state, world, pos, player, false);
     }
 
-    @Override
-    public void getDrops(NonNullList<ItemStack> drops, IBlockAccess world, BlockPos pos, IBlockState state, int fortune)
+    //@Override
+    public void getDrops(NonNullList<ItemStack> drops, IWorldReader world, BlockPos pos, IBlockState state, int fortune)
     {
         TileEntity teWorld = world.getTileEntity(pos);
         if (teWorld != null && teWorld instanceof TilePackaged)
@@ -123,8 +113,9 @@ public class BlockPackaged extends Block
     {
         super.harvestBlock(worldIn, player, pos, state, te, stack);
         // Finished making use of the TE, so we can now safely destroy the block.
-        worldIn.setBlockToAir(pos);
+        worldIn.setBlockState(pos, Blocks.AIR.getDefaultState());
     }
+    */
 
     @Override
     public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack)
@@ -139,30 +130,8 @@ public class BlockPackaged extends Block
         super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
     }
 
-    /**
-     * FIX for blocks placed in the previous version that have UNPACKING set to true
-     */
     @Override
-    public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state)
-    {
-        super.onBlockAdded(worldIn, pos, state);
-        if (state.getValue(UNPACKING))
-            worldIn.scheduleUpdate(pos, this, 1);
-    }
-
-    @Override
-    public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand)
-    {
-        if (state.getValue(UNPACKING))
-            worldIn.setBlockState(pos, state.withProperty(UNPACKING, false));
-    }
-
-    /**
-     * END FIX
-     */
-
-    @Override
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ)
+    public boolean onBlockActivated(IBlockState state, World worldIn, BlockPos pos, EntityPlayer player, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ)
     {
         if (worldIn.isRemote)
             return true;
@@ -182,36 +151,36 @@ public class BlockPackaged extends Block
         if (b == null)
             return false;
 
-        worldIn.setBlockState(pos, state.withProperty(UNPACKING, true), 0);
+        /*worldIn.setBlockState(pos, state.with(UNPACKING, true), 0);
         if (!b.canPlaceBlockAt(worldIn, pos))
         {
             TextComponentTranslation textComponent = new TextComponentTranslation("text.packingtape.packaged.cant_place");
             playerIn.sendStatusMessage(textComponent, true);
-            worldIn.setBlockState(pos, state.withProperty(UNPACKING, false), 0);
+            worldIn.setBlockState(pos, state.with(UNPACKING, false), 0);
             return false;
         }
-        worldIn.setBlockState(pos, state.withProperty(UNPACKING, false), 0);
+        worldIn.setBlockState(pos, state.withProperty(UNPACKING, false), 0);*/
 
-        @SuppressWarnings("deprecation")
         IBlockState newState = te.getParsedBlockState(b);
 
         NBTTagCompound tag = te.getContainedTile();
         if (tag == null)
             return false;
 
+        worldIn.removeTileEntity(pos);
         worldIn.setBlockState(pos, newState);
 
         EnumFacing preferred = te.getPreferredDirection();
         if (preferred != null)
         {
-            PropertyEnum facing = null;
-            for (IProperty prop : newState.getPropertyKeys())
+            EnumProperty facing = null;
+            for (IProperty prop : newState.getProperties())
             {
                 if (prop.getName().equalsIgnoreCase("facing") || prop.getName().equalsIgnoreCase("rotation"))
                 {
-                    if (prop instanceof PropertyEnum)
+                    if (prop instanceof EnumProperty)
                     {
-                        facing = (PropertyEnum) prop;
+                        facing = (EnumProperty) prop;
                     }
                     break;
                 }
@@ -223,23 +192,22 @@ public class BlockPackaged extends Block
                 {
                     if (!rotateBlockToward(worldIn, pos, preferred, facing))
                     {
-                        worldIn.setBlockState(pos, newState);
+                        worldIn.setBlockState(pos, newState.with(facing, preferred));
                     }
                 }
             }
         }
 
-        setTileEntityNBT(worldIn, pos, tag, playerIn);
+        setTileEntityNBT(worldIn, pos, tag, player);
 
         return true;
     }
 
-    private static boolean rotateBlockToward(World worldIn, BlockPos pos, EnumFacing preferred, PropertyEnum prop)
+    private static boolean rotateBlockToward(World worldIn, BlockPos pos, EnumFacing preferred, EnumProperty prop)
     {
-        IBlockState stored = worldIn.getBlockState(pos);
+        /*IBlockState stored = worldIn.getBlockState(pos);
         Block block = stored.getBlock();
-        IBlockState actual = stored.getActualState(worldIn, pos);
-        if (actual.getValue(prop) == preferred)
+        if (stored.get(prop) == preferred)
         {
             return true;
         }
@@ -247,18 +215,17 @@ public class BlockPackaged extends Block
         for (Object ignored : prop.getAllowedValues())
         {
             if (preferred.getAxis() == EnumFacing.Axis.Y)
-                block.rotateBlock(worldIn, pos, EnumFacing.WEST);
+                block.rotateBlock(stored, worldIn, pos, EnumFacing.WEST);
             else
-                block.rotateBlock(worldIn, pos, EnumFacing.UP);
+                block.rotateBlock(stored, worldIn, pos, EnumFacing.UP);
 
             stored = worldIn.getBlockState(pos);
             block = stored.getBlock();
-            actual = stored.getActualState(worldIn, pos);
-            if (actual.getValue(prop) == preferred)
+            if (stored.get(prop) == preferred)
             {
                 return true;
             }
-        }
+        }*/
 
         return false;
     }
@@ -267,7 +234,7 @@ public class BlockPackaged extends Block
                                            @Nullable NBTTagCompound tag,
                                            @Nullable EntityPlayer playerIn)
     {
-        MinecraftServer minecraftserver = worldIn.getMinecraftServer();
+        MinecraftServer minecraftserver = worldIn.getServer();
 
         if (minecraftserver == null)
         {
@@ -288,15 +255,15 @@ public class BlockPackaged extends Block
 
                     NBTTagCompound merged = new NBTTagCompound();
                     NBTTagCompound empty = merged.copy();
-                    tileentity.writeToNBT(merged);
+                    tileentity.write(merged);
                     merged.merge(tag);
-                    merged.setInteger("x", pos.getX());
-                    merged.setInteger("y", pos.getY());
-                    merged.setInteger("z", pos.getZ());
+                    merged.putInt("x", pos.getX());
+                    merged.putInt("y", pos.getY());
+                    merged.putInt("z", pos.getZ());
 
                     if (!merged.equals(empty))
                     {
-                        tileentity.readFromNBT(merged);
+                        tileentity.read(merged);
                         tileentity.markDirty();
                         return true;
                     }
@@ -307,56 +274,63 @@ public class BlockPackaged extends Block
         }
     }
 
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, @Nullable World world, List<String> tooltip, ITooltipFlag advanced)
+    public void addInformation(ItemStack stack, @Nullable IBlockReader worldIn, List<ITextComponent> tooltip, ITooltipFlag advanced)
     {
-        NBTTagCompound tag = stack.getTagCompound();
+        super.addInformation(stack, worldIn, tooltip, advanced);
+
+        NBTTagCompound tag = stack.getTag();
         if (tag == null)
         {
-            tooltip.add("Missing data (no nbt)!");
+            tooltip.add(new TextComponentString("Missing data (no nbt)!"));
             return;
         }
 
-        NBTTagCompound info = (NBTTagCompound) tag.getTag("BlockEntityTag");
+        NBTTagCompound info = (NBTTagCompound) tag.get("BlockEntityTag");
         if (info == null)
         {
-            tooltip.add("Missing data (no tag)!");
+            tooltip.add(new TextComponentString("Missing data (no tag)!"));
             return;
         }
 
-        if (!info.hasKey("containedBlock", Constants.NBT.TAG_STRING) ||
-                !info.hasKey("containedBlockMetadata", Constants.NBT.TAG_INT) ||
-                !info.hasKey("containedTile", Constants.NBT.TAG_COMPOUND))
+        if (!info.contains("containedBlock") ||
+                !info.contains("containedTile"))
         {
-            tooltip.add("Missing data (no block info)!");
+            tooltip.add(new TextComponentString("Missing data (no block info)!"));
             return;
         }
 
         String blockName = info.getString("containedBlock");
-        int meta = info.getInteger("containedBlockMetadata");
 
         Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(blockName));
         if (block == null)
         {
-            tooltip.add("Unknown block:");
-            tooltip.add("  " + blockName);
+            tooltip.add(new TextComponentString("Unknown block:"));
+            tooltip.add(new TextComponentString("  " + blockName));
             return;
         }
 
         Item item = Item.getItemFromBlock(block);
         if (item == null)
         {
-            tooltip.add("No ItemBlock:");
-            tooltip.add("  " + blockName);
+            tooltip.add(new TextComponentString("No ItemBlock:"));
+            tooltip.add(new TextComponentString("  " + blockName));
             return;
         }
 
-        tooltip.add("Contains:");
-        ItemStack stack1 = new ItemStack(item, 1, meta);
-        for (String s : stack1.getTooltip(Minecraft.getMinecraft().player, advanced))
+        tooltip.add(new TextComponentString("Contains:"));
+        ItemStack stack1 = new ItemStack(item, 1);
+        for (ITextComponent s : stack1.getTooltip(Minecraft.getInstance().player, advanced))
         {
-            tooltip.add("  " + s);
+            tooltip.add(new TextComponentTranslation("  %s", s));
         }
+    }
+
+    @Nullable
+    @Override
+    public TileEntity createNewTileEntity(IBlockReader worldIn)
+    {
+        return createTileEntity(worldIn, getDefaultState());
     }
 }

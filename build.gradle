@@ -1,68 +1,120 @@
+import net.minecraftforge.gradle.common.util.RunConfig
+
 buildscript {
     repositories {
+        mavenLocal()
+        maven { url = 'http://files.minecraftforge.net/maven' }
         jcenter()
-        maven { url = "http://files.minecraftforge.net/maven" }
+        mavenCentral()
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
     }
 }
 
-apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
+
+repositories {
+    mavenLocal()
+}
 
 version = "0.8.0"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "PackingTape-1.12.2"
+archivesBaseName = "PackingTape-1.13.2"
+
+sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+compileJava {
+    sourceCompatibility = targetCompatibility = '1.8'
+}
 
 minecraft {
-    version = "1.12.2-14.23.4.2757"
-    runDir = "run"
+    mappings channel: 'snapshot', version: '20190215-1.13.1'
+    //mappings channel: 'stable', version: '43-1.13'
 
-    mappings = "stable_39"
+    // default run configurations.
+    // these can be tweaked, removed, or duplicated as needed.
+    runs {
+        client = {
+            // recommended logging data for a userdev environment
+            properties 'forge.logging.markers': 'SCAN,REGISTRIES,REGISTRYDUMP'
+            // recommended logging level for the console
+            properties 'forge.logging.console.level': 'debug'
+            workingDirectory project.file('run').canonicalPath
+            source sourceSets.main
+            ideaModule project.group + "." + project.name + ".main"
+        }
+        server = {
+            // recommended logging data for a userdev environment
+            properties 'forge.logging.markers': 'SCAN,REGISTRIES,REGISTRYDUMP'
+            // recommended logging level for the console
+            properties 'forge.logging.console.level': 'debug'
+            workingDirectory project.file('run').canonicalPath
+            source sourceSets.main
+            ideaModule project.group + "." + project.name + ".main"
+        }
+    }
 
-    replace "@VERSION@", project.version
-    replaceIn "ModPackingTape.java"
 }
 
 dependencies {
-}
-
-compileJava {
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-    options.encoding = 'UTF-8'
+    minecraft 'net.minecraftforge:forge:1.13.2-25.0.10'
 }
 
 processResources {
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
+    // this will ensure that this task is redone when the versions change.
+    inputs.property 'version', project.version
 
+    // replace stuff in mcmod.info, nothing else
     from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-        expand 'version':project.version, 'mcversion':project.minecraft.version
+        include 'META_INF/mods.toml'
+                
+        // replace version and mcversion
+        expand 'version':project.version
     }
 
+    // copy everything else except the mcmod.info
     from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
+        exclude 'META_INF/mods.toml'
     }
 }
 
-tasks.publish.dependsOn build
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
+task genIntellijRuns2 {
+    dependsOn extractNatives, downloadAssets
+    doLast {
+        def runConfigurationsDir = new File(project.projectDir.canonicalFile, ".idea/runConfigurations")
+        if (!runConfigurationsDir.exists())
+            runConfigurationsDir.mkdirs()
 
-            artifact sourceJar
-        }
-    }
+        tasks.withType(JavaExec).each { task ->
+            def taskName = task.name.replaceAll("^run", "")
+            def mainClass = task.main
+            def props = task.systemProperties.collect { k, v -> "-D$k=$v" }.join(' ')
+            def args = task.args.join(" ")
 
-    repositories {
-        maven {
-            url "$buildDir/repo"
+            def writer = new FileWriter(new File(runConfigurationsDir, "${taskName}.xml"))
+            def xml = new groovy.xml.MarkupBuilder(writer)
+
+            xml.component(name: "ProjectRunConfigurationManager") {
+                configuration(default: 'false', name: taskName, type: "Application", factoryName: "Application", singleton: "true") {
+                    option(name: 'MAIN_CLASS_NAME', value: mainClass)
+                    option(name: 'VM_PARAMETERS', value: props)
+                    option(name: 'PROGRAM_PARAMETERS', value: args)
+                    option(name: 'WORKING_DIRECTORY', value: 'file://$PROJECT_DIR$/run')
+                    module(name: project.group + "." + project.name + '.main')
+                    envs() {
+                        task.environment.forEach { k, v ->
+                            env(name: k, value: v)
+                        }
+                    }
+                    method(v: 2) {
+                        option(name:"Make", enabled:true)
+                        task.dependsOn.forEach { t ->
+                            option(name:"Gradle.BeforeRunTask", enabled:true, tasks:t.name, externalProjectPath:'$PROJECT_DIR$')
+                        }
+                    }
+                }
+            }
         }
     }
 }
-
-idea { module.inheritOutputDirs = true }

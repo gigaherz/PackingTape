@@ -5,9 +5,12 @@ import gigaherz.packingtape.ModPackingTape;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.INBTBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -18,29 +21,39 @@ import javax.annotation.Nullable;
 public class TilePackaged extends TileEntity
 {
     private ResourceLocation containedBlock;
-    private NBTBase containedBlockState;
+    private INBTBase containedBlockState;
     private NBTTagCompound containedTile;
     private EnumFacing preferredDirection;
 
-    @Override
+    public TilePackaged(TileEntityType<?> tileEntityTypeIn)
+    {
+        super(tileEntityTypeIn);
+    }
+
+    public TilePackaged()
+    {
+        super(ModPackingTape.packaged_block_tile);
+    }
+
+    //@Override
     public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate)
     {
         return (oldState.getBlock() != newSate.getBlock());
     }
 
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound compound)
+    public NBTTagCompound write(NBTTagCompound compound)
     {
-        compound = super.writeToNBT(compound);
+        compound = super.write(compound);
 
         if (containedBlock != null)
         {
-            compound.setString("containedBlock", containedBlock.toString());
-            compound.setTag("containedBlockState", containedBlockState);
-            compound.setTag("containedTile", containedTile.copy());
+            compound.putString("containedBlock", containedBlock.toString());
+            compound.put("containedBlockState", containedBlockState);
+            compound.put("containedTile", containedTile.copy());
             if (preferredDirection != null)
             {
-                compound.setInteger("preferredDirection", preferredDirection.ordinal());
+                compound.putInt("preferredDirection", preferredDirection.ordinal());
             }
         }
 
@@ -48,16 +61,16 @@ public class TilePackaged extends TileEntity
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound compound)
+    public void read(NBTTagCompound compound)
     {
-        super.readFromNBT(compound);
+        super.read(compound);
 
         containedBlock = new ResourceLocation(compound.getString("containedBlock"));
-        containedBlockState = compound.getTag("containedBlockState");
-        containedTile = compound.getCompoundTag("containedTile").copy();
-        if (compound.hasKey("preferredDirection"))
+        containedBlockState = compound.get("containedBlockState");
+        containedTile = compound.getCompound("containedTile").copy();
+        if (compound.contains("preferredDirection"))
         {
-            preferredDirection = EnumFacing.values()[compound.getInteger("preferredDirection")];
+            preferredDirection = EnumFacing.values()[compound.getInt("preferredDirection")];
         }
     }
 
@@ -67,7 +80,7 @@ public class TilePackaged extends TileEntity
         return containedBlock;
     }
 
-    public NBTBase getContainedBlockState()
+    public INBTBase getContainedBlockState()
     {
         return containedBlockState;
     }
@@ -77,7 +90,7 @@ public class TilePackaged extends TileEntity
         return containedTile;
     }
 
-    public void setContents(ResourceLocation blockName, NBTBase propertyData, NBTTagCompound tag)
+    public void setContents(ResourceLocation blockName, INBTBase propertyData, NBTTagCompound tag)
     {
         containedBlock = blockName;
         containedBlockState = propertyData;
@@ -100,14 +113,14 @@ public class TilePackaged extends TileEntity
         ItemStack stack = new ItemStack(ModPackingTape.packagedBlock);
 
         NBTTagCompound tileEntityData = new NBTTagCompound();
-        writeToNBT(tileEntityData);
-        tileEntityData.removeTag("x");
-        tileEntityData.removeTag("y");
-        tileEntityData.removeTag("z");
+        write(tileEntityData);
+        tileEntityData.remove("x");
+        tileEntityData.remove("y");
+        tileEntityData.remove("z");
 
         NBTTagCompound stackTag = new NBTTagCompound();
-        stackTag.setTag("BlockEntityTag", tileEntityData);
-        stack.setTagCompound(stackTag);
+        stackTag.put("BlockEntityTag", tileEntityData);
+        stack.setTag(stackTag);
 
         ModPackingTape.logger.debug("Created Packed stack with " + containedBlock + "[" + containedBlockState + "]");
 
@@ -117,5 +130,30 @@ public class TilePackaged extends TileEntity
     public IBlockState getParsedBlockState(Block b)
     {
         return BlockStateNBT.decodeBlockState(b, getContainedBlockState());
+    }
+
+    @Override
+    public NBTTagCompound getUpdateTag()
+    {
+        return write(new NBTTagCompound());
+    }
+
+    @Nullable
+    @Override
+    public SPacketUpdateTileEntity getUpdatePacket()
+    {
+        return new SPacketUpdateTileEntity(pos, 0, getUpdateTag());
+    }
+
+    @Override
+    public void handleUpdateTag(NBTTagCompound tag)
+    {
+        read(tag);
+    }
+
+    @Override
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt)
+    {
+        handleUpdateTag(pkt.getNbtCompound());
     }
 }
