@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "packingtape",
+  "ingredients": [
+    { "item": "minecraft:slime_ball" },
+    { "item": "minecraft:string" },
+    { "item": "minecraft:paper" }
+  ],
+  "result": {
+    "item": "packingtape:tape"
+  }
+}

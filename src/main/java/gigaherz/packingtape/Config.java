@@ -50,11 +50,11 @@ public class Config
                     .translation("text.packingtape.config.blacklist")
                     .defineList("whitelist", Lists.newArrayList(), o -> o instanceof String);
             tapeRollUses = builder
-                    .comment("How many times the rape roll can be used before it breaks")
+                    .comment("How many times the tape roll can be used before it breaks")
                     .translation("text.packingtape.config.tape_roll_uses")
                     .defineInRange("tape_roll_uses", 8, 0, Integer.MAX_VALUE - 1);
             consumesPaper = builder
-                    .comment("Whether the rape roll consumes paper when used")
+                    .comment("Whether the tape roll consumes paper when used")
                     .translation("text.packingtape.config.consume_paper")
                     .define("sound", true);
             builder.pop();

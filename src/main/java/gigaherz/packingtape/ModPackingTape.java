@@ -49,12 +49,14 @@ public class ModPackingTape
         FMLJavaModLoadingContext.get().getModEventBus().addGenericListener(Item.class, this::registerItems);
         FMLJavaModLoadingContext.get().getModEventBus().addGenericListener(TileEntityType.class, this::registerTileEntities);
 
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::serverConfig);
+
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.SERVER_SPEC);
     }
 
     public void serverConfig(ModConfig.ModConfigEvent event)
     {
-        if (event.getConfig().getType() == ModConfig.Type.SERVER)
+        if (event.getConfig().getSpec() == Config.SERVER_SPEC)
             Config.load();
     }
 
