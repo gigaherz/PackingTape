@@ -3,8 +3,6 @@ package gigaherz.packingtape.tape;
 import gigaherz.packingtape.ModPackingTape;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -46,10 +44,9 @@ public class BlockPackaged extends Block implements ITileEntityProvider
 {
     public static final BooleanProperty UNPACKING = BooleanProperty.create("unpacking");
 
-    public BlockPackaged()
+    public BlockPackaged(Properties properties)
     {
-        super(Block.Properties.create(Material.CLOTH)
-                .hardnessAndResistance(0.5f,0.5f).sound(SoundType.WOOD));
+        super(properties);
         setDefaultState(this.getStateContainer().getBaseState().with(UNPACKING, false));
     }
 
@@ -87,7 +84,7 @@ public class BlockPackaged extends Block implements ITileEntityProvider
             return new ItemStack(ModPackingTape.itemTape, 1);
     }
 
-    //@Override
+    //@Overridenew ItemS
     public void getDrops(NonNullList<ItemStack> drops, @Nullable TileEntity teWorld)
     {
         if (teWorld instanceof TilePackaged)

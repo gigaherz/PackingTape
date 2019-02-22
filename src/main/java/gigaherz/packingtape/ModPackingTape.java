@@ -4,6 +4,8 @@ import gigaherz.packingtape.tape.BlockPackaged;
 import gigaherz.packingtape.tape.ItemTape;
 import gigaherz.packingtape.tape.TilePackaged;
 import net.minecraft.block.Block;
+import net.minecraft.block.SoundType;
+import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemGroup;
@@ -64,7 +66,7 @@ public class ModPackingTape
     public void registerBlocks(RegistryEvent.Register<Block> event)
     {
         event.getRegistry().registerAll(
-                packagedBlock = new BlockPackaged().setRegistryName(location("packaged_block"))
+                packagedBlock = new BlockPackaged(Block.Properties.create(Material.CLOTH).hardnessAndResistance(0.5f, 0.5f).sound(SoundType.WOOD)).setRegistryName(location("packaged_block"))
         );
     }
 
