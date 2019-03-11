@@ -1,3 +1,4 @@
-tile.packingtape.packaged_block.name=Verpackter Block
 item.packingtape.tape.name=Packband
+tile.packingtape.packaged_block.name=Verpackter Block
 text.packingtape.tape.requires_paper=Benötigt Papier zum Packen!
+text.packingtape.packaged.cant_place=Can not unpack the contents here!

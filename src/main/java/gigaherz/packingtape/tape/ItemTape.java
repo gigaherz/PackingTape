@@ -98,9 +98,8 @@ public class ItemTape extends Item
 
         te.writeToNBT(tag);
 
-        worldIn.restoringBlockSnapshots = true;
+        worldIn.removeTileEntity(pos);
         worldIn.setBlockState(pos, ModPackingTape.packagedBlock.getDefaultState());
-        worldIn.restoringBlockSnapshots = false;
 
         TileEntity te2 = worldIn.getTileEntity(pos);
         if (te2 instanceof TilePackaged)

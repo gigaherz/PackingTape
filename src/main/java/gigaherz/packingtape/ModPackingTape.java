@@ -15,6 +15,8 @@ import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.common.registry.GameRegistry.ObjectHolder;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
@@ -26,22 +28,20 @@ public class ModPackingTape
 {
     public static final String MODID = "packingtape";
 
-    @GameRegistry.ObjectHolder(MODID + ":packaged_block")
+    @ObjectHolder(MODID + ":packaged_block")
     public static Block packagedBlock;
 
-    @GameRegistry.ObjectHolder(MODID + ":tape")
+    @ObjectHolder(MODID + ":tape")
     public static Item itemTape;
 
     @Mod.Instance(value = ModPackingTape.MODID)
     public static ModPackingTape instance;
 
-    public static Logger logger;
+    public static Logger logger = LogManager.getLogger(MODID);
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
-        logger = event.getModLog();
-
         File configurationFile = event.getSuggestedConfigurationFile();
         Configuration config = new Configuration(configurationFile);
         Config.loadConfig(config);

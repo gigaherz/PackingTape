@@ -1,5 +1,5 @@
-//Translate by: Dorzar / VeryHardChamp
-//Última actualización: 23/07/2017
-tile.packingtape.packaged_block.name=Bloque empaquetado
+//Translated by: Dorzar / VeryHardChamp
 item.packingtape.tape.name=Cinta de embalaje
+tile.packingtape.packaged_block.name=Bloque empaquetado
 text.packingtape.tape.requires_paper=¡Requiere papel para trabajar!
+text.packingtape.packaged.cant_place=Can not unpack the contents here!
