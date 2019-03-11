@@ -15,6 +15,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.nbt.INBTBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
@@ -53,7 +54,7 @@ public class ItemTape extends Item
     public EnumActionResult onItemUse(ItemUseContext context)
     {
         EntityPlayer playerIn = context.getPlayer();
-        World worldIn = context.getWorld();
+        World world = context.getWorld();
         BlockPos pos = context.getPos();
 
         ItemStack stack = context.getItem();
@@ -62,7 +63,8 @@ public class ItemTape extends Item
             return EnumActionResult.PASS;
         }
 
-        TileEntity te = worldIn.getTileEntity(pos);
+        IBlockState state = world.getBlockState(pos);
+        TileEntity te = world.getTileEntity(pos);
 
         if (te == null)
         {
@@ -76,7 +78,7 @@ public class ItemTape extends Item
             return EnumActionResult.FAIL;
         }
 
-        if (worldIn.isRemote)
+        if (world.isRemote)
         {
             return EnumActionResult.SUCCESS;
         }
@@ -86,29 +88,17 @@ public class ItemTape extends Item
             return EnumActionResult.PASS;
         }
 
-        NBTTagCompound tag = new NBTTagCompound();
+        NBTTagCompound tag = te.write(new NBTTagCompound());
 
-        IBlockState state = worldIn.getBlockState(pos);
-        Block block = state.getBlock();
+        world.removeTileEntity(pos);
+        world.setBlockState(pos, ModPackingTape.packagedBlock.getDefaultState());
 
-        ResourceLocation blockName = block.getRegistryName();
-        assert blockName != null; // Because the block is in the world so it must
-
-        INBTBase propertyData = BlockStateNBT.encodeBlockState(state);
-
-        te.write(tag);
-
-        //worldIn.restoringBlockSnapshots = true;
-        worldIn.removeTileEntity(pos);
-        worldIn.setBlockState(pos, ModPackingTape.packagedBlock.getDefaultState());
-        //worldIn.restoringBlockSnapshots = false;
-
-        TileEntity te2 = worldIn.getTileEntity(pos);
+        TileEntity te2 = world.getTileEntity(pos);
         if (te2 instanceof TilePackaged)
         {
             TilePackaged packaged = (TilePackaged) te2;
 
-            packaged.setContents(blockName, propertyData, tag);
+            packaged.setContents(state, tag);
         }
 
         if (!playerIn.abilities.isCreativeMode)
@@ -123,8 +113,8 @@ public class ItemTape extends Item
                 split.damageItem(1, playerIn);
                 if (split.getCount() > 0)
                 {
-                    EntityItem ei = new EntityItem(worldIn, playerIn.posX, playerIn.posY, playerIn.posZ, split);
-                    worldIn.spawnEntity(ei);
+                    EntityItem ei = new EntityItem(world, playerIn.posX, playerIn.posY, playerIn.posZ, split);
+                    world.spawnEntity(ei);
                 }
                 stack.grow(-1);
             }

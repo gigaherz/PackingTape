@@ -24,7 +24,7 @@ public class Config
     public static int tapeRollUses = 8;
     public static boolean consumesPaper = true;
 
-    public static void load()
+    public static void bake()
     {
         whiteList = Sets.newHashSet(SERVER.whitelist.get());
         blackList = Sets.newHashSet(SERVER.blacklist.get());

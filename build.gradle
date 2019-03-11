@@ -1,4 +1,6 @@
 import net.minecraftforge.gradle.common.util.RunConfig
+import net.minecraftforge.gradle.patcher.task.TaskReobfuscateJar
+import net.minecraftforge.gradle.userdev.tasks.RenameJarInPlace
 
 buildscript {
     repositories {
@@ -8,7 +10,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.0.110.1-SNAPSHOT', changing: true
     }
 }
 
@@ -19,7 +21,7 @@ repositories {
     mavenLocal()
 }
 
-version = "0.8.1"
+version = "0.8.2"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "PackingTape-1.13.2"
 
@@ -31,49 +33,48 @@ compileJava {
 minecraft {
     mappings channel: 'snapshot', version: '20190215-1.13.1'
 
-    // default run configurations.
-    // these can be tweaked, removed, or duplicated as needed.
     runs {
-        client = {
-            // recommended logging data for a userdev environment
-            properties 'forge.logging.markers': 'SCAN,REGISTRIES,REGISTRYDUMP'
-            // recommended logging level for the console
-            properties 'forge.logging.console.level': 'debug'
-            workingDirectory project.file('run').canonicalPath
-            source sourceSets.main
-            ideaModule project.group + "." + project.name + ".main"
+        client {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+            property 'forge.logging.noansi', "false"
+
+            ideaModule "${project.name}_main"
+
+            environment 'MOD_CLASSES', "${project.file("out/production/resources").canonicalPath};${project.file("out/production/classes").canonicalPath}"
         }
-        server = {
-            // recommended logging data for a userdev environment
-            properties 'forge.logging.markers': 'SCAN,REGISTRIES,REGISTRYDUMP'
-            // recommended logging level for the console
-            properties 'forge.logging.console.level': 'debug'
-            workingDirectory project.file('run').canonicalPath
-            source sourceSets.main
-            ideaModule project.group + "." + project.name + ".main"
+
+        server {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+            property 'forge.logging.noansi', "false"
+
+            ideaModule "${project.name}_main"
+
+            environment 'MOD_CLASSES', "${project.file("out/production/resources").canonicalPath};${project.file("out/production/classes").canonicalPath}"
         }
     }
-
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.13.2-25.0.26'
+    minecraft 'net.minecraftforge:forge:1.13.2-25.0.70'
 }
 
-processResources {
-    // this will ensure that this task is redone when the versions change.
-    inputs.property 'version', project.version
-
-    // replace stuff in mcmod.info, nothing else
-    from(sourceSets.main.resources.srcDirs) {
-        include 'META_INF/mods.toml'
-                
-        // replace version and mcversion
-        expand 'version':project.version
-    }
-
-    // copy everything else except the mcmod.info
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'META_INF/mods.toml'
+// Example for how to get properties into the manifest for reading by the runtime..
+jar {
+    manifest {
+        attributes([
+                "Specification-Title": "packingtape",
+                "Specification-Vendor": "gigaherz",
+                "Specification-Version": "1", // We are version 1 of ourselves
+                "Implementation-Title": project.name,
+                "Implementation-Version": "${version}",
+                "Implementation-Vendor" :"gigaherz",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
     }
 }

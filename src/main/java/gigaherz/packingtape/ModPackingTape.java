@@ -59,14 +59,14 @@ public class ModPackingTape
     public void serverConfig(ModConfig.ModConfigEvent event)
     {
         if (event.getConfig().getSpec() == Config.SERVER_SPEC)
-            Config.load();
+            Config.bake();
     }
 
     @SubscribeEvent
     public void registerBlocks(RegistryEvent.Register<Block> event)
     {
         event.getRegistry().registerAll(
-                packagedBlock = new BlockPackaged(Block.Properties.create(Material.CLOTH).hardnessAndResistance(0.5f, 0.5f).sound(SoundType.WOOD)).setRegistryName(location("packaged_block"))
+                new BlockPackaged(Block.Properties.create(Material.CLOTH).hardnessAndResistance(0.5f, 0.5f).sound(SoundType.WOOD)).setRegistryName(location("packaged_block"))
         );
     }
 
@@ -74,17 +74,15 @@ public class ModPackingTape
     public void registerItems(RegistryEvent.Register<Item> event)
     {
         event.getRegistry().registerAll(
-                packagedBlockItem = new ItemBlock(packagedBlock, new Item.Properties()).setRegistryName(packagedBlock.getRegistryName()),
-                itemTape = new ItemTape(new Item.Properties().maxStackSize(16).group(ItemGroup.MISC)).setRegistryName(location("tape"))
+                new ItemBlock(packagedBlock, new Item.Properties()).setRegistryName(packagedBlock.getRegistryName()),
+                new ItemTape(new Item.Properties().maxStackSize(16).group(ItemGroup.MISC)).setRegistryName(location("tape"))
         );
-
-        Item.BLOCK_TO_ITEM.put(packagedBlock, packagedBlockItem);
     }
 
     @SubscribeEvent
     public void registerTileEntities(RegistryEvent.Register<TileEntityType<?>> event)
     {
-        packaged_block_tile = TileEntityType.register(packagedBlock.getRegistryName().toString(), TileEntityType.Builder.create(TilePackaged::new));
+        TileEntityType.register(packagedBlock.getRegistryName().toString(), TileEntityType.Builder.create(TilePackaged::new));
     }
 
     public static ResourceLocation location(String path)

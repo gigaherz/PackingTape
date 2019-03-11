@@ -132,33 +132,9 @@ public class BlockPackaged extends Block implements ITileEntityProvider
         TilePackaged te = (TilePackaged) worldIn.getTileEntity(pos);
         assert te != null;
 
-        ResourceLocation containedBlock = te.getContainedBlock();
+        IBlockState newState = te.getContainedBlockState();
 
-        if (containedBlock == null)
-            return false;
-
-        if (!ForgeRegistries.BLOCKS.containsKey(containedBlock))
-            return false;
-
-        Block b = ForgeRegistries.BLOCKS.getValue(containedBlock);
-        if (b == null)
-            return false;
-
-        /*worldIn.setBlockState(pos, state.with(UNPACKING, true), 0);
-        if (!b.canPlaceBlockAt(worldIn, pos))
-        {
-            TextComponentTranslation textComponent = new TextComponentTranslation("text.packingtape.packaged.cant_place");
-            playerIn.sendStatusMessage(textComponent, true);
-            worldIn.setBlockState(pos, state.with(UNPACKING, false), 0);
-            return false;
-        }
-        worldIn.setBlockState(pos, state.withProperty(UNPACKING, false), 0);*/
-
-        IBlockState newState = te.getParsedBlockState(b);
-
-        NBTTagCompound tag = te.getContainedTile();
-        if (tag == null)
-            return false;
+        NBTTagCompound entityData = te.getContainedTile();
 
         worldIn.removeTileEntity(pos);
         worldIn.setBlockState(pos, newState);
@@ -191,7 +167,7 @@ public class BlockPackaged extends Block implements ITileEntityProvider
             }
         }
 
-        setTileEntityNBT(worldIn, pos, tag, player);
+        setTileEntityNBT(worldIn, pos, entityData, player);
 
         return true;
     }
