@@ -1,33 +1,26 @@
 package gigaherz.packingtape.tape;
 
-import gigaherz.packingtape.BlockStateNBT;
 import gigaherz.packingtape.Config;
-import gigaherz.packingtape.ModPackingTape;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.init.Items;
-import net.minecraft.inventory.EntityEquipmentSlot;
+import gigaherz.packingtape.PackingTapeMod;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
-import net.minecraft.nbt.INBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTUtil;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
+import net.minecraftforge.items.ItemHandlerHelper;
 
-public class ItemTape extends Item
+public class TapeItem extends Item
 {
-    public ItemTape(Properties properties)
+    public TapeItem(Properties properties)
     {
         super(properties);
     }
@@ -51,57 +44,57 @@ public class ItemTape extends Item
     }
 
     @Override
-    public EnumActionResult onItemUse(ItemUseContext context)
+    public ActionResultType onItemUse(ItemUseContext context)
     {
-        EntityPlayer playerIn = context.getPlayer();
+        PlayerEntity playerIn = context.getPlayer();
         World world = context.getWorld();
         BlockPos pos = context.getPos();
 
         ItemStack stack = context.getItem();
         if (stack.getCount() <= 0)
         {
-            return EnumActionResult.PASS;
+            return ActionResultType.PASS;
         }
 
-        IBlockState state = world.getBlockState(pos);
+        BlockState state = world.getBlockState(pos);
         TileEntity te = world.getTileEntity(pos);
 
         if (te == null)
         {
-            return EnumActionResult.PASS;
+            return ActionResultType.PASS;
         }
 
-        if (!playerIn.abilities.isCreativeMode && Config.consumesPaper && !hasPaper(playerIn))
+        if (!playerIn.field_71075_bZ.isCreativeMode && Config.consumesPaper && !hasPaper(playerIn))
         {
-            TextComponentTranslation textComponent = new TextComponentTranslation("text.packingtape.tape.requires_paper");
+            TranslationTextComponent textComponent = new TranslationTextComponent("text.packingtape.tape.requires_paper");
             playerIn.sendStatusMessage(textComponent, true);
-            return EnumActionResult.FAIL;
+            return ActionResultType.FAIL;
         }
 
         if (world.isRemote)
         {
-            return EnumActionResult.SUCCESS;
+            return ActionResultType.SUCCESS;
         }
 
         if (!Config.isTileEntityAllowed(te))
         {
-            return EnumActionResult.PASS;
+            return ActionResultType.PASS;
         }
 
-        NBTTagCompound tag = te.write(new NBTTagCompound());
+        CompoundNBT tag = te.write(new CompoundNBT());
 
         world.removeTileEntity(pos);
-        world.setBlockState(pos, ModPackingTape.packagedBlock.getDefaultState());
+        world.setBlockState(pos, PackingTapeMod.packagedBlock.getDefaultState());
 
         TileEntity te2 = world.getTileEntity(pos);
-        if (te2 instanceof TilePackaged)
+        if (te2 instanceof PackagedBlockEntity)
         {
-            TilePackaged packaged = (TilePackaged) te2;
+            PackagedBlockEntity packaged = (PackagedBlockEntity) te2;
 
             packaged.setContents(state, tag);
         }
 
-        if (!playerIn.abilities.isCreativeMode)
+        if (!playerIn.field_71075_bZ.isCreativeMode)
         {
             if (Config.consumesPaper)
                 usePaper(playerIn);
@@ -110,31 +103,33 @@ public class ItemTape extends Item
             {
                 ItemStack split = stack.copy();
                 split.setCount(1);
-                split.damageItem(1, playerIn);
-                if (split.getCount() > 0)
+                split.setDamage(split.getDamage()+1);
+                if (stack.getDamage() < stack.getMaxDamage())
                 {
-                    EntityItem ei = new EntityItem(world, playerIn.posX, playerIn.posY, playerIn.posZ, split);
-                    world.spawnEntity(ei);
+                    ItemHandlerHelper.giveItemToPlayer(playerIn, split);
                 }
-                stack.grow(-1);
+                stack.shrink(1);
             }
             else
             {
-                stack.damageItem(1, playerIn);
+                stack.setDamage(stack.getDamage()+1);
+                if (stack.getDamage() >= stack.getMaxDamage()) {
+                    stack.shrink(1);
+                }
             }
         }
 
-        return EnumActionResult.SUCCESS;
+        return ActionResultType.SUCCESS;
     }
 
-    private boolean hasPaper(EntityPlayer playerIn)
+    private boolean hasPaper(PlayerEntity playerIn)
     {
-        ItemStack stack = playerIn.getItemStackFromSlot(EntityEquipmentSlot.OFFHAND);
+        ItemStack stack = playerIn.getItemStackFromSlot(EquipmentSlotType.OFFHAND);
         if (stack.getItem() == Items.PAPER)
         {
             return true;
         }
-        InventoryPlayer inv = playerIn.inventory;
+        PlayerInventory inv = playerIn.field_71071_by;
         for (int i = 0; i < inv.getSizeInventory(); i++)
         {
             stack = inv.getStackInSlot(i);
@@ -146,16 +141,16 @@ public class ItemTape extends Item
         return false;
     }
 
-    private void usePaper(EntityPlayer playerIn)
+    private void usePaper(PlayerEntity playerIn)
     {
-        ItemStack stack = playerIn.getItemStackFromSlot(EntityEquipmentSlot.OFFHAND);
+        ItemStack stack = playerIn.getItemStackFromSlot(EquipmentSlotType.OFFHAND);
         if (stack.getItem() == Items.PAPER)
         {
             stack.grow(-1);
             if (stack.getCount() <= 0)
-                playerIn.setItemStackToSlot(EntityEquipmentSlot.OFFHAND, ItemStack.EMPTY);
+                playerIn.setItemStackToSlot(EquipmentSlotType.OFFHAND, ItemStack.EMPTY);
         }
-        InventoryPlayer inv = playerIn.inventory;
+        PlayerInventory inv = playerIn.field_71071_by;
         for (int i = 0; i < inv.getSizeInventory(); i++)
         {
             stack = inv.getStackInSlot(i);

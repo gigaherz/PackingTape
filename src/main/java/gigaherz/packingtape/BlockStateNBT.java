@@ -2,10 +2,10 @@ package gigaherz.packingtape;
 
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.nbt.INBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagString;
+import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.StringNBT;
 import net.minecraft.state.IProperty;
 import net.minecraft.state.StateContainer;
 
@@ -13,13 +13,13 @@ import java.util.Map;
 
 public class BlockStateNBT
 {
-    public static INBTBase encodeBlockState(IBlockState state)
+    public static INBT encodeBlockState(BlockState state)
     {
         ImmutableMap<IProperty<?>, Comparable<?>> props = state.getValues();
         if (props.size() == 0)
-            return new NBTTagString("normal");
+            return new StringNBT("normal");
 
-        NBTTagCompound nbt = new NBTTagCompound();
+        CompoundNBT nbt = new CompoundNBT();
         for (Map.Entry<IProperty<?>, Comparable<?>> entry : props.entrySet())
         {
             IProperty<?> prop = entry.getKey();
@@ -34,16 +34,16 @@ public class BlockStateNBT
         return property.getName((T) value);
     }
 
-    public static IBlockState decodeBlockState(Block block, INBTBase data)
+    public static BlockState decodeBlockState(Block block, INBT data)
     {
-        IBlockState state = block.getDefaultState();
+        BlockState state = block.getDefaultState();
 
-        if (!(data instanceof NBTTagCompound)) // TODO: Can this receive a string other than "normal"?
+        if (!(data instanceof CompoundNBT)) // TODO: Can this receive a string other than "normal"?
             return state;
 
         StateContainer container = block.getStateContainer();
 
-        NBTTagCompound nbt = (NBTTagCompound) data;
+        CompoundNBT nbt = (CompoundNBT) data;
         for (String prop : nbt.keySet())
         {
             String value = nbt.getString(prop);
@@ -57,7 +57,7 @@ public class BlockStateNBT
     }
 
     @SuppressWarnings("unchecked")
-    private static <T extends Comparable<T>> IBlockState applyProperty(IBlockState baseState, IProperty<T> property, Comparable<?> value)
+    private static <T extends Comparable<T>> BlockState applyProperty(BlockState baseState, IProperty<T> property, Comparable<?> value)
     {
         return baseState.with(property, (T) value);
     }

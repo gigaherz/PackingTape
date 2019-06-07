@@ -1,36 +1,35 @@
 package gigaherz.packingtape.tape;
 
-import gigaherz.packingtape.ModPackingTape;
+import gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.block.Block;
-import net.minecraft.block.ITileEntityProvider;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Enchantments;
+import net.minecraft.enchantment.Enchantments;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.IProperty;
 import net.minecraft.state.StateContainer;
-import net.minecraft.stats.StatList;
+import net.minecraft.stats.Stats;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.*;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -40,11 +39,11 @@ import net.minecraftforge.registries.ForgeRegistries;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class BlockPackaged extends Block implements ITileEntityProvider
+public class PackagedBlock extends Block
 {
     public static final BooleanProperty UNPACKING = BooleanProperty.create("unpacking");
 
-    public BlockPackaged(Properties properties)
+    public PackagedBlock(Properties properties)
     {
         super(properties);
         setDefaultState(this.getStateContainer().getBaseState().with(UNPACKING, false));
@@ -52,45 +51,46 @@ public class BlockPackaged extends Block implements ITileEntityProvider
 
     @Deprecated
     @Override
-    public boolean isReplaceable(IBlockState state, BlockItemUseContext useContext)
+    public boolean isReplaceable(BlockState state, BlockItemUseContext useContext)
     {
         return state.get(UNPACKING);
     }
 
     @Override
-    public boolean hasTileEntity(IBlockState state)
+    public boolean hasTileEntity(BlockState state)
     {
         return true;
     }
 
-    //@Override
-    public TileEntity createTileEntity(IBlockReader world, IBlockState state)
+    @Nullable
+    @Override
+    public TileEntity createTileEntity(BlockState state, IBlockReader world)
     {
-        return new TilePackaged();
+        return new PackagedBlockEntity();
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, IBlockState> builder)
+    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder)
     {
         builder.add(UNPACKING);
     }
 
     @Override
-    public ItemStack getPickBlock(IBlockState state, RayTraceResult target, IBlockReader world, BlockPos pos, EntityPlayer player)
+    public ItemStack getPickBlock(BlockState state, RayTraceResult target, IBlockReader world, BlockPos pos, PlayerEntity player)
     {
-        if (player.abilities.isCreativeMode && GuiScreen.isCtrlKeyDown())
+        if (player.field_71075_bZ.isCreativeMode && Screen.hasControlDown())
             return new ItemStack(asItem(), 1);
         else
-            return new ItemStack(ModPackingTape.itemTape, 1);
+            return new ItemStack(PackingTapeMod.itemTape, 1);
     }
 
-    //@Overridenew ItemS
+    //@Override
     public void getDrops(NonNullList<ItemStack> drops, @Nullable TileEntity teWorld)
     {
-        if (teWorld instanceof TilePackaged)
+        if (teWorld instanceof PackagedBlockEntity)
         {
             // TE exists here thanks to the willHarvest above.
-            TilePackaged packaged = (TilePackaged) teWorld;
+            PackagedBlockEntity packaged = (PackagedBlockEntity) teWorld;
             ItemStack stack = packaged.getPackedStack();
 
             drops.add(stack);
@@ -98,48 +98,51 @@ public class BlockPackaged extends Block implements ITileEntityProvider
     }
 
     @Override
-    public void harvestBlock(World worldIn, EntityPlayer player, BlockPos pos, IBlockState state, @Nullable TileEntity te, ItemStack stack)
+    public void harvestBlock(World worldIn, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, ItemStack stack)
     {
-        player.addStat(StatList.BLOCK_MINED.get(this));
+        player.addStat(Stats.BLOCK_MINED.get(this));
         player.addExhaustion(0.005F);
 
         NonNullList<ItemStack> items = NonNullList.create();
         getDrops(items, te);
-        boolean isSilkTouch = this.canSilkHarvest(state, worldIn, pos, player) && EnchantmentHelper.getEnchantmentLevel(Enchantments.SILK_TOUCH, stack) > 0;
+        boolean isSilkTouch = EnchantmentHelper.getEnchantmentLevel(Enchantments.SILK_TOUCH, stack) > 0;
         net.minecraftforge.event.ForgeEventFactory.fireBlockHarvesting(items, worldIn, pos, state, 0, 1.0f, isSilkTouch, player);
         items.forEach(e -> spawnAsEntity(worldIn, pos, e));
     }
 
+
+
     @Override
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack)
+    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
     {
-        if (!placer.isSneaking() && placer instanceof EntityPlayer)
+        if (!placer.isSneaking() && placer instanceof PlayerEntity)
         {
-            EntityPlayer player = (EntityPlayer) placer;
-            TilePackaged te = (TilePackaged) worldIn.getTileEntity(pos);
+            PlayerEntity player = (PlayerEntity) placer;
+            PackagedBlockEntity te = (PackagedBlockEntity) worldIn.getTileEntity(pos);
             assert te != null;
-            te.setPreferredDirection(EnumFacing.fromAngle(player.getRotationYawHead()).getOpposite());
+            te.setPreferredDirection(Direction.fromAngle(player.getRotationYawHead()).getOpposite());
         }
         super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
     }
 
+    @Deprecated
     @Override
-    public boolean onBlockActivated(IBlockState state, World worldIn, BlockPos pos, EntityPlayer player, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ)
+    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult rayTraceResult)
     {
         if (worldIn.isRemote)
             return true;
 
-        TilePackaged te = (TilePackaged) worldIn.getTileEntity(pos);
+        PackagedBlockEntity te = (PackagedBlockEntity) worldIn.getTileEntity(pos);
         assert te != null;
 
-        IBlockState newState = te.getContainedBlockState();
+        BlockState newState = te.getContainedBlockState();
 
-        NBTTagCompound entityData = te.getContainedTile();
+        CompoundNBT entityData = te.getContainedTile();
 
         worldIn.removeTileEntity(pos);
         worldIn.setBlockState(pos, newState);
 
-        EnumFacing preferred = te.getPreferredDirection();
+        Direction preferred = te.getPreferredDirection();
         if (preferred != null)
         {
             EnumProperty facing = null;
@@ -150,14 +153,14 @@ public class BlockPackaged extends Block implements ITileEntityProvider
                     if (prop instanceof EnumProperty)
                     {
                         facing = (EnumProperty) prop;
+                        break;
                     }
-                    break;
                 }
             }
 
             if (facing != null)
             {
-                if (facing.getValueClass() == EnumFacing.class && facing.getAllowedValues().contains(preferred))
+                if (facing.getValueClass() == Direction.class && facing.getAllowedValues().contains(preferred))
                 {
                     if (!rotateBlockToward(worldIn, pos, preferred, facing))
                     {
@@ -172,9 +175,9 @@ public class BlockPackaged extends Block implements ITileEntityProvider
         return true;
     }
 
-    private static boolean rotateBlockToward(World worldIn, BlockPos pos, EnumFacing preferred, EnumProperty prop)
+    private static boolean rotateBlockToward(World worldIn, BlockPos pos, Direction preferred, EnumProperty prop)
     {
-        /*IBlockState stored = worldIn.getBlockState(pos);
+        /*BlockState stored = worldIn.getBlockState(pos);
         Block block = stored.getBlock();
         if (stored.get(prop) == preferred)
         {
@@ -183,10 +186,10 @@ public class BlockPackaged extends Block implements ITileEntityProvider
 
         for (Object ignored : prop.getAllowedValues())
         {
-            if (preferred.getAxis() == EnumFacing.Axis.Y)
-                block.rotateBlock(stored, worldIn, pos, EnumFacing.WEST);
+            if (preferred.getAxis() == Direction.Axis.Y)
+                block.rotateBlock(stored, worldIn, pos, Direction.WEST);
             else
-                block.rotateBlock(stored, worldIn, pos, EnumFacing.UP);
+                block.rotateBlock(stored, worldIn, pos, Direction.UP);
 
             stored = worldIn.getBlockState(pos);
             block = stored.getBlock();
@@ -200,8 +203,8 @@ public class BlockPackaged extends Block implements ITileEntityProvider
     }
 
     public static boolean setTileEntityNBT(World worldIn, BlockPos pos,
-                                           @Nullable NBTTagCompound tag,
-                                           @Nullable EntityPlayer playerIn)
+                                           @Nullable CompoundNBT tag,
+                                           @Nullable PlayerEntity playerIn)
     {
         MinecraftServer minecraftserver = worldIn.getServer();
 
@@ -222,8 +225,8 @@ public class BlockPackaged extends Block implements ITileEntityProvider
                         return false;
                     }
 
-                    NBTTagCompound merged = new NBTTagCompound();
-                    NBTTagCompound empty = merged.copy();
+                    CompoundNBT merged = new CompoundNBT();
+                    CompoundNBT empty = merged.copy();
                     tileentity.write(merged);
                     merged.merge(tag);
                     merged.putInt("x", pos.getX());
@@ -249,57 +252,49 @@ public class BlockPackaged extends Block implements ITileEntityProvider
     {
         super.addInformation(stack, worldIn, tooltip, advanced);
 
-        NBTTagCompound tag = stack.getTag();
+        CompoundNBT tag = stack.getTag();
         if (tag == null)
         {
-            tooltip.add(new TextComponentString("Missing data (no nbt)!"));
+            tooltip.add(new StringTextComponent("Missing data (no nbt)!"));
             return;
         }
 
-        NBTTagCompound info = (NBTTagCompound) tag.get("BlockEntityTag");
+        CompoundNBT info = (CompoundNBT) tag.get("BlockEntityTag");
         if (info == null)
         {
-            tooltip.add(new TextComponentString("Missing data (no tag)!"));
+            tooltip.add(new StringTextComponent("Missing data (no tag)!"));
             return;
         }
 
-        if (!info.contains("containedBlock") ||
-                !info.contains("containedTile"))
+        if (!info.contains("Block") || !info.contains("BlockEntity"))
         {
-            tooltip.add(new TextComponentString("Missing data (no block info)!"));
+            tooltip.add(new StringTextComponent("Missing data (no block info)!"));
             return;
         }
 
-        String blockName = info.getString("containedBlock");
+        String blockName = info.getCompound("Block").getString("Name");
 
         Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(blockName));
-        if (block == null)
+        if (block == Blocks.AIR)
         {
-            tooltip.add(new TextComponentString("Unknown block:"));
-            tooltip.add(new TextComponentString("  " + blockName));
+            tooltip.add(new StringTextComponent("Unknown block:"));
+            tooltip.add(new StringTextComponent("  " + blockName));
             return;
         }
 
-        Item item = Item.getItemFromBlock(block);
-        if (item == null)
+        Item item = block.asItem();
+        if (item == Items.AIR)
         {
-            tooltip.add(new TextComponentString("No ItemBlock:"));
-            tooltip.add(new TextComponentString("  " + blockName));
-            return;
+            item = ForgeRegistries.ITEMS.getValue(block.getRegistryName());
+            if (item == Items.AIR)
+            {
+                tooltip.add(new StringTextComponent("Can't find item for:"));
+                tooltip.add(new StringTextComponent("  " + blockName));
+                return;
+            }
         }
 
-        tooltip.add(new TextComponentString("Contains:"));
         ItemStack stack1 = new ItemStack(item, 1);
-        for (ITextComponent s : stack1.getTooltip(Minecraft.getInstance().player, advanced))
-        {
-            tooltip.add(new TextComponentTranslation("  %s", s));
-        }
-    }
-
-    @Nullable
-    @Override
-    public TileEntity createNewTileEntity(IBlockReader worldIn)
-    {
-        return createTileEntity(worldIn, getDefaultState());
+        tooltip.add(new TranslationTextComponent("text.packingtape.packaged.contains", stack1.getDisplayName()));
     }
 }

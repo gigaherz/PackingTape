@@ -13,7 +13,9 @@ public class Config
 {
     public static final ServerConfig SERVER;
     public static final ForgeConfigSpec SERVER_SPEC;
-    static {
+
+    static
+    {
         final Pair<ServerConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(ServerConfig::new);
         SERVER_SPEC = specPair.getRight();
         SERVER = specPair.getLeft();
@@ -39,7 +41,8 @@ public class Config
         public ForgeConfigSpec.IntValue tapeRollUses;
         public ForgeConfigSpec.BooleanValue consumesPaper;
 
-        ServerConfig(ForgeConfigSpec.Builder builder) {
+        ServerConfig(ForgeConfigSpec.Builder builder)
+        {
             builder.push("general");
             whitelist = builder
                     .comment("TileEntities to allow regardless of the blacklist")
@@ -74,45 +77,45 @@ public class Config
             return false;
 
         // Security concern: moving command blocks may allow things to happen that shouldn't happen.
-        if (net.minecraft.tileentity.TileEntityCommandBlock.class.isAssignableFrom(teClass))
+        if (net.minecraft.tileentity.CommandBlockTileEntity.class.isAssignableFrom(teClass))
             return false;
 
         // Security/gameplay concern: Moving end portal blocks could cause issues.
-        if (net.minecraft.tileentity.TileEntityEndPortal.class.isAssignableFrom(teClass))
+        if (net.minecraft.tileentity.EndPortalTileEntity.class.isAssignableFrom(teClass))
             return false;
 
-        if (net.minecraft.tileentity.TileEntityEndGateway.class.isAssignableFrom(teClass))
+        if (net.minecraft.tileentity.EndGatewayTileEntity.class.isAssignableFrom(teClass))
             return false;
 
         // Balance concern: moving block spawners can be cheaty and should be reserved to hard-to-obtain methods.
-        if (net.minecraft.tileentity.TileEntityMobSpawner.class.isAssignableFrom(teClass))
+        if (net.minecraft.tileentity.MobSpawnerTileEntity.class.isAssignableFrom(teClass))
             return false;
 
         // Placed skulls don't have an ItemBlock form, and can be moved away easily regardless.
-        if (net.minecraft.tileentity.TileEntitySkull.class.isAssignableFrom(teClass))
+        if (net.minecraft.tileentity.SkullTileEntity.class.isAssignableFrom(teClass))
             return false;
 
         // Was this also a security concern?
-        if (net.minecraft.tileentity.TileEntitySign.class.isAssignableFrom(teClass))
+        if (net.minecraft.tileentity.SignTileEntity.class.isAssignableFrom(teClass))
             return false;
 
         // The rest: There's no point to packing them.
-        if (net.minecraft.tileentity.TileEntityBanner.class.isAssignableFrom(teClass))
+        if (net.minecraft.tileentity.BannerTileEntity.class.isAssignableFrom(teClass))
             return false;
 
-        if (net.minecraft.tileentity.TileEntityComparator.class.isAssignableFrom(teClass))
+        if (net.minecraft.tileentity.ComparatorTileEntity.class.isAssignableFrom(teClass))
             return false;
 
-        if (net.minecraft.tileentity.TileEntityDaylightDetector.class.isAssignableFrom(teClass))
+        if (net.minecraft.tileentity.DaylightDetectorTileEntity.class.isAssignableFrom(teClass))
             return false;
 
-        if (net.minecraft.tileentity.TileEntityPiston.class.isAssignableFrom(teClass))
+        if (net.minecraft.tileentity.PistonTileEntity.class.isAssignableFrom(teClass))
             return false;
 
-        if (net.minecraft.tileentity.TileEntityEnchantmentTable.class.isAssignableFrom(teClass))
+        if (net.minecraft.tileentity.EnchantingTableTileEntity.class.isAssignableFrom(teClass))
             return false;
 
-        if (net.minecraft.tileentity.TileEntityBed.class.isAssignableFrom(teClass))
+        if (net.minecraft.tileentity.BedTileEntity.class.isAssignableFrom(teClass))
             return false;
 
         // TODO: Blacklist more Vanilla stuffs.

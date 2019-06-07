@@ -1,49 +1,43 @@
 package gigaherz.packingtape.tape;
 
-import gigaherz.packingtape.BlockStateNBT;
-import gigaherz.packingtape.ModPackingTape;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import gigaherz.packingtape.PackingTapeMod;
+import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.INBTBase;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.util.Direction;
 import net.minecraftforge.common.util.Constants;
 
 import javax.annotation.Nullable;
 
-public class TilePackaged extends TileEntity
+public class PackagedBlockEntity extends TileEntity
 {
-    private IBlockState containedBlockState;
-    private NBTTagCompound containedTile;
-    private EnumFacing preferredDirection;
+    private BlockState containedBlockState;
+    private CompoundNBT containedTile;
+    private Direction preferredDirection;
 
-    public TilePackaged(TileEntityType<?> tileEntityTypeIn)
+    public PackagedBlockEntity(TileEntityType<?> tileEntityTypeIn)
     {
         super(tileEntityTypeIn);
     }
 
-    public TilePackaged()
+    public PackagedBlockEntity()
     {
-        super(ModPackingTape.packaged_block_tile);
+        super(PackingTapeMod.packaged_block_tile);
     }
 
     @Override
-    public NBTTagCompound write(NBTTagCompound compound)
+    public CompoundNBT write(CompoundNBT compound)
     {
         compound = super.write(compound);
 
         if (containedBlockState != null)
         {
-            NBTTagCompound blockData = NBTUtil.writeBlockState(containedBlockState);
+            CompoundNBT blockData = NBTUtil.writeBlockState(containedBlockState);
             compound.put("Block", blockData);
             compound.put("BlockEntity", containedTile.copy());
             if (preferredDirection != null)
@@ -56,102 +50,102 @@ public class TilePackaged extends TileEntity
     }
 
     @Override
-    public void read(NBTTagCompound compound)
+    public void read(CompoundNBT compound)
     {
         super.read(compound);
 
         // Old way.
         if (compound.contains("containedBlock", Constants.NBT.TAG_STRING))
         {
-            NBTTagCompound tempTag = new NBTTagCompound();
+            CompoundNBT tempTag = new CompoundNBT();
             tempTag.putString("Name", compound.getString("containedBlock"));
             tempTag.put("Properties", compound.get("containedBlockState"));
             containedBlockState = NBTUtil.readBlockState(tempTag);
             containedTile = compound.getCompound("containedTile").copy();
             if (compound.contains("preferredDirection"))
             {
-                preferredDirection = EnumFacing.values()[compound.getInt("preferredDirection")];
+                preferredDirection = Direction.values()[compound.getInt("preferredDirection")];
             }
         }
         else
         {
-            NBTTagCompound blockTag = compound.getCompound("Block");
+            CompoundNBT blockTag = compound.getCompound("Block");
             containedBlockState = NBTUtil.readBlockState(blockTag);
             containedTile = compound.getCompound("BlockEntity").copy();
             if (compound.contains("PreferredDirection"))
             {
-                preferredDirection = EnumFacing.byName(compound.getString("PreferredDirection"));
+                preferredDirection = Direction.byName(compound.getString("PreferredDirection"));
             }
         }
     }
 
-    public IBlockState getContainedBlockState()
+    public BlockState getContainedBlockState()
     {
         return containedBlockState;
     }
 
-    public NBTTagCompound getContainedTile()
+    public CompoundNBT getContainedTile()
     {
         return containedTile;
     }
 
-    public void setContents(IBlockState state, NBTTagCompound tag)
+    public void setContents(BlockState state, CompoundNBT tag)
     {
         containedBlockState = state;
         containedTile = tag;
     }
 
     @Nullable
-    public EnumFacing getPreferredDirection()
+    public Direction getPreferredDirection()
     {
         return preferredDirection;
     }
 
-    public void setPreferredDirection(EnumFacing preferredDirection)
+    public void setPreferredDirection(Direction preferredDirection)
     {
         this.preferredDirection = preferredDirection;
     }
 
     public ItemStack getPackedStack()
     {
-        ItemStack stack = new ItemStack(ModPackingTape.packagedBlock);
+        ItemStack stack = new ItemStack(PackingTapeMod.packagedBlock);
 
-        NBTTagCompound tileEntityData = new NBTTagCompound();
+        CompoundNBT tileEntityData = new CompoundNBT();
         write(tileEntityData);
         tileEntityData.remove("x");
         tileEntityData.remove("y");
         tileEntityData.remove("z");
 
-        NBTTagCompound stackTag = new NBTTagCompound();
+        CompoundNBT stackTag = new CompoundNBT();
         stackTag.put("BlockEntityTag", tileEntityData);
         stack.setTag(stackTag);
 
-        ModPackingTape.logger.debug(String.format("Created Packed stack with %s", containedBlockState.toString()));
+        PackingTapeMod.logger.debug(String.format("Created Packed stack with %s", containedBlockState.toString()));
 
         return stack;
     }
 
     @Override
-    public NBTTagCompound getUpdateTag()
+    public CompoundNBT getUpdateTag()
     {
-        return write(new NBTTagCompound());
+        return write(new CompoundNBT());
     }
 
-    @Nullable
-    @Override
-    public SPacketUpdateTileEntity getUpdatePacket()
-    {
-        return new SPacketUpdateTileEntity(pos, 0, getUpdateTag());
-    }
+    //@Nullable
+    //@Override
+    //public SPacketUpdateTileEntity getUpdatePacket()
+    //{
+    //    return new SPacketUpdateTileEntity(pos, 0, getUpdateTag());
+    //}
 
     @Override
-    public void handleUpdateTag(NBTTagCompound tag)
+    public void handleUpdateTag(CompoundNBT tag)
     {
         read(tag);
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt)
+    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt)
     {
         handleUpdateTag(pkt.getNbtCompound());
     }
