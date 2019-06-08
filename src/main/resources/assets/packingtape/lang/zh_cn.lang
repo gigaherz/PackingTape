@@ -1,0 +1,4 @@
+item.packingtape.tape.name=打包胶布
+tile.packingtape.packaged_block.name=打包块
+text.packingtape.tape.requires_paper=需要纸来使用!
+text.packingtape.packaged.cant_place=无法在这里解开包裹内容!
