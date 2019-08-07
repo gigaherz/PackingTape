@@ -64,7 +64,7 @@ public class TapeItem extends Item
             return ActionResultType.PASS;
         }
 
-        if (!playerIn.field_71075_bZ.isCreativeMode && Config.consumesPaper && !hasPaper(playerIn))
+        if (!playerIn.abilities.isCreativeMode && Config.consumesPaper && !hasPaper(playerIn))
         {
             TranslationTextComponent textComponent = new TranslationTextComponent("text.packingtape.tape.requires_paper");
             playerIn.sendStatusMessage(textComponent, true);
@@ -84,7 +84,7 @@ public class TapeItem extends Item
         CompoundNBT tag = te.write(new CompoundNBT());
 
         world.removeTileEntity(pos);
-        world.setBlockState(pos, PackingTapeMod.packagedBlock.getDefaultState());
+        world.setBlockState(pos, PackingTapeMod.Blocks.PACKAGED_BLOCK.getDefaultState());
 
         TileEntity te2 = world.getTileEntity(pos);
         if (te2 instanceof PackagedBlockEntity)
@@ -94,7 +94,7 @@ public class TapeItem extends Item
             packaged.setContents(state, tag);
         }
 
-        if (!playerIn.field_71075_bZ.isCreativeMode)
+        if (!playerIn.abilities.isCreativeMode)
         {
             if (Config.consumesPaper)
                 usePaper(playerIn);
@@ -129,7 +129,7 @@ public class TapeItem extends Item
         {
             return true;
         }
-        PlayerInventory inv = playerIn.field_71071_by;
+        PlayerInventory inv = playerIn.inventory;
         for (int i = 0; i < inv.getSizeInventory(); i++)
         {
             stack = inv.getStackInSlot(i);
@@ -150,7 +150,7 @@ public class TapeItem extends Item
             if (stack.getCount() <= 0)
                 playerIn.setItemStackToSlot(EquipmentSlotType.OFFHAND, ItemStack.EMPTY);
         }
-        PlayerInventory inv = playerIn.field_71071_by;
+        PlayerInventory inv = playerIn.inventory;
         for (int i = 0; i < inv.getSizeInventory(); i++)
         {
             stack = inv.getStackInSlot(i);

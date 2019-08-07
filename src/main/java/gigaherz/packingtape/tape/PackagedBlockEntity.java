@@ -11,11 +11,15 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.Direction;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.registries.ObjectHolder;
 
 import javax.annotation.Nullable;
 
 public class PackagedBlockEntity extends TileEntity
 {
+    @ObjectHolder("packingtape:packaged_block")
+    public static TileEntityType<PackagedBlockEntity> TYPE;
+
     private BlockState containedBlockState;
     private CompoundNBT containedTile;
     private Direction preferredDirection;
@@ -27,7 +31,7 @@ public class PackagedBlockEntity extends TileEntity
 
     public PackagedBlockEntity()
     {
-        super(PackingTapeMod.packaged_block_tile);
+        super(TYPE);
     }
 
     @Override
@@ -108,7 +112,7 @@ public class PackagedBlockEntity extends TileEntity
 
     public ItemStack getPackedStack()
     {
-        ItemStack stack = new ItemStack(PackingTapeMod.packagedBlock);
+        ItemStack stack = new ItemStack(PackingTapeMod.Blocks.PACKAGED_BLOCK);
 
         CompoundNBT tileEntityData = new CompoundNBT();
         write(tileEntityData);

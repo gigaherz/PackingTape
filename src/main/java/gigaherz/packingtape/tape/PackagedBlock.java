@@ -78,10 +78,10 @@ public class PackagedBlock extends Block
     @Override
     public ItemStack getPickBlock(BlockState state, RayTraceResult target, IBlockReader world, BlockPos pos, PlayerEntity player)
     {
-        if (player.field_71075_bZ.isCreativeMode && Screen.hasControlDown())
+        if (player.abilities.isCreativeMode && Screen.hasControlDown())
             return new ItemStack(asItem(), 1);
         else
-            return new ItemStack(PackingTapeMod.itemTape, 1);
+            return new ItemStack(PackingTapeMod.Items.TAPE, 1);
     }
 
     //@Override

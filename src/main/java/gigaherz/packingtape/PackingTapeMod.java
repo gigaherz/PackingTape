@@ -21,32 +21,36 @@ import net.minecraftforge.registries.ObjectHolder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nonnull;
+
 @Mod(PackingTapeMod.MODID)
 public class PackingTapeMod
 {
     public static final String MODID = "packingtape";
 
-    @ObjectHolder(MODID + ":packaged_block")
-    public static Block packagedBlock;
+    @SuppressWarnings("ConstantConditions")
+    @Nonnull
+    private static <T> T sneakyNull() {
+        return null;
+    }
 
-    @ObjectHolder(MODID + ":tape")
-    public static Item itemTape;
+    @ObjectHolder(MODID)
+    public static class Blocks
+    {
+        public static final Block PACKAGED_BLOCK = sneakyNull();
+    }
 
-    @ObjectHolder(MODID + ":packaged_block")
-    public static Item packagedBlockItem;
-
-    @ObjectHolder(MODID + ":packaged_block")
-    public static TileEntityType<PackagedBlockEntity> packaged_block_tile;
-
-    public static PackingTapeMod instance;
+    @ObjectHolder(MODID)
+    public static class Items
+    {
+        public static final Item TAPE = sneakyNull();
+        public static final Item PACKAGED_BLOCK = sneakyNull();
+    }
 
     public static Logger logger = LogManager.getLogger(MODID);
 
     public PackingTapeMod()
     {
-        // no @Instance anymore
-        instance = this;
-
         FMLJavaModLoadingContext.get().getModEventBus().addGenericListener(Block.class, this::registerBlocks);
         FMLJavaModLoadingContext.get().getModEventBus().addGenericListener(Item.class, this::registerItems);
         FMLJavaModLoadingContext.get().getModEventBus().addGenericListener(TileEntityType.class, this::registerTileEntities);
@@ -74,7 +78,7 @@ public class PackingTapeMod
     public void registerItems(RegistryEvent.Register<Item> event)
     {
         event.getRegistry().registerAll(
-                new BlockItem(packagedBlock, new Item.Properties()).setRegistryName(packagedBlock.getRegistryName()),
+                new BlockItem(Blocks.PACKAGED_BLOCK, new Item.Properties()).setRegistryName(Blocks.PACKAGED_BLOCK.getRegistryName()),
                 new TapeItem(new Item.Properties().maxStackSize(16).group(ItemGroup.MISC)).setRegistryName(location("tape"))
         );
     }
@@ -82,7 +86,9 @@ public class PackingTapeMod
     @SubscribeEvent
     public void registerTileEntities(RegistryEvent.Register<TileEntityType<?>> event)
     {
-        TileEntityType.register(packagedBlock.getRegistryName().toString(), TileEntityType.Builder.func_223042_a(PackagedBlockEntity::new));
+        event.getRegistry().registerAll(
+            TileEntityType.Builder.create(PackagedBlockEntity::new).build(null).setRegistryName(Blocks.PACKAGED_BLOCK.getRegistryName())
+        );
     }
 
     public static ResourceLocation location(String path)
