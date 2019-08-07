@@ -1,17 +1,7 @@
 {
-  "forge_marker": 1,
-  "variants":{
-    "unpacking=false": [{
-      "model": "packingtape:packaged_block",
-      "textures": {
-        "all": "minecraft:block/coal_block"
-      }
-    }],
-    "unpacking=true": [{
-      "model": "packingtape:packaged_block",
-      "textures": {
-        "all": "minecraft:block/coal_block"
-      }
-    }]
+  "variants": {
+    "": {
+      "model": "packingtape:block/packaged_block"
+    }
   }
 }

@@ -17,9 +17,9 @@ repositories {
     mavenLocal()
 }
 
-version = "0.8.2"
+version = "0.8.3"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "PackingTape-1.14.3"
+archivesBaseName = "PackingTape-1.14.4"
 
 sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 compileJava {
