@@ -51,7 +51,7 @@ public class Config
             blacklist = builder
                     .comment("TileEntities to disallow (whitelist takes precedence)")
                     .translation("text.packingtape.config.blacklist")
-                    .defineList("whitelist", Lists.newArrayList(), o -> o instanceof String);
+                    .defineList("blacklist", Lists.newArrayList(), o -> o instanceof String);
             tapeRollUses = builder
                     .comment("How many times the tape roll can be used before it breaks")
                     .translation("text.packingtape.config.tape_roll_uses")
