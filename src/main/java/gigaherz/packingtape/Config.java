@@ -2,12 +2,15 @@ package gigaherz.packingtape;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.*;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Config
 {
@@ -21,15 +24,16 @@ public class Config
         SERVER = specPair.getLeft();
     }
 
-    public static Set<String> whiteList = Sets.newHashSet();
-    public static Set<String> blackList = Sets.newHashSet();
+    public static Set<TileEntityType<?>> whiteList = Sets.newHashSet();
+    public static Set<TileEntityType<?>> blackList = Sets.newHashSet();
     public static int tapeRollUses = 8;
     public static boolean consumesPaper = true;
 
     public static void bake()
     {
-        whiteList = Sets.newHashSet(SERVER.whitelist.get());
-        blackList = Sets.newHashSet(SERVER.blacklist.get());
+        whiteList = SERVER.whitelist.get().stream().map(n -> ForgeRegistries.TILE_ENTITIES.getValue(new ResourceLocation(n))).collect(Collectors.toSet());
+        blackList = SERVER.blacklist.get().stream().map(n -> ForgeRegistries.TILE_ENTITIES.getValue(new ResourceLocation(n))).collect(Collectors.toSet());
+        blackList.addAll(getDefaultVanillaDisabled());
         tapeRollUses = SERVER.tapeRollUses.get();
         consumesPaper = SERVER.consumesPaper.get();
     }
@@ -45,11 +49,14 @@ public class Config
         {
             builder.push("general");
             whitelist = builder
-                    .comment("TileEntities to allow regardless of the blacklist")
+                    .comment("TileEntities to allow regardless of the blacklist and vanilla restrictions.",
+                             "WARNING: This whitelist bypasses the 'only ops can copy' limitation of Minecraft, which can result in security issues, don't whitelist things unless you know what the side-effects will be.",
+                             "NOTE: This list now uses 'Block Entity Type' IDs. Eg. the spawner is 'minecraft:mob_spawner'.")
                     .translation("text.packingtape.config.whitelist")
                     .defineList("whitelist", Lists.newArrayList(), o -> o instanceof String);
             blacklist = builder
-                    .comment("TileEntities to disallow (whitelist takes precedence)")
+                    .comment("TileEntities to disallow (whitelist takes precedence)",
+                             "NOTE: This list now uses 'Block Entity Type' IDs. Eg. the shulker boxes are 'minecraft:shulker_box'.")
                     .translation("text.packingtape.config.blacklist")
                     .defineList("blacklist", Lists.newArrayList(), o -> o instanceof String);
             tapeRollUses = builder
@@ -59,67 +66,53 @@ public class Config
             consumesPaper = builder
                     .comment("Whether the tape roll consumes paper when used")
                     .translation("text.packingtape.config.consume_paper")
-                    .define("sound", true);
+                    .define("consume_paper", true);
             builder.pop();
         }
     }
 
+    public static Set<TileEntityType<?>> getDefaultVanillaDisabled()
+    {
+        return Sets.newHashSet(
+                // Security concern: moving command blocks may allow things to happen that shouldn't happen.
+                TileEntityType.COMMAND_BLOCK,
+                TileEntityType.STRUCTURE_BLOCK,
+                TileEntityType.JIGSAW,
+
+                // Was this also a security concern?
+                TileEntityType.SIGN,
+
+                // Security/gameplay concern: Moving end portal blocks could cause issues.
+                TileEntityType.END_PORTAL,
+                TileEntityType.END_GATEWAY,
+
+                // Placed skulls don't have an ItemBlock form, and can be moved away easily regardless.
+                TileEntityType.SKULL,
+
+                // Conduit TEs store a list of surrounding blocks, and have no items stored.
+                TileEntityType.CONDUIT,
+
+                // The rest: There's no point to packing them.
+                TileEntityType.BANNER,
+                TileEntityType.COMPARATOR,
+                TileEntityType.DAYLIGHT_DETECTOR,
+                TileEntityType.PISTON,
+                TileEntityType.ENCHANTING_TABLE,
+                TileEntityType.BED,
+                TileEntityType.BELL
+        );
+    }
+
     public static boolean isTileEntityAllowed(TileEntity te)
     {
-        Class<? extends TileEntity> teClass = te.getClass();
+        TileEntityType<?> type = te.getType();
 
-        String cn = teClass.getCanonicalName();
-
-        if (whiteList.contains(cn))
+        if (whiteList.contains(type))
             return true;
 
-        if (blackList.contains(cn))
+        if (te.onlyOpsCanSetNbt())
             return false;
 
-        // Security concern: moving command blocks may allow things to happen that shouldn't happen.
-        if (net.minecraft.tileentity.CommandBlockTileEntity.class.isAssignableFrom(teClass))
-            return false;
-
-        // Security/gameplay concern: Moving end portal blocks could cause issues.
-        if (net.minecraft.tileentity.EndPortalTileEntity.class.isAssignableFrom(teClass))
-            return false;
-
-        if (net.minecraft.tileentity.EndGatewayTileEntity.class.isAssignableFrom(teClass))
-            return false;
-
-        // Balance concern: moving block spawners can be cheaty and should be reserved to hard-to-obtain methods.
-        if (net.minecraft.tileentity.MobSpawnerTileEntity.class.isAssignableFrom(teClass))
-            return false;
-
-        // Placed skulls don't have an ItemBlock form, and can be moved away easily regardless.
-        if (net.minecraft.tileentity.SkullTileEntity.class.isAssignableFrom(teClass))
-            return false;
-
-        // Was this also a security concern?
-        if (net.minecraft.tileentity.SignTileEntity.class.isAssignableFrom(teClass))
-            return false;
-
-        // The rest: There's no point to packing them.
-        if (net.minecraft.tileentity.BannerTileEntity.class.isAssignableFrom(teClass))
-            return false;
-
-        if (net.minecraft.tileentity.ComparatorTileEntity.class.isAssignableFrom(teClass))
-            return false;
-
-        if (net.minecraft.tileentity.DaylightDetectorTileEntity.class.isAssignableFrom(teClass))
-            return false;
-
-        if (net.minecraft.tileentity.PistonTileEntity.class.isAssignableFrom(teClass))
-            return false;
-
-        if (net.minecraft.tileentity.EnchantingTableTileEntity.class.isAssignableFrom(teClass))
-            return false;
-
-        if (net.minecraft.tileentity.BedTileEntity.class.isAssignableFrom(teClass))
-            return false;
-
-        // TODO: Blacklist more Vanilla stuffs.
-
-        return true;
+        return !blackList.contains(type);
     }
 }

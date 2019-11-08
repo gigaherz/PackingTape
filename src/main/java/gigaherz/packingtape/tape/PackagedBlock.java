@@ -1,5 +1,6 @@
 package gigaherz.packingtape.tape;
 
+import gigaherz.packingtape.Config;
 import gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -202,47 +203,41 @@ public class PackagedBlock extends Block
         return false;
     }
 
-    public static boolean setTileEntityNBT(World worldIn, BlockPos pos,
+    public static void setTileEntityNBT(World worldIn, BlockPos pos,
                                            @Nullable CompoundNBT tag,
                                            @Nullable PlayerEntity playerIn)
     {
         MinecraftServer minecraftserver = worldIn.getServer();
-
         if (minecraftserver == null)
         {
-            return false;
+            return;
         }
-        else
+
+        if (tag != null)
         {
-            if (tag != null)
+            TileEntity tileentity = worldIn.getTileEntity(pos);
+
+            if (tileentity != null)
             {
-                TileEntity tileentity = worldIn.getTileEntity(pos);
-
-                if (tileentity != null)
+                if (!Config.isTileEntityAllowed(tileentity) && (playerIn == null || !playerIn.canUseCommandBlock()))
                 {
-                    if (!worldIn.isRemote && tileentity.onlyOpsCanSetNbt() && (playerIn == null || !playerIn.canUseCommandBlock()))
-                    {
-                        return false;
-                    }
+                    return;
+                }
 
-                    CompoundNBT merged = new CompoundNBT();
-                    CompoundNBT empty = merged.copy();
-                    tileentity.write(merged);
-                    merged.merge(tag);
-                    merged.putInt("x", pos.getX());
-                    merged.putInt("y", pos.getY());
-                    merged.putInt("z", pos.getZ());
+                CompoundNBT merged = new CompoundNBT();
+                CompoundNBT empty = merged.copy();
+                tileentity.write(merged);
+                merged.merge(tag);
+                merged.putInt("x", pos.getX());
+                merged.putInt("y", pos.getY());
+                merged.putInt("z", pos.getZ());
 
-                    if (!merged.equals(empty))
-                    {
-                        tileentity.read(merged);
-                        tileentity.markDirty();
-                        return true;
-                    }
+                if (!merged.equals(empty))
+                {
+                    tileentity.read(merged);
+                    tileentity.markDirty();
                 }
             }
-
-            return false;
         }
     }
 

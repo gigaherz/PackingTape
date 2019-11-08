@@ -17,7 +17,7 @@ repositories {
     mavenLocal()
 }
 
-version = "0.8.4"
+version = "0.9.0"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "PackingTape-1.14.4"
 
@@ -27,7 +27,7 @@ compileJava {
 }
 
 minecraft {
-    mappings channel: 'snapshot', version: '20190720-1.14.3'
+    mappings channel: 'snapshot', version: '20191108-1.14.3'
     
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
     
@@ -59,7 +59,7 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.14.4-28.0.45'
+    minecraft 'net.minecraftforge:forge:1.14.4-28.1.87'
 }
 
 jar {

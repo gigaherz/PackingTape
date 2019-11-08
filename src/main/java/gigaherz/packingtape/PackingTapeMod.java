@@ -12,7 +12,6 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -30,21 +29,20 @@ public class PackingTapeMod
 
     @SuppressWarnings("ConstantConditions")
     @Nonnull
-    private static <T> T sneakyNull() {
+    private static <T> T willBeInitializedAtRuntime() {
         return null;
     }
 
     @ObjectHolder(MODID)
     public static class Blocks
     {
-        public static final Block PACKAGED_BLOCK = sneakyNull();
+        public static final Block PACKAGED_BLOCK = willBeInitializedAtRuntime();
     }
 
     @ObjectHolder(MODID)
     public static class Items
     {
-        public static final Item TAPE = sneakyNull();
-        public static final Item PACKAGED_BLOCK = sneakyNull();
+        public static final Item TAPE = willBeInitializedAtRuntime();
     }
 
     public static Logger logger = LogManager.getLogger(MODID);
@@ -66,7 +64,6 @@ public class PackingTapeMod
             Config.bake();
     }
 
-    @SubscribeEvent
     public void registerBlocks(RegistryEvent.Register<Block> event)
     {
         event.getRegistry().registerAll(
@@ -74,16 +71,14 @@ public class PackingTapeMod
         );
     }
 
-    @SubscribeEvent
     public void registerItems(RegistryEvent.Register<Item> event)
     {
         event.getRegistry().registerAll(
                 new BlockItem(Blocks.PACKAGED_BLOCK, new Item.Properties()).setRegistryName(Blocks.PACKAGED_BLOCK.getRegistryName()),
-                new TapeItem(new Item.Properties().maxStackSize(16).group(ItemGroup.MISC)).setRegistryName(location("tape"))
+                new TapeItem(new Item.Properties().maxStackSize(16).group(ItemGroup.MISC)).setRegistryName("tape")
         );
     }
 
-    @SubscribeEvent
     public void registerTileEntities(RegistryEvent.Register<TileEntityType<?>> event)
     {
         event.getRegistry().registerAll(
