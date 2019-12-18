@@ -17,7 +17,7 @@ public class BlockStateNBT
     {
         ImmutableMap<IProperty<?>, Comparable<?>> props = state.getValues();
         if (props.size() == 0)
-            return new StringNBT("normal");
+            return StringNBT.func_229705_a_("normal");
 
         CompoundNBT nbt = new CompoundNBT();
         for (Map.Entry<IProperty<?>, Comparable<?>> entry : props.entrySet())

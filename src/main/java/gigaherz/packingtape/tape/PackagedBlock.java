@@ -23,10 +23,7 @@ import net.minecraft.state.IProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.stats.Stats;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
@@ -116,7 +113,7 @@ public class PackagedBlock extends Block
     @Override
     public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
     {
-        if (!placer.isSneaking() && placer instanceof PlayerEntity)
+        if (!placer.func_225608_bj_() && placer instanceof PlayerEntity)
         {
             PlayerEntity player = (PlayerEntity) placer;
             PackagedBlockEntity te = (PackagedBlockEntity) worldIn.getTileEntity(pos);
@@ -128,32 +125,33 @@ public class PackagedBlock extends Block
 
     @Deprecated
     @Override
-    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult rayTraceResult)
+    public ActionResultType func_225533_a_(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult rayTraceResult)
     {
         if (worldIn.isRemote)
-            return true;
+            return ActionResultType.SUCCESS;
 
-        PackagedBlockEntity te = (PackagedBlockEntity) worldIn.getTileEntity(pos);
-        assert te != null;
+        TileEntity te = worldIn.getTileEntity(pos);
 
-        BlockState newState = te.getContainedBlockState();
+        if (!(te instanceof PackagedBlockEntity))
+            return ActionResultType.FAIL;
 
-        CompoundNBT entityData = te.getContainedTile();
+        PackagedBlockEntity packagedBlock = (PackagedBlockEntity)te;
 
-        worldIn.removeTileEntity(pos);
-        worldIn.setBlockState(pos, newState);
+        BlockState newState = packagedBlock.getContainedBlockState();
+        CompoundNBT entityData = packagedBlock.getContainedTile();
+        Direction preferred = packagedBlock.getPreferredDirection();
 
-        Direction preferred = te.getPreferredDirection();
         if (preferred != null)
         {
-            EnumProperty facing = null;
-            for (IProperty prop : newState.getProperties())
+            EnumProperty<Direction> facing = null;
+            for (IProperty<?> prop : newState.getProperties())
             {
                 if (prop.getName().equalsIgnoreCase("facing") || prop.getName().equalsIgnoreCase("rotation"))
                 {
-                    if (prop instanceof EnumProperty)
+                    if (prop instanceof EnumProperty && prop.getValueClass() == Direction.class)
                     {
-                        facing = (EnumProperty) prop;
+                        //noinspection unchecked
+                        facing = (EnumProperty<Direction>) prop;
                         break;
                     }
                 }
@@ -161,46 +159,20 @@ public class PackagedBlock extends Block
 
             if (facing != null)
             {
-                if (facing.getValueClass() == Direction.class && facing.getAllowedValues().contains(preferred))
+                if (facing.getAllowedValues().contains(preferred))
                 {
-                    if (!rotateBlockToward(worldIn, pos, preferred, facing))
-                    {
-                        worldIn.setBlockState(pos, newState.with(facing, preferred));
-                    }
+                    newState = newState.with(facing, preferred);
                 }
             }
         }
 
+
+        worldIn.removeTileEntity(pos);
+        worldIn.setBlockState(pos, newState);
+
         setTileEntityNBT(worldIn, pos, entityData, player);
 
-        return true;
-    }
-
-    private static boolean rotateBlockToward(World worldIn, BlockPos pos, Direction preferred, EnumProperty prop)
-    {
-        /*BlockState stored = worldIn.getBlockState(pos);
-        Block block = stored.getBlock();
-        if (stored.get(prop) == preferred)
-        {
-            return true;
-        }
-
-        for (Object ignored : prop.getAllowedValues())
-        {
-            if (preferred.getAxis() == Direction.Axis.Y)
-                block.rotateBlock(stored, worldIn, pos, Direction.WEST);
-            else
-                block.rotateBlock(stored, worldIn, pos, Direction.UP);
-
-            stored = worldIn.getBlockState(pos);
-            block = stored.getBlock();
-            if (stored.get(prop) == preferred)
-            {
-                return true;
-            }
-        }*/
-
-        return false;
+        return ActionResultType.SUCCESS;
     }
 
     public static void setTileEntityNBT(World worldIn, BlockPos pos,
