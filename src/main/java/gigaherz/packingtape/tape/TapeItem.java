@@ -3,6 +3,7 @@ package gigaherz.packingtape.tape;
 import gigaherz.packingtape.Config;
 import gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.ChestBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.EquipmentSlotType;
@@ -11,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.state.properties.ChestType;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.math.BlockPos;
@@ -79,6 +81,14 @@ public class TapeItem extends Item
         if (!Config.isTileEntityAllowed(te))
         {
             return ActionResultType.PASS;
+        }
+
+        if (state.getBlock() instanceof ChestBlock)
+        {
+            if (state.getProperties().contains(ChestBlock.TYPE) && state.get(ChestBlock.TYPE) != ChestType.SINGLE)
+            {
+                state = state.with(ChestBlock.TYPE, ChestType.SINGLE);
+            }
         }
 
         CompoundNBT tag = te.write(new CompoundNBT());

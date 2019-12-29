@@ -5,6 +5,7 @@ import gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.ChestBlock;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -21,6 +22,7 @@ import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.IProperty;
 import net.minecraft.state.StateContainer;
+import net.minecraft.state.properties.ChestType;
 import net.minecraft.stats.Stats;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
@@ -141,31 +143,59 @@ public class PackagedBlock extends Block
         CompoundNBT entityData = packagedBlock.getContainedTile();
         Direction preferred = packagedBlock.getPreferredDirection();
 
-        if (preferred != null)
-        {
-            EnumProperty<Direction> facing = null;
-            for (IProperty<?> prop : newState.getProperties())
-            {
-                if (prop.getName().equalsIgnoreCase("facing") || prop.getName().equalsIgnoreCase("rotation"))
-                {
-                    if (prop instanceof EnumProperty && prop.getValueClass() == Direction.class)
-                    {
-                        //noinspection unchecked
-                        facing = (EnumProperty<Direction>) prop;
-                        break;
-                    }
-                }
-            }
 
-            if (facing != null)
+        EnumProperty<Direction> facing = null;
+        for (IProperty<?> prop : newState.getProperties())
+        {
+            if (prop.getName().equalsIgnoreCase("facing") || prop.getName().equalsIgnoreCase("rotation"))
             {
-                if (facing.getAllowedValues().contains(preferred))
+                if (prop instanceof EnumProperty && prop.getValueClass() == Direction.class)
                 {
-                    newState = newState.with(facing, preferred);
+                    //noinspection unchecked
+                    facing = (EnumProperty<Direction>) prop;
+                    break;
                 }
             }
         }
 
+        if (preferred != null && facing != null)
+        {
+            if (facing.getAllowedValues().contains(preferred))
+            {
+                newState = newState.with(facing, preferred);
+            }
+        }
+
+        if (facing != null
+                && !player.func_225608_bj_()
+                && newState.getBlock() instanceof ChestBlock)
+        {
+            if (newState.getProperties().contains(ChestBlock.TYPE))
+            {
+                Direction chestFacing = newState.get(facing);
+
+                Direction left = chestFacing.rotateY();
+                Direction right = chestFacing.rotateYCCW();
+
+                // test left side connection
+                BlockState leftState = worldIn.getBlockState(pos.offset(left));
+                if (leftState.getBlock() == newState.getBlock() && leftState.get(ChestBlock.TYPE) == ChestType.SINGLE)
+                {
+                    worldIn.setBlockState(pos.offset(left), leftState.with(ChestBlock.TYPE, ChestType.RIGHT));
+                    newState = newState.with(ChestBlock.TYPE, ChestType.LEFT);
+                }
+                else
+                {
+                    // test right side connection
+                    BlockState rightState = worldIn.getBlockState(pos.offset(right));
+                    if (rightState.getBlock() == newState.getBlock() && rightState.get(ChestBlock.TYPE) == ChestType.SINGLE)
+                    {
+                        worldIn.setBlockState(pos.offset(left), rightState.with(ChestBlock.TYPE, ChestType.LEFT));
+                        newState = newState.with(ChestBlock.TYPE, ChestType.RIGHT);
+                    }
+                }
+            }
+        }
 
         worldIn.removeTileEntity(pos);
         worldIn.setBlockState(pos, newState);
