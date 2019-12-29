@@ -15,9 +15,12 @@ apply plugin: 'maven-publish'
 
 repositories {
     mavenLocal()
+    flatDir {
+        dirs "deps"
+    }
 }
 
-version = "0.9.0"
+version = "0.9.1"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "PackingTape-1.14.4"
 
@@ -60,6 +63,9 @@ minecraft {
 
 dependencies {
     minecraft 'net.minecraftforge:forge:1.14.4-28.1.87'
+
+    compile fg.deobf("dummy:Quark:r2.0-208")
+    compile fg.deobf("dummy:AutoRegLib:1.4-35")
 }
 
 jar {

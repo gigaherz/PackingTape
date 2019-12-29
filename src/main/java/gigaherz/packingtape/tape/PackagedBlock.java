@@ -5,6 +5,7 @@ import gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.ChestBlock;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -21,6 +22,7 @@ import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.IProperty;
 import net.minecraft.state.StateContainer;
+import net.minecraft.state.properties.ChestType;
 import net.minecraft.stats.Stats;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
@@ -138,69 +140,69 @@ public class PackagedBlock extends Block
 
         BlockState newState = te.getContainedBlockState();
 
+
+        EnumProperty<Direction> facing = null;
+        for (IProperty<?> prop : newState.getProperties())
+        {
+            if (prop.getName().equalsIgnoreCase("facing") || prop.getName().equalsIgnoreCase("rotation"))
+            {
+                if (prop instanceof EnumProperty && prop.getValueClass() == Direction.class)
+                {
+                    //noinspection unchecked
+                    facing = (EnumProperty<Direction>) prop;
+                    break;
+                }
+            }
+        }
+
+        Direction preferred = te.getPreferredDirection();
+        if (preferred != null && facing != null)
+        {
+            if (facing.getAllowedValues().contains(preferred))
+            {
+                newState = newState.with(facing, preferred);
+            }
+        }
+
+        if (facing != null
+                && !player.isSneaking()
+                && newState.getBlock() instanceof ChestBlock)
+        {
+            if (newState.getProperties().contains(ChestBlock.TYPE))
+            {
+                Direction chestFacing = newState.get(facing);
+
+                Direction left = chestFacing.rotateY();
+                Direction right = chestFacing.rotateYCCW();
+
+                // test left side connection
+                BlockState leftState = worldIn.getBlockState(pos.offset(left));
+                if (leftState.getBlock() == newState.getBlock() && leftState.get(ChestBlock.TYPE) == ChestType.SINGLE)
+                {
+                    worldIn.setBlockState(pos.offset(left), leftState.with(ChestBlock.TYPE, ChestType.RIGHT));
+                    newState = newState.with(ChestBlock.TYPE, ChestType.LEFT);
+                }
+                else
+                {
+                    // test right side connection
+                    BlockState rightState = worldIn.getBlockState(pos.offset(right));
+                    if (rightState.getBlock() == newState.getBlock() && rightState.get(ChestBlock.TYPE) == ChestType.SINGLE)
+                    {
+                        worldIn.setBlockState(pos.offset(left), rightState.with(ChestBlock.TYPE, ChestType.LEFT));
+                        newState = newState.with(ChestBlock.TYPE, ChestType.RIGHT);
+                    }
+                }
+            }
+        }
+
         CompoundNBT entityData = te.getContainedTile();
 
         worldIn.removeTileEntity(pos);
         worldIn.setBlockState(pos, newState);
 
-        Direction preferred = te.getPreferredDirection();
-        if (preferred != null)
-        {
-            EnumProperty facing = null;
-            for (IProperty prop : newState.getProperties())
-            {
-                if (prop.getName().equalsIgnoreCase("facing") || prop.getName().equalsIgnoreCase("rotation"))
-                {
-                    if (prop instanceof EnumProperty)
-                    {
-                        facing = (EnumProperty) prop;
-                        break;
-                    }
-                }
-            }
-
-            if (facing != null)
-            {
-                if (facing.getValueClass() == Direction.class && facing.getAllowedValues().contains(preferred))
-                {
-                    if (!rotateBlockToward(worldIn, pos, preferred, facing))
-                    {
-                        worldIn.setBlockState(pos, newState.with(facing, preferred));
-                    }
-                }
-            }
-        }
-
         setTileEntityNBT(worldIn, pos, entityData, player);
 
         return true;
-    }
-
-    private static boolean rotateBlockToward(World worldIn, BlockPos pos, Direction preferred, EnumProperty prop)
-    {
-        /*BlockState stored = worldIn.getBlockState(pos);
-        Block block = stored.getBlock();
-        if (stored.get(prop) == preferred)
-        {
-            return true;
-        }
-
-        for (Object ignored : prop.getAllowedValues())
-        {
-            if (preferred.getAxis() == Direction.Axis.Y)
-                block.rotateBlock(stored, worldIn, pos, Direction.WEST);
-            else
-                block.rotateBlock(stored, worldIn, pos, Direction.UP);
-
-            stored = worldIn.getBlockState(pos);
-            block = stored.getBlock();
-            if (stored.get(prop) == preferred)
-            {
-                return true;
-            }
-        }*/
-
-        return false;
     }
 
     public static void setTileEntityNBT(World worldIn, BlockPos pos,
