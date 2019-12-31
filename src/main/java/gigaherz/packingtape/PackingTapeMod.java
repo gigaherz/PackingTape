@@ -82,7 +82,7 @@ public class PackingTapeMod
     public void registerTileEntities(RegistryEvent.Register<TileEntityType<?>> event)
     {
         event.getRegistry().registerAll(
-            TileEntityType.Builder.create(PackagedBlockEntity::new).build(null).setRegistryName(Blocks.PACKAGED_BLOCK.getRegistryName())
+            TileEntityType.Builder.create(PackagedBlockEntity::new, Blocks.PACKAGED_BLOCK).build(null).setRegistryName(Blocks.PACKAGED_BLOCK.getRegistryName())
         );
     }
 
