@@ -94,7 +94,7 @@ public class TapeItem extends Item
         CompoundNBT tag = te.write(new CompoundNBT());
 
         world.removeTileEntity(pos);
-        world.setBlockState(pos, PackingTapeMod.Blocks.PACKAGED_BLOCK.getDefaultState());
+        world.setBlockState(pos, PackingTapeMod.PACKAGED_BLOCK.get().getDefaultState());
 
         TileEntity te2 = world.getTileEntity(pos);
         if (te2 instanceof PackagedBlockEntity)

@@ -81,7 +81,7 @@ public class PackagedBlock extends Block
         if (player.abilities.isCreativeMode && Screen.hasControlDown())
             return new ItemStack(asItem(), 1);
         else
-            return new ItemStack(PackingTapeMod.Items.TAPE, 1);
+            return new ItemStack(PackingTapeMod.TAPE.get(), 1);
     }
 
     //@Override

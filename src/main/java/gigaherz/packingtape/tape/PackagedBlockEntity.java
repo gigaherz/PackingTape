@@ -112,7 +112,7 @@ public class PackagedBlockEntity extends TileEntity
 
     public ItemStack getPackedStack()
     {
-        ItemStack stack = new ItemStack(PackingTapeMod.Blocks.PACKAGED_BLOCK);
+        ItemStack stack = new ItemStack(PackingTapeMod.PACKAGED_BLOCK.get());
 
         CompoundNBT tileEntityData = new CompoundNBT();
         write(tileEntityData);
