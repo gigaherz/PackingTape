@@ -6,7 +6,9 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.util.SoundEvent;
 import net.minecraftforge.common.util.NonNullLazy;
+import net.minecraftforge.common.util.NonNullSupplier;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
@@ -19,22 +21,23 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class MiniReg
+public class RegSitter
 {
     private final List<DeferredRegister<?>> registerList = Lists.newArrayList();
     private final NonNullLazy<DeferredRegister<Block>> BLOCKS = NonNullLazy.of(() -> createDeferred(ForgeRegistries.BLOCKS));
     private final NonNullLazy<DeferredRegister<Item>> ITEMS = NonNullLazy.of(() -> createDeferred(ForgeRegistries.ITEMS));
     private final NonNullLazy<DeferredRegister<TileEntityType<?>>> TILE_ENTITIES = NonNullLazy.of(() -> createDeferred(ForgeRegistries.TILE_ENTITIES));
+    private final NonNullLazy<DeferredRegister<SoundEvent>> SOUND_EVENTS = NonNullLazy.of(() -> createDeferred(ForgeRegistries.SOUND_EVENTS));
     private final String modId;
 
-    public MiniReg(String modId)
+    public RegSitter(String modId)
     {
         this.modId = modId;
     }
 
-    private final <T extends IForgeRegistryEntry<T>> DeferredRegister<T> createDeferred(IForgeRegistry<T> registry)
+    private <T extends IForgeRegistryEntry<T>> DeferredRegister<T> createDeferred(IForgeRegistry<T> registry)
     {
-        DeferredRegister<T> deferred = new DeferredRegister<>(registry, MiniReg.this.modId);
+        DeferredRegister<T> deferred = new DeferredRegister<>(registry, RegSitter.this.modId);
         registerList.add(deferred);
         return deferred;
     }
@@ -49,27 +52,29 @@ public class MiniReg
         return new MiniBlock<>(name, factory);
     }
 
-    public <T extends Item> MiniItem<T> item(String name, Supplier<T> factory)
+    public <T extends Item> MiniGeneric<T> item(String name, Supplier<T> factory)
     {
-        return new MiniItem<>(name, factory);
+        return new MiniGeneric<>(ITEMS, name, factory);
     }
 
-    public <T extends Item> MiniItem<T> tileEntity(String name, Supplier<T> factory)
+    public <T extends TileEntityType<?>> MiniGeneric<T> tileEntity(String name, Supplier<T> factory)
     {
-        return new MiniItem<>(name, factory);
+        return new MiniGeneric<>(TILE_ENTITIES, name, factory);
     }
 
-    public class MiniBlock<T extends Block>
+    public <T extends SoundEvent> MiniGeneric<T> soundEvent(String name, Supplier<T> factory)
     {
-        private final String name;
-        private final Supplier<T> factory;
+        return new MiniGeneric<>(SOUND_EVENTS, name, factory);
+    }
+
+    public class MiniBlock<T extends Block> extends MiniGeneric<T>
+    {
         private Function<Supplier<T>, ? extends Item> itemFactory;
         private Function<Supplier<T>, ? extends TileEntityType<?>> tileEntityFactory;
 
         private MiniBlock(String name, Supplier<T> factory)
         {
-            this.name = name;
-            this.factory = factory;
+            super(BLOCKS, name, factory);
         }
 
         public MiniBlock<T> withItem()
@@ -106,7 +111,7 @@ public class MiniReg
 
         public RegistryObject<T> defer()
         {
-            RegistryObject<T> block = BLOCKS.get().register(name, factory);
+            RegistryObject<T> block = super.defer();
             if (itemFactory != null)
                 ITEMS.get().register(name, () -> itemFactory.apply(block));
             if (tileEntityFactory != null)
@@ -115,37 +120,22 @@ public class MiniReg
         }
     }
 
-    public class MiniItem<T extends Item>
+    public class MiniGeneric<T extends IForgeRegistryEntry<? super T>>
     {
-        private final String name;
-        private final Supplier<T> factory;
+        private final NonNullSupplier<? extends DeferredRegister<? super T>> deferred;
+        protected final String name;
+        private final Supplier<? extends T> factory;
 
-        private MiniItem(String name, Supplier<T> factory)
+        private MiniGeneric(NonNullSupplier<? extends DeferredRegister<? super T>> deferred, String name, Supplier<? extends T> factory)
         {
+            this.deferred = deferred;
             this.name = name;
             this.factory = factory;
         }
 
         public RegistryObject<T> defer()
         {
-            return ITEMS.get().register(name, factory);
-        }
-    }
-
-    public class MiniTileEntity<T extends TileEntityType<?>>
-    {
-        private final String name;
-        private final Supplier<T> factory;
-
-        private MiniTileEntity(String name, Supplier<T> factory)
-        {
-            this.name = name;
-            this.factory = factory;
-        }
-
-        public RegistryObject<T> defer()
-        {
-            return TILE_ENTITIES.get().register(name, factory);
+            return deferred.get().register(name, factory);
         }
     }
 }

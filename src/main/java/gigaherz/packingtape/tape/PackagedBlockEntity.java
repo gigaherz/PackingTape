@@ -153,4 +153,9 @@ public class PackagedBlockEntity extends TileEntity
     {
         handleUpdateTag(pkt.getNbtCompound());
     }
+
+    public boolean isEmpty()
+    {
+        return containedBlockState == null || containedBlockState.isAir();
+    }
 }

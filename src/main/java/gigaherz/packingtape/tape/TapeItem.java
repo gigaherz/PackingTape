@@ -1,6 +1,6 @@
 package gigaherz.packingtape.tape;
 
-import gigaherz.packingtape.Config;
+import gigaherz.packingtape.ConfigValues;
 import gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ChestBlock;
@@ -30,7 +30,7 @@ public class TapeItem extends Item
     @Override
     public int getMaxDamage(ItemStack stack)
     {
-        return Config.tapeRollUses;
+        return ConfigValues.tapeRollUses;
     }
 
     @Override
@@ -66,7 +66,7 @@ public class TapeItem extends Item
             return ActionResultType.PASS;
         }
 
-        if (!playerIn.abilities.isCreativeMode && Config.consumesPaper && !hasPaper(playerIn))
+        if (!playerIn.abilities.isCreativeMode && ConfigValues.consumesPaper && !hasPaper(playerIn))
         {
             TranslationTextComponent textComponent = new TranslationTextComponent("text.packingtape.tape.requires_paper");
             playerIn.sendStatusMessage(textComponent, true);
@@ -78,7 +78,7 @@ public class TapeItem extends Item
             return ActionResultType.SUCCESS;
         }
 
-        if (!Config.isTileEntityAllowed(te))
+        if (!ConfigValues.isTileEntityAllowed(te))
         {
             return ActionResultType.PASS;
         }
@@ -106,7 +106,7 @@ public class TapeItem extends Item
 
         if (!playerIn.abilities.isCreativeMode)
         {
-            if (Config.consumesPaper)
+            if (ConfigValues.consumesPaper)
                 usePaper(playerIn);
 
             if (stack.getCount() > 1)

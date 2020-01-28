@@ -1,16 +1,12 @@
 package gigaherz.packingtape.tape;
 
-import gigaherz.packingtape.Config;
+import gigaherz.packingtape.ConfigValues;
 import gigaherz.packingtape.PackingTapeMod;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.ChestBlock;
+import net.minecraft.block.*;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.Item;
@@ -23,7 +19,7 @@ import net.minecraft.state.EnumProperty;
 import net.minecraft.state.IProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.ChestType;
-import net.minecraft.stats.Stats;
+import net.minecraft.tileentity.ShulkerBoxTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
@@ -32,6 +28,8 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.*;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import net.minecraft.world.storage.loot.LootContext;
+import net.minecraft.world.storage.loot.LootParameters;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -84,38 +82,26 @@ public class PackagedBlock extends Block
             return new ItemStack(PackingTapeMod.TAPE.get(), 1);
     }
 
-    //@Override
-    public void getDrops(NonNullList<ItemStack> drops, @Nullable TileEntity teWorld)
-    {
-        if (teWorld instanceof PackagedBlockEntity)
-        {
-            // TE exists here thanks to the willHarvest above.
-            PackagedBlockEntity packaged = (PackagedBlockEntity) teWorld;
-            ItemStack stack = packaged.getPackedStack();
-
-            drops.add(stack);
-        }
-    }
-
     @Override
-    public void harvestBlock(World worldIn, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, ItemStack stack)
-    {
-        player.addStat(Stats.BLOCK_MINED.get(this));
-        player.addExhaustion(0.005F);
+    public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        TileEntity te = world.getTileEntity(pos);
+        if (te instanceof PackagedBlockEntity) {
+            PackagedBlockEntity packaged = (PackagedBlockEntity)te;
+            if (!world.isRemote && player.isCreative() && !packaged.isEmpty()) {
+                ItemStack stack = packaged.getPackedStack();
+                ItemEntity itemEntity = new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), stack);
+                itemEntity.setDefaultPickupDelay();
+                world.addEntity(itemEntity);
+            }
+        }
 
-        NonNullList<ItemStack> items = NonNullList.create();
-        getDrops(items, te);
-        boolean isSilkTouch = EnchantmentHelper.getEnchantmentLevel(Enchantments.SILK_TOUCH, stack) > 0;
-        net.minecraftforge.event.ForgeEventFactory.fireBlockHarvesting(items, worldIn, pos, state, 0, 1.0f, isSilkTouch, player);
-        items.forEach(e -> spawnAsEntity(worldIn, pos, e));
+        super.onBlockHarvested(world, pos, state, player);
     }
-
-
 
     @Override
     public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
     {
-        if (!placer.func_225608_bj_() && placer instanceof PlayerEntity)
+        if (!placer.isShiftKeyDown() && placer instanceof PlayerEntity)
         {
             PlayerEntity player = (PlayerEntity) placer;
             PackagedBlockEntity te = (PackagedBlockEntity) worldIn.getTileEntity(pos);
@@ -125,14 +111,13 @@ public class PackagedBlock extends Block
         super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
     }
 
-    @Deprecated
     @Override
-    public ActionResultType func_225533_a_(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult rayTraceResult)
+    public ActionResultType onBlockActivated(BlockState p_225533_1_, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult blockRayTraceResult)
     {
-        if (worldIn.isRemote)
+        if (world.isRemote)
             return ActionResultType.SUCCESS;
 
-        TileEntity te = worldIn.getTileEntity(pos);
+        TileEntity te = world.getTileEntity(pos);
 
         if (!(te instanceof PackagedBlockEntity))
             return ActionResultType.FAIL;
@@ -167,7 +152,7 @@ public class PackagedBlock extends Block
         }
 
         if (facing != null
-                && !player.func_225608_bj_()
+                && !player.isShiftKeyDown()
                 && newState.getBlock() instanceof ChestBlock)
         {
             if (newState.getProperties().contains(ChestBlock.TYPE))
@@ -178,29 +163,29 @@ public class PackagedBlock extends Block
                 Direction right = chestFacing.rotateYCCW();
 
                 // test left side connection
-                BlockState leftState = worldIn.getBlockState(pos.offset(left));
+                BlockState leftState = world.getBlockState(pos.offset(left));
                 if (leftState.getBlock() == newState.getBlock() && leftState.get(ChestBlock.TYPE) == ChestType.SINGLE)
                 {
-                    worldIn.setBlockState(pos.offset(left), leftState.with(ChestBlock.TYPE, ChestType.RIGHT));
+                    world.setBlockState(pos.offset(left), leftState.with(ChestBlock.TYPE, ChestType.RIGHT));
                     newState = newState.with(ChestBlock.TYPE, ChestType.LEFT);
                 }
                 else
                 {
                     // test right side connection
-                    BlockState rightState = worldIn.getBlockState(pos.offset(right));
+                    BlockState rightState = world.getBlockState(pos.offset(right));
                     if (rightState.getBlock() == newState.getBlock() && rightState.get(ChestBlock.TYPE) == ChestType.SINGLE)
                     {
-                        worldIn.setBlockState(pos.offset(left), rightState.with(ChestBlock.TYPE, ChestType.LEFT));
+                        world.setBlockState(pos.offset(left), rightState.with(ChestBlock.TYPE, ChestType.LEFT));
                         newState = newState.with(ChestBlock.TYPE, ChestType.RIGHT);
                     }
                 }
             }
         }
 
-        worldIn.removeTileEntity(pos);
-        worldIn.setBlockState(pos, newState);
+        world.removeTileEntity(pos);
+        world.setBlockState(pos, newState);
 
-        setTileEntityNBT(worldIn, pos, entityData, player);
+        setTileEntityNBT(world, pos, entityData, player);
 
         return ActionResultType.SUCCESS;
     }
@@ -221,7 +206,7 @@ public class PackagedBlock extends Block
 
             if (tileentity != null)
             {
-                if (!Config.isTileEntityAllowed(tileentity) && (playerIn == null || !playerIn.canUseCommandBlock()))
+                if (!ConfigValues.isTileEntityAllowed(tileentity) && (playerIn == null || !playerIn.canUseCommandBlock()))
                 {
                     return;
                 }

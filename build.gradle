@@ -4,30 +4,43 @@ buildscript {
         maven { url = 'http://files.minecraftforge.net/maven' }
         jcenter()
         mavenCentral()
+        maven {
+            url 'http://dogforce-games.com/maven'
+        }
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.0.165-run-configs-rework', changing: true
     }
 }
 
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
+apply plugin: 'idea'
 
 repositories {
     mavenLocal()
 }
 
-version = "0.9.2"
+version = "0.9.5"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "PackingTape-1.15.1"
+archivesBaseName = "PackingTape-1.15.2"
 
 sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 compileJava {
     sourceCompatibility = targetCompatibility = '1.8'
 }
 
+sourceSets {
+    main.resources.srcDirs += 'src/main/generated_resources'
+}
+idea {
+    module {
+        resourceDirs += file('src/main/generated_resources')
+    }
+}
+
 minecraft {
-    mappings channel: 'snapshot', version: '20191108-1.14.3'
+    mappings channel: 'snapshot', version: '20200127-1.15.1'
     
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
     
@@ -37,11 +50,12 @@ minecraft {
 
             property 'forge.logging.markers', ''
             property 'forge.logging.console.level', 'debug'
-            property 'forge.logging.noansi', "false"
 
-            ideaModule "${project.name}.main"
-
-            environment 'MOD_CLASSES', "${project.file("out/production/resources").canonicalPath};${project.file("out/production/classes").canonicalPath}"
+            mods {
+                self {
+                    sources sourceSets.main
+                }
+            }
         }
 
         server {
@@ -49,17 +63,33 @@ minecraft {
 
             property 'forge.logging.markers', ''
             property 'forge.logging.console.level', 'debug'
-            property 'forge.logging.noansi', "false"
 
-            ideaModule "${project.name}.main"
+            mods {
+                self {
+                    sources sourceSets.main
+                }
+            }
+        }
 
-            environment 'MOD_CLASSES', "${project.file("out/production/resources").canonicalPath};${project.file("out/production/classes").canonicalPath}"
+        data {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', ''
+            property 'forge.logging.console.level', 'debug'
+
+            args '--mod', 'packingtape', '--all', '--output', file('src/main/generated_resources/'), '--existing', file('src/main/resources/')
+
+            mods {
+                self {
+                    sources sourceSets.main
+                }
+            }
         }
     }
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.15.1-30.0.18'
+    minecraft 'net.minecraftforge:forge:1.15.2-31.0.1'
 }
 
 jar {
@@ -74,10 +104,4 @@ jar {
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
-}
-
-task mcMetaDebug {
-    dependsOn downloadAssets
-    System.out.println tasks.downloadAssets.getIndex()
-    System.out.println tasks.downloadAssets.getOutput().canonicalPath
 }
