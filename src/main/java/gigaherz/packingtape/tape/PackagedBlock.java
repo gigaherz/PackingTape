@@ -228,6 +228,11 @@ public class PackagedBlock extends Block
         }
     }
 
+    private static ITextComponent makeError(String detail)
+    {
+        return new TranslationTextComponent("text.packingtape.packaged.missing_data", new TranslationTextComponent(detail));
+    }
+
     @OnlyIn(Dist.CLIENT)
     @Override
     public void addInformation(ItemStack stack, @Nullable IBlockReader worldIn, List<ITextComponent> tooltip, ITooltipFlag advanced)
@@ -237,29 +242,29 @@ public class PackagedBlock extends Block
         CompoundNBT tag = stack.getTag();
         if (tag == null)
         {
-            tooltip.add(new StringTextComponent("Missing data (no nbt)!"));
+            tooltip.add(makeError("text.packingtape.packaged.no_nbt"));
             return;
         }
 
         CompoundNBT info = (CompoundNBT) tag.get("BlockEntityTag");
         if (info == null)
         {
-            tooltip.add(new StringTextComponent("Missing data (no tag)!"));
+            tooltip.add(makeError("text.packingtape.packaged.no_tag"));
             return;
         }
 
         if (!info.contains("Block") || !info.contains("BlockEntity"))
         {
-            tooltip.add(new StringTextComponent("Missing data (no block info)!"));
+            tooltip.add(makeError("text.packingtape.packaged.no_block"));
             return;
         }
 
         String blockName = info.getCompound("Block").getString("Name");
 
         Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(blockName));
-        if (block == Blocks.AIR)
+        if (block == null || block == Blocks.AIR)
         {
-            tooltip.add(new StringTextComponent("Unknown block:"));
+            tooltip.add(new TranslationTextComponent("text.packingtape.packaged.unknown_block"));
             tooltip.add(new StringTextComponent("  " + blockName));
             return;
         }
@@ -270,7 +275,7 @@ public class PackagedBlock extends Block
             item = ForgeRegistries.ITEMS.getValue(block.getRegistryName());
             if (item == Items.AIR)
             {
-                tooltip.add(new StringTextComponent("Can't find item for:"));
+                tooltip.add(new TranslationTextComponent("text.packingtape.packaged.no_item"));
                 tooltip.add(new StringTextComponent("  " + blockName));
                 return;
             }
