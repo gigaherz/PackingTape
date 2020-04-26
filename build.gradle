@@ -6,19 +6,16 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.0.168', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.0.169', changing: true
     }
 }
 
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
-apply plugin: 'idea'
 
 repositories {
     mavenLocal()
 }
-
-System.out.println("Java Version: " + System.getProperty("java.version"));
 
 version = "0.9.6"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
@@ -31,11 +28,6 @@ compileJava {
 
 sourceSets {
     main.resources.srcDirs += 'src/main/generated_resources'
-}
-idea {
-    module {
-        resourceDirs += file('src/main/generated_resources')
-    }
 }
 
 minecraft {
