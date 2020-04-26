@@ -1,6 +1,6 @@
 package gigaherz.packingtape.tape;
 
-import gigaherz.packingtape.Config;
+import gigaherz.packingtape.ConfigValues;
 import gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -8,9 +8,8 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.Item;
@@ -23,16 +22,16 @@ import net.minecraft.state.EnumProperty;
 import net.minecraft.state.IProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.ChestType;
-import net.minecraft.stats.Stats;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.text.*;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -84,36 +83,24 @@ public class PackagedBlock extends Block
         if (player.abilities.isCreativeMode && Screen.hasControlDown())
             return new ItemStack(asItem(), 1);
         else
-            return new ItemStack(PackingTapeMod.Items.TAPE, 1);
-    }
-
-    //@Override
-    public void getDrops(NonNullList<ItemStack> drops, @Nullable TileEntity teWorld)
-    {
-        if (teWorld instanceof PackagedBlockEntity)
-        {
-            // TE exists here thanks to the willHarvest above.
-            PackagedBlockEntity packaged = (PackagedBlockEntity) teWorld;
-            ItemStack stack = packaged.getPackedStack();
-
-            drops.add(stack);
-        }
+            return new ItemStack(PackingTapeMod.TAPE.get(), 1);
     }
 
     @Override
-    public void harvestBlock(World worldIn, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, ItemStack stack)
-    {
-        player.addStat(Stats.BLOCK_MINED.get(this));
-        player.addExhaustion(0.005F);
+    public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        TileEntity te = world.getTileEntity(pos);
+        if (te instanceof PackagedBlockEntity) {
+            PackagedBlockEntity packaged = (PackagedBlockEntity)te;
+            if (!world.isRemote && player.isCreative() && !packaged.isEmpty()) {
+                ItemStack stack = packaged.getPackedStack();
+                ItemEntity itemEntity = new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), stack);
+                itemEntity.setDefaultPickupDelay();
+                world.addEntity(itemEntity);
+            }
+        }
 
-        NonNullList<ItemStack> items = NonNullList.create();
-        getDrops(items, te);
-        boolean isSilkTouch = EnchantmentHelper.getEnchantmentLevel(Enchantments.SILK_TOUCH, stack) > 0;
-        net.minecraftforge.event.ForgeEventFactory.fireBlockHarvesting(items, worldIn, pos, state, 0, 1.0f, isSilkTouch, player);
-        items.forEach(e -> spawnAsEntity(worldIn, pos, e));
+        super.onBlockHarvested(world, pos, state, player);
     }
-
-
 
     @Override
     public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
@@ -128,18 +115,22 @@ public class PackagedBlock extends Block
         super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
     }
 
-    @Deprecated
     @Override
-    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult rayTraceResult)
+    public boolean onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult rayTraceResult)
     {
-        if (worldIn.isRemote)
+        if (world.isRemote)
             return true;
 
-        PackagedBlockEntity te = (PackagedBlockEntity) worldIn.getTileEntity(pos);
-        assert te != null;
+        TileEntity te = world.getTileEntity(pos);
 
-        BlockState newState = te.getContainedBlockState();
+        if (!(te instanceof PackagedBlockEntity))
+            return false;
 
+        PackagedBlockEntity packagedBlock = (PackagedBlockEntity)te;
+
+        BlockState newState = packagedBlock.getContainedBlockState();
+        CompoundNBT entityData = packagedBlock.getContainedTile();
+        Direction preferred = packagedBlock.getPreferredDirection();
 
         EnumProperty<Direction> facing = null;
         for (IProperty<?> prop : newState.getProperties())
@@ -155,7 +146,6 @@ public class PackagedBlock extends Block
             }
         }
 
-        Direction preferred = te.getPreferredDirection();
         if (preferred != null && facing != null)
         {
             if (facing.getAllowedValues().contains(preferred))
@@ -176,31 +166,29 @@ public class PackagedBlock extends Block
                 Direction right = chestFacing.rotateYCCW();
 
                 // test left side connection
-                BlockState leftState = worldIn.getBlockState(pos.offset(left));
+                BlockState leftState = world.getBlockState(pos.offset(left));
                 if (leftState.getBlock() == newState.getBlock() && leftState.get(ChestBlock.TYPE) == ChestType.SINGLE)
                 {
-                    worldIn.setBlockState(pos.offset(left), leftState.with(ChestBlock.TYPE, ChestType.RIGHT));
+                    world.setBlockState(pos.offset(left), leftState.with(ChestBlock.TYPE, ChestType.RIGHT));
                     newState = newState.with(ChestBlock.TYPE, ChestType.LEFT);
                 }
                 else
                 {
                     // test right side connection
-                    BlockState rightState = worldIn.getBlockState(pos.offset(right));
+                    BlockState rightState = world.getBlockState(pos.offset(right));
                     if (rightState.getBlock() == newState.getBlock() && rightState.get(ChestBlock.TYPE) == ChestType.SINGLE)
                     {
-                        worldIn.setBlockState(pos.offset(right), rightState.with(ChestBlock.TYPE, ChestType.LEFT));
+                        world.setBlockState(pos.offset(right), rightState.with(ChestBlock.TYPE, ChestType.LEFT));
                         newState = newState.with(ChestBlock.TYPE, ChestType.RIGHT);
                     }
                 }
             }
         }
 
-        CompoundNBT entityData = te.getContainedTile();
+        world.removeTileEntity(pos);
+        world.setBlockState(pos, newState);
 
-        worldIn.removeTileEntity(pos);
-        worldIn.setBlockState(pos, newState);
-
-        setTileEntityNBT(worldIn, pos, entityData, player);
+        setTileEntityNBT(world, pos, entityData, player);
 
         return true;
     }
@@ -221,7 +209,7 @@ public class PackagedBlock extends Block
 
             if (tileentity != null)
             {
-                if (!Config.isTileEntityAllowed(tileentity) && (playerIn == null || !playerIn.canUseCommandBlock()))
+                if (!ConfigValues.isTileEntityAllowed(tileentity) && (playerIn == null || !playerIn.canUseCommandBlock()))
                 {
                     return;
                 }
@@ -243,6 +231,11 @@ public class PackagedBlock extends Block
         }
     }
 
+    private static ITextComponent makeError(String detail)
+    {
+        return new TranslationTextComponent("text.packingtape.packaged.missing_data", new TranslationTextComponent(detail));
+    }
+
     @OnlyIn(Dist.CLIENT)
     @Override
     public void addInformation(ItemStack stack, @Nullable IBlockReader worldIn, List<ITextComponent> tooltip, ITooltipFlag advanced)
@@ -252,29 +245,29 @@ public class PackagedBlock extends Block
         CompoundNBT tag = stack.getTag();
         if (tag == null)
         {
-            tooltip.add(new StringTextComponent("Missing data (no nbt)!"));
+            tooltip.add(makeError("text.packingtape.packaged.no_nbt"));
             return;
         }
 
         CompoundNBT info = (CompoundNBT) tag.get("BlockEntityTag");
         if (info == null)
         {
-            tooltip.add(new StringTextComponent("Missing data (no tag)!"));
+            tooltip.add(makeError("text.packingtape.packaged.no_tag"));
             return;
         }
 
         if (!info.contains("Block") || !info.contains("BlockEntity"))
         {
-            tooltip.add(new StringTextComponent("Missing data (no block info)!"));
+            tooltip.add(makeError("text.packingtape.packaged.no_block"));
             return;
         }
 
         String blockName = info.getCompound("Block").getString("Name");
 
         Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(blockName));
-        if (block == Blocks.AIR)
+        if (block == null || block == Blocks.AIR)
         {
-            tooltip.add(new StringTextComponent("Unknown block:"));
+            tooltip.add(new TranslationTextComponent("text.packingtape.packaged.unknown_block"));
             tooltip.add(new StringTextComponent("  " + blockName));
             return;
         }
@@ -285,7 +278,7 @@ public class PackagedBlock extends Block
             item = ForgeRegistries.ITEMS.getValue(block.getRegistryName());
             if (item == Items.AIR)
             {
-                tooltip.add(new StringTextComponent("Can't find item for:"));
+                tooltip.add(new TranslationTextComponent("text.packingtape.packaged.no_item"));
                 tooltip.add(new StringTextComponent("  " + blockName));
                 return;
             }

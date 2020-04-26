@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.0.169', changing: true
     }
 }
 
@@ -15,9 +15,6 @@ apply plugin: 'maven-publish'
 
 repositories {
     mavenLocal()
-    flatDir {
-        dirs "deps"
-    }
 }
 
 version = "0.9.6"
@@ -29,8 +26,12 @@ compileJava {
     sourceCompatibility = targetCompatibility = '1.8'
 }
 
+sourceSets {
+    main.resources.srcDirs += 'src/main/generated_resources'
+}
+
 minecraft {
-    mappings channel: 'snapshot', version: '20191108-1.14.3'
+    mappings channel: 'stable', version: '56-1.14.3'
     
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
     
@@ -40,11 +41,12 @@ minecraft {
 
             property 'forge.logging.markers', ''
             property 'forge.logging.console.level', 'debug'
-            property 'forge.logging.noansi', "false"
 
-            ideaModule "${project.name}.main"
-
-            environment 'MOD_CLASSES', "${project.file("out/production/resources").canonicalPath};${project.file("out/production/classes").canonicalPath}"
+            mods {
+                self {
+                    sources sourceSets.main
+                }
+            }
         }
 
         server {
@@ -52,20 +54,33 @@ minecraft {
 
             property 'forge.logging.markers', ''
             property 'forge.logging.console.level', 'debug'
-            property 'forge.logging.noansi', "false"
 
-            ideaModule "${project.name}.main"
+            mods {
+                self {
+                    sources sourceSets.main
+                }
+            }
+        }
 
-            environment 'MOD_CLASSES', "${project.file("out/production/resources").canonicalPath};${project.file("out/production/classes").canonicalPath}"
+        data {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', ''
+            property 'forge.logging.console.level', 'debug'
+
+            args '--mod', 'packingtape', '--all', '--output', file('src/main/generated_resources/'), '--existing', file('src/main/resources/')
+
+            mods {
+                self {
+                    sources sourceSets.main
+                }
+            }
         }
     }
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.14.4-28.1.87'
-
-    compile fg.deobf("dummy:Quark:r2.0-208")
-    compile fg.deobf("dummy:AutoRegLib:1.4-35")
+    minecraft 'net.minecraftforge:forge:1.14.4-28.2.5'
 }
 
 jar {

@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[26,)"
+loaderVersion="[28,)"
 #updateJSONURL="http://myurl.me/"
 issueTrackerURL="https://github.com/gigaherz/PackingTape/issues"
 displayURL="https://github.com/gigaherz/PackingTape"
@@ -18,12 +18,12 @@ Adds a simple means to carry thigns with you
 [[dependencies.packingtape]]
     modId="forge"
     mandatory=true
-    versionRange="[26.0.2,)"
+    versionRange="[28.2.0,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.packingtape]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.14.2,1.15)"
+    versionRange="[1.14.4,1.15)"
     ordering="NONE"
     side="BOTH"
