@@ -4,12 +4,9 @@ buildscript {
         maven { url = 'http://files.minecraftforge.net/maven' }
         jcenter()
         mavenCentral()
-        maven {
-            url 'http://dogforce-games.com/maven'
-        }
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.0.165-run-configs-rework', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.0.168', changing: true
     }
 }
 
@@ -21,7 +18,9 @@ repositories {
     mavenLocal()
 }
 
-version = "0.9.5"
+System.out.println("Java Version: " + System.getProperty("java.version"));
+
+version = "0.9.6"
 group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "PackingTape-1.15.2"
 
@@ -89,7 +88,7 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.15.2-31.1.0'
+    minecraft 'net.minecraftforge:forge:1.15.2-31.1.27'
 }
 
 jar {

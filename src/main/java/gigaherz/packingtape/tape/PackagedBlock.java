@@ -175,7 +175,7 @@ public class PackagedBlock extends Block
                     BlockState rightState = world.getBlockState(pos.offset(right));
                     if (rightState.getBlock() == newState.getBlock() && rightState.get(ChestBlock.TYPE) == ChestType.SINGLE)
                     {
-                        world.setBlockState(pos.offset(left), rightState.with(ChestBlock.TYPE, ChestType.LEFT));
+                        world.setBlockState(pos.offset(right), rightState.with(ChestBlock.TYPE, ChestType.LEFT));
                         newState = newState.with(ChestBlock.TYPE, ChestType.RIGHT);
                     }
                 }
