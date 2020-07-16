@@ -19,7 +19,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.EnumProperty;
-import net.minecraft.state.IProperty;
+import net.minecraft.state.Property;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.ChestType;
 import net.minecraft.tileentity.TileEntity;
@@ -81,7 +81,7 @@ public class PackagedBlock extends Block
     @Override
     public ItemStack getPickBlock(BlockState state, RayTraceResult target, IBlockReader world, BlockPos pos, PlayerEntity player)
     {
-        if (player.abilities.isCreativeMode && Screen.hasControlDown())
+        if (player.abilities.isCreativeMode && Screen.hasShiftDown())
             return new ItemStack(asItem(), 1);
         else
             return new ItemStack(PackingTapeMod.TAPE.get(), 1);
@@ -106,7 +106,7 @@ public class PackagedBlock extends Block
     @Override
     public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
     {
-        if (!placer.isShiftKeyDown() && placer instanceof PlayerEntity)
+        if (!placer.isSneaking() && placer instanceof PlayerEntity)
         {
             PlayerEntity player = (PlayerEntity) placer;
             PackagedBlockEntity te = (PackagedBlockEntity) worldIn.getTileEntity(pos);
@@ -134,7 +134,7 @@ public class PackagedBlock extends Block
         Direction preferred = packagedBlock.getPreferredDirection();
 
         EnumProperty<Direction> facing = null;
-        for (IProperty<?> prop : newState.getProperties())
+        for (Property<?> prop : newState.getProperties())
         {
             if (prop.getName().equalsIgnoreCase("facing") || prop.getName().equalsIgnoreCase("rotation"))
             {
@@ -156,10 +156,10 @@ public class PackagedBlock extends Block
         }
 
         if (facing != null
-                && !player.isShiftKeyDown()
+                && !player.isSneaking()
                 && newState.getBlock() instanceof ChestBlock)
         {
-            if (newState.getProperties().contains(ChestBlock.TYPE))
+            if (newState.hasProperty(ChestBlock.TYPE))
             {
                 Direction chestFacing = newState.get(facing);
 
@@ -189,12 +189,12 @@ public class PackagedBlock extends Block
         world.removeTileEntity(pos);
         world.setBlockState(pos, newState);
 
-        setTileEntityNBT(world, pos, entityData, player);
+        setTileEntityNBT(world, pos, newState, entityData, player);
 
         return ActionResultType.SUCCESS;
     }
 
-    public static void setTileEntityNBT(World worldIn, BlockPos pos,
+    public static void setTileEntityNBT(World worldIn, BlockPos pos, BlockState state,
                                            @Nullable CompoundNBT tag,
                                            @Nullable PlayerEntity playerIn)
     {
@@ -225,7 +225,7 @@ public class PackagedBlock extends Block
 
                 if (!merged.equals(empty))
                 {
-                    tileentity.read(merged);
+                    tileentity.read(state, merged);
                     tileentity.markDirty();
                 }
             }

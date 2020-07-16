@@ -85,7 +85,7 @@ public class TapeItem extends Item
 
         if (state.getBlock() instanceof ChestBlock)
         {
-            if (state.getProperties().contains(ChestBlock.TYPE) && state.get(ChestBlock.TYPE) != ChestType.SINGLE)
+            if (state.hasProperty(ChestBlock.TYPE) && state.get(ChestBlock.TYPE) != ChestType.SINGLE)
             {
                 state = state.with(ChestBlock.TYPE, ChestType.SINGLE);
             }

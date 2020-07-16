@@ -14,11 +14,11 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.Items;
+import net.minecraft.loot.*;
+import net.minecraft.loot.functions.CopyName;
+import net.minecraft.loot.functions.CopyNbt;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.storage.loot.*;
-import net.minecraft.world.storage.loot.functions.CopyName;
-import net.minecraft.world.storage.loot.functions.CopyNbt;
 import net.minecraftforge.common.crafting.conditions.IConditionBuilder;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -44,9 +44,9 @@ public class PackingTapeMod
 {
     public static final String MODID = "packingtape";
 
-    private static final DeferredRegister<Block> BLOCKS = new DeferredRegister<>(ForgeRegistries.BLOCKS, MODID);
-    private static final DeferredRegister<Item> ITEMS = new DeferredRegister<>(ForgeRegistries.ITEMS, MODID);
-    private static final DeferredRegister<TileEntityType<?>> TILE_ENTITIES = new DeferredRegister<>(ForgeRegistries.TILE_ENTITIES, MODID);
+    private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
+    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
+    private static final DeferredRegister<TileEntityType<?>> TILE_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, MODID);
 
     public static final RegistryObject<PackagedBlock> PACKAGED_BLOCK = BLOCKS.register("packaged_block", () ->
             new PackagedBlock(Block.Properties.create(Material.WOOL).hardnessAndResistance(0.5f, 0.5f).sound(SoundType.WOOD)));

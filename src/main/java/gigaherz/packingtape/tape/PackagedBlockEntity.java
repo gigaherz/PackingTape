@@ -54,9 +54,9 @@ public class PackagedBlockEntity extends TileEntity
     }
 
     @Override
-    public void read(CompoundNBT compound)
+    public void read(BlockState state, CompoundNBT compound)
     {
-        super.read(compound);
+        super.read(state, compound);
 
         // Old way.
         if (compound.contains("containedBlock", Constants.NBT.TAG_STRING))
@@ -143,15 +143,15 @@ public class PackagedBlockEntity extends TileEntity
     //}
 
     @Override
-    public void handleUpdateTag(CompoundNBT tag)
+    public void handleUpdateTag(BlockState state, CompoundNBT tag)
     {
-        read(tag);
+        read(state, tag);
     }
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt)
     {
-        handleUpdateTag(pkt.getNbtCompound());
+        handleUpdateTag(getBlockState(), pkt.getNbtCompound());
     }
 
     public boolean isEmpty()
