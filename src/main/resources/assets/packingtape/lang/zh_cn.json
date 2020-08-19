@@ -1,0 +1,7 @@
+{
+  "item.packingtape.tape":"打包胶布",
+  "block.packingtape.packaged_block":"打包块",
+  "text.packingtape.tape.requires_paper":"需要纸来使用!",
+  "text.packingtape.packaged.cant_place":"无法在这里解开包裹内容!",
+  "text.packingtape.packaged.contains": "包含: %s"
+}
