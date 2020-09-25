@@ -117,7 +117,7 @@ public class PackagedBlock extends Block
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState p_225533_1_, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult blockRayTraceResult)
+    public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult blockRayTraceResult)
     {
         if (world.isRemote)
             return ActionResultType.SUCCESS;
@@ -168,7 +168,9 @@ public class PackagedBlock extends Block
 
                 // test left side connection
                 BlockState leftState = world.getBlockState(pos.offset(left));
-                if (leftState.getBlock() == newState.getBlock() && leftState.get(ChestBlock.TYPE) == ChestType.SINGLE)
+                if (leftState.getBlock() == newState.getBlock()
+                        && leftState.get(ChestBlock.TYPE) == ChestType.SINGLE
+                        && leftState.get(ChestBlock.FACING) == chestFacing)
                 {
                     world.setBlockState(pos.offset(left), leftState.with(ChestBlock.TYPE, ChestType.RIGHT));
                     newState = newState.with(ChestBlock.TYPE, ChestType.LEFT);
@@ -177,7 +179,9 @@ public class PackagedBlock extends Block
                 {
                     // test right side connection
                     BlockState rightState = world.getBlockState(pos.offset(right));
-                    if (rightState.getBlock() == newState.getBlock() && rightState.get(ChestBlock.TYPE) == ChestType.SINGLE)
+                    if (rightState.getBlock() == newState.getBlock()
+                            && rightState.get(ChestBlock.TYPE) == ChestType.SINGLE
+                            && rightState.get(ChestBlock.FACING) == chestFacing)
                     {
                         world.setBlockState(pos.offset(right), rightState.with(ChestBlock.TYPE, ChestType.LEFT));
                         newState = newState.with(ChestBlock.TYPE, ChestType.RIGHT);

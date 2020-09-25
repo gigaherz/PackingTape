@@ -39,6 +39,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import net.minecraft.block.AbstractBlock;
+
 @Mod(PackingTapeMod.MODID)
 public class PackingTapeMod
 {
@@ -49,7 +51,7 @@ public class PackingTapeMod
     private static final DeferredRegister<TileEntityType<?>> TILE_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, MODID);
 
     public static final RegistryObject<PackagedBlock> PACKAGED_BLOCK = BLOCKS.register("packaged_block", () ->
-            new PackagedBlock(Block.Properties.create(Material.WOOL).hardnessAndResistance(0.5f, 0.5f).sound(SoundType.WOOD)));
+            new PackagedBlock(AbstractBlock.Properties.create(Material.WOOL).hardnessAndResistance(0.5f, 0.5f).sound(SoundType.WOOD)));
     static
     {
         ITEMS.register(PACKAGED_BLOCK.getId().getPath(), () ->
@@ -150,7 +152,7 @@ public class PackingTapeMod
             @Override
             protected void validate(Map<ResourceLocation, LootTable> map, ValidationTracker validationtracker) {
                 map.forEach((p_218436_2_, p_218436_3_) -> {
-                    LootTableManager.func_227508_a_(validationtracker, p_218436_2_, p_218436_3_);
+                    LootTableManager.validateLootTable(validationtracker, p_218436_2_, p_218436_3_);
                 });
             }
 
