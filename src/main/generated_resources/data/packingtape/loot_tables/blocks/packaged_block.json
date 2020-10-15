@@ -1,0 +1,46 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "minecraft:copy_name",
+              "source": "block_entity"
+            },
+            {
+              "function": "minecraft:copy_nbt",
+              "source": "block_entity",
+              "ops": [
+                {
+                  "source": "Block",
+                  "target": "BlockEntityTag.Block",
+                  "op": "replace"
+                },
+                {
+                  "source": "BlockEntity",
+                  "target": "BlockEntityTag.BlockEntity",
+                  "op": "replace"
+                },
+                {
+                  "source": "PreferredDirection",
+                  "target": "BlockEntityTag.PreferredDirection",
+                  "op": "replace"
+                }
+              ]
+            }
+          ],
+          "name": "packingtape:packaged_block"
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ]
+    }
+  ]
+}
