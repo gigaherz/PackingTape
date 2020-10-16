@@ -2,9 +2,11 @@ package gigaherz.packingtape;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import net.minecraft.tags.ITag;
 import net.minecraft.tileentity.*;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.ForgeTagHandler;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -33,7 +35,6 @@ public class ConfigValues
     {
         whiteList = SERVER.whitelist.get().stream().map(n -> ForgeRegistries.TILE_ENTITIES.getValue(new ResourceLocation(n))).collect(Collectors.toSet());
         blackList = SERVER.blacklist.get().stream().map(n -> ForgeRegistries.TILE_ENTITIES.getValue(new ResourceLocation(n))).collect(Collectors.toSet());
-        blackList.addAll(getDefaultVanillaDisabled());
         tapeRollUses = SERVER.tapeRollUses.get();
         consumesPaper = SERVER.consumesPaper.get();
     }
@@ -50,12 +51,14 @@ public class ConfigValues
             builder.push("general");
             whitelist = builder
                     .comment("TileEntities to allow regardless of the blacklist and vanilla restrictions.",
+                             "DEPRECATED: Use the tileentity tag 'packingtape:te_whitelist' instead. This config be removed in the future.",
                              "WARNING: This whitelist bypasses the 'only ops can copy' limitation of Minecraft, which can result in security issues, don't whitelist things unless you know what the side-effects will be.",
                              "NOTE: This list now uses 'Block Entity Type' IDs. Eg. the spawner is 'minecraft:mob_spawner'.")
                     .translation("text.packingtape.config.whitelist")
                     .defineList("whitelist", Lists.newArrayList(), o -> o instanceof String);
             blacklist = builder
                     .comment("TileEntities to disallow (whitelist takes precedence)",
+                            "DEPRECATED: Use the tileentity tag 'packingtape:te_blacklist' instead. This config be removed in the future.",
                              "NOTE: This list now uses 'Block Entity Type' IDs. Eg. the shulker boxes are 'minecraft:shulker_box'.")
                     .translation("text.packingtape.config.blacklist")
                     .defineList("blacklist", Lists.newArrayList(), o -> o instanceof String);
@@ -71,48 +74,25 @@ public class ConfigValues
         }
     }
 
-    public static Set<TileEntityType<?>> getDefaultVanillaDisabled()
-    {
-        return Sets.newHashSet(
-                // Security concern: moving command blocks may allow things to happen that shouldn't happen.
-                TileEntityType.COMMAND_BLOCK,
-                TileEntityType.STRUCTURE_BLOCK,
-                TileEntityType.JIGSAW,
+    public static ITag<TileEntityType<?>> TE_WHITELIST = ForgeTagHandler.createOptionalTag(ForgeRegistries.TILE_ENTITIES, PackingTapeMod.location("te_whitelist"));
+    public static ITag<TileEntityType<?>> TE_BLACKLIST = ForgeTagHandler.createOptionalTag(ForgeRegistries.TILE_ENTITIES, PackingTapeMod.location("te_blacklist"));
 
-                // Was this also a security concern?
-                TileEntityType.SIGN,
-
-                // Security/gameplay concern: Moving end portal blocks could cause issues.
-                TileEntityType.END_PORTAL,
-                TileEntityType.END_GATEWAY,
-
-                // Placed skulls don't have an ItemBlock form, and can be moved away easily regardless.
-                TileEntityType.SKULL,
-
-                // Conduit TEs store a list of surrounding blocks, and have no items stored.
-                TileEntityType.CONDUIT,
-
-                // The rest: There's no point to packing them.
-                TileEntityType.BANNER,
-                TileEntityType.COMPARATOR,
-                TileEntityType.DAYLIGHT_DETECTOR,
-                TileEntityType.PISTON,
-                TileEntityType.ENCHANTING_TABLE,
-                TileEntityType.BED,
-                TileEntityType.BELL
-        );
-    }
-
-    public static boolean isTileEntityAllowed(TileEntity te)
+    public static boolean isTileEntityBlocked(TileEntity te)
     {
         TileEntityType<?> type = te.getType();
 
         if (whiteList.contains(type))
-            return true;
-
-        if (te.onlyOpsCanSetNbt())
             return false;
 
-        return !blackList.contains(type);
+        if (type.isIn(TE_WHITELIST))
+            return false;
+
+        if (te.onlyOpsCanSetNbt())
+            return true;
+
+        if (blackList.contains(type))
+            return true;
+
+        return type.isIn(TE_BLACKLIST);
     }
 }

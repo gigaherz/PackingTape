@@ -214,7 +214,7 @@ public class PackagedBlock extends Block
 
             if (tileentity != null)
             {
-                if (!ConfigValues.isTileEntityAllowed(tileentity) && (playerIn == null || !playerIn.canUseCommandBlock()))
+                if (ConfigValues.isTileEntityBlocked(tileentity) && (playerIn == null || !playerIn.canUseCommandBlock()))
                 {
                     return;
                 }

@@ -1,0 +1,6 @@
+{
+  "__comment": "Lists the tile entities that are part of a multiblock structure, and it wouldn't be safe to move just one of them",
+  "values": [
+    "minecraft:bed"
+  ]
+}

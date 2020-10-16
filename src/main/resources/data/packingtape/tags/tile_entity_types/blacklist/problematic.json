@@ -1,0 +1,9 @@
+{
+  "__comment": "Lists the tileentities that could crash or behave erratically if moved without notice",
+  "values": [
+    "minecraft:skull",
+    "minecraft:conduit",
+    "minecraft:banner",
+    "minecraft:piston"
+  ]
+}

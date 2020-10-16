@@ -12,8 +12,8 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 
-version = "0.9.7"
-group= "gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+version = "0.10.0"
+group= "dev.gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "PackingTape-UNKNOWN"
 
 project.afterEvaluate {
@@ -28,8 +28,6 @@ sourceSets {
 
 minecraft {
     mappings channel: 'snapshot', version: '20200916-1.16.2'
-
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     runs {
         client {
@@ -76,7 +74,7 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.3-34.1.0'
+    minecraft 'net.minecraftforge:forge:1.16.3-34.1.22'
 }
 
 jar {
