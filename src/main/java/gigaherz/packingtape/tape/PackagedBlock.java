@@ -7,15 +7,19 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.particle.ParticleManager;
+import net.minecraft.client.renderer.entity.model.BipedModel;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.EnumProperty;
@@ -37,10 +41,13 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.IBlockRenderProperties;
+import net.minecraftforge.client.IItemRenderProperties;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class PackagedBlock extends Block
 {
@@ -125,13 +132,20 @@ public class PackagedBlock extends Block
         TileEntity te = world.getTileEntity(pos);
 
         if (!(te instanceof PackagedBlockEntity))
-            return ActionResultType.FAIL;
+        {
+            return displayBlockMissingError(world, pos);
+        }
 
         PackagedBlockEntity packagedBlock = (PackagedBlockEntity)te;
 
         BlockState newState = packagedBlock.getContainedBlockState();
         CompoundNBT entityData = packagedBlock.getContainedTile();
         Direction preferred = packagedBlock.getPreferredDirection();
+
+        if (newState == null || entityData == null)
+        {
+            return displayBlockMissingError(world, pos);
+        }
 
         EnumProperty<Direction> facing = null;
         for (Property<?> prop : newState.getProperties())
@@ -196,6 +210,14 @@ public class PackagedBlock extends Block
         setTileEntityNBT(world, pos, newState, entityData, player);
 
         return ActionResultType.SUCCESS;
+    }
+
+    private ActionResultType displayBlockMissingError(World world, BlockPos pos)
+    {
+        LOGGER.error("The packaged block does not contain valid data");
+        world.addParticle(ParticleTypes.ANGRY_VILLAGER, pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5, 0, 0, 0);
+        world.setBlockState(pos, Blocks.AIR.getDefaultState());
+        return ActionResultType.CONSUME;
     }
 
     public static void setTileEntityNBT(World worldIn, BlockPos pos, BlockState state,

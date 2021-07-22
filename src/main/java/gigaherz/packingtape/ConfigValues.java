@@ -51,14 +51,14 @@ public class ConfigValues
             builder.push("general");
             whitelist = builder
                     .comment("TileEntities to allow regardless of the blacklist and vanilla restrictions.",
-                             "DEPRECATED: Use the tileentity tag 'packingtape:te_whitelist' instead. This config be removed in the future.",
+                             "DEPRECATED: Use the tileentity tag 'packingtape:te_whitelist' instead. This config will be removed in the future.",
                              "WARNING: This whitelist bypasses the 'only ops can copy' limitation of Minecraft, which can result in security issues, don't whitelist things unless you know what the side-effects will be.",
                              "NOTE: This list now uses 'Block Entity Type' IDs. Eg. the spawner is 'minecraft:mob_spawner'.")
                     .translation("text.packingtape.config.whitelist")
                     .defineList("whitelist", Lists.newArrayList(), o -> o instanceof String);
             blacklist = builder
                     .comment("TileEntities to disallow (whitelist takes precedence)",
-                            "DEPRECATED: Use the tileentity tag 'packingtape:te_blacklist' instead. This config be removed in the future.",
+                            "DEPRECATED: Use the tileentity tag 'packingtape:te_blacklist' instead. This config will be removed in the future.",
                              "NOTE: This list now uses 'Block Entity Type' IDs. Eg. the shulker boxes are 'minecraft:shulker_box'.")
                     .translation("text.packingtape.config.blacklist")
                     .defineList("blacklist", Lists.newArrayList(), o -> o instanceof String);
