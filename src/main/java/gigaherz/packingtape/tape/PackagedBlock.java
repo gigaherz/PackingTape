@@ -2,39 +2,43 @@ package gigaherz.packingtape.tape;
 
 import gigaherz.packingtape.ConfigValues;
 import gigaherz.packingtape.PackingTapeMod;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.ChestBlock;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.Property;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.ChestType;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.ChestType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -42,96 +46,94 @@ import net.minecraftforge.registries.ForgeRegistries;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class PackagedBlock extends Block
+public class PackagedBlock extends Block implements EntityBlock
 {
     public static final BooleanProperty UNPACKING = BooleanProperty.create("unpacking");
 
     public PackagedBlock(Properties properties)
     {
         super(properties);
-        setDefaultState(this.getStateContainer().getBaseState().with(UNPACKING, false));
+        registerDefaultState(this.getStateDefinition().any().setValue(UNPACKING, false));
     }
 
     @Deprecated
     @Override
-    public boolean isReplaceable(BlockState state, BlockItemUseContext useContext)
+    public boolean canBeReplaced(BlockState state, BlockPlaceContext useContext)
     {
-        return state.get(UNPACKING);
+        return state.getValue(UNPACKING);
+    }
+
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new PackagedBlockEntity(pos, state);
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state)
-    {
-        return true;
-    }
-
-    @Nullable
-    @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world)
-    {
-        return new PackagedBlockEntity();
-    }
-
-    @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder)
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder)
     {
         builder.add(UNPACKING);
     }
 
     @Override
-    public ItemStack getPickBlock(BlockState state, RayTraceResult target, IBlockReader world, BlockPos pos, PlayerEntity player)
+    public ItemStack getPickBlock(BlockState state, HitResult target, BlockGetter world, BlockPos pos, Player player)
     {
-        if (player.abilities.isCreativeMode && Screen.hasShiftDown())
+        if (Screen.hasShiftDown() || (player.getAbilities().instabuild && Screen.hasControlDown()))
             return new ItemStack(asItem(), 1);
         else
             return new ItemStack(PackingTapeMod.TAPE.get(), 1);
     }
 
     @Override
-    public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        TileEntity te = world.getTileEntity(pos);
+    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
+        BlockEntity te = world.getBlockEntity(pos);
         if (te instanceof PackagedBlockEntity) {
             PackagedBlockEntity packaged = (PackagedBlockEntity)te;
-            if (!world.isRemote && player.isCreative() && !packaged.isEmpty()) {
+            if (!world.isClientSide && player.isCreative() && !packaged.isEmpty()) {
                 ItemStack stack = packaged.getPackedStack();
                 ItemEntity itemEntity = new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), stack);
-                itemEntity.setDefaultPickupDelay();
-                world.addEntity(itemEntity);
+                itemEntity.setDefaultPickUpDelay();
+                world.addFreshEntity(itemEntity);
             }
         }
 
-        super.onBlockHarvested(world, pos, state, player);
+        super.playerWillDestroy(world, pos, state, player);
     }
 
     @Override
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
+    public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
     {
-        if (!placer.isSneaking() && placer instanceof PlayerEntity)
+        if (!placer.isShiftKeyDown() && placer instanceof Player)
         {
-            PlayerEntity player = (PlayerEntity) placer;
-            PackagedBlockEntity te = (PackagedBlockEntity) worldIn.getTileEntity(pos);
+            Player player = (Player) placer;
+            PackagedBlockEntity te = (PackagedBlockEntity) worldIn.getBlockEntity(pos);
             assert te != null;
-            te.setPreferredDirection(Direction.fromAngle(player.getRotationYawHead()).getOpposite());
+            te.setPreferredDirection(Direction.fromYRot(player.getYHeadRot()).getOpposite());
         }
-        super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
+        super.setPlacedBy(worldIn, pos, state, placer, stack);
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult blockRayTraceResult)
+    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult blockRayTraceResult)
     {
-        if (world.isRemote)
-            return ActionResultType.SUCCESS;
+        if (world.isClientSide)
+            return InteractionResult.SUCCESS;
 
-        TileEntity te = world.getTileEntity(pos);
+        BlockEntity te = world.getBlockEntity(pos);
 
         if (!(te instanceof PackagedBlockEntity))
-            return ActionResultType.FAIL;
+        {
+            return displayBlockMissingError(world, pos);
+        }
 
         PackagedBlockEntity packagedBlock = (PackagedBlockEntity)te;
 
         BlockState newState = packagedBlock.getContainedBlockState();
-        CompoundNBT entityData = packagedBlock.getContainedTile();
+        CompoundTag entityData = packagedBlock.getContainedTile();
         Direction preferred = packagedBlock.getPreferredDirection();
+
+        if (newState == null || entityData == null)
+        {
+            return displayBlockMissingError(world, pos);
+        }
 
         EnumProperty<Direction> facing = null;
         for (Property<?> prop : newState.getProperties())
@@ -149,58 +151,66 @@ public class PackagedBlock extends Block
 
         if (preferred != null && facing != null)
         {
-            if (facing.getAllowedValues().contains(preferred))
+            if (facing.getPossibleValues().contains(preferred))
             {
-                newState = newState.with(facing, preferred);
+                newState = newState.setValue(facing, preferred);
             }
         }
 
         if (facing != null
-                && !player.isSneaking()
+                && !player.isShiftKeyDown()
                 && newState.getBlock() instanceof ChestBlock)
         {
             if (newState.hasProperty(ChestBlock.TYPE))
             {
-                Direction chestFacing = newState.get(facing);
+                Direction chestFacing = newState.getValue(facing);
 
-                Direction left = chestFacing.rotateY();
-                Direction right = chestFacing.rotateYCCW();
+                Direction left = chestFacing.getClockWise();
+                Direction right = chestFacing.getCounterClockWise();
 
                 // test left side connection
-                BlockState leftState = world.getBlockState(pos.offset(left));
+                BlockState leftState = world.getBlockState(pos.relative(left));
                 if (leftState.getBlock() == newState.getBlock()
-                        && leftState.get(ChestBlock.TYPE) == ChestType.SINGLE
-                        && leftState.get(ChestBlock.FACING) == chestFacing)
+                        && leftState.getValue(ChestBlock.TYPE) == ChestType.SINGLE
+                        && leftState.getValue(ChestBlock.FACING) == chestFacing)
                 {
-                    world.setBlockState(pos.offset(left), leftState.with(ChestBlock.TYPE, ChestType.RIGHT));
-                    newState = newState.with(ChestBlock.TYPE, ChestType.LEFT);
+                    world.setBlockAndUpdate(pos.relative(left), leftState.setValue(ChestBlock.TYPE, ChestType.RIGHT));
+                    newState = newState.setValue(ChestBlock.TYPE, ChestType.LEFT);
                 }
                 else
                 {
                     // test right side connection
-                    BlockState rightState = world.getBlockState(pos.offset(right));
+                    BlockState rightState = world.getBlockState(pos.relative(right));
                     if (rightState.getBlock() == newState.getBlock()
-                            && rightState.get(ChestBlock.TYPE) == ChestType.SINGLE
-                            && rightState.get(ChestBlock.FACING) == chestFacing)
+                            && rightState.getValue(ChestBlock.TYPE) == ChestType.SINGLE
+                            && rightState.getValue(ChestBlock.FACING) == chestFacing)
                     {
-                        world.setBlockState(pos.offset(right), rightState.with(ChestBlock.TYPE, ChestType.LEFT));
-                        newState = newState.with(ChestBlock.TYPE, ChestType.RIGHT);
+                        world.setBlockAndUpdate(pos.relative(right), rightState.setValue(ChestBlock.TYPE, ChestType.LEFT));
+                        newState = newState.setValue(ChestBlock.TYPE, ChestType.RIGHT);
                     }
                 }
             }
         }
 
-        world.removeTileEntity(pos);
-        world.setBlockState(pos, newState);
+        world.removeBlockEntity(pos);
+        world.setBlockAndUpdate(pos, newState);
 
         setTileEntityNBT(world, pos, newState, entityData, player);
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
-    public static void setTileEntityNBT(World worldIn, BlockPos pos, BlockState state,
-                                           @Nullable CompoundNBT tag,
-                                           @Nullable PlayerEntity playerIn)
+    private InteractionResult displayBlockMissingError(Level world, BlockPos pos)
+    {
+        LOGGER.error("The packaged block does not contain valid data");
+        world.addParticle(ParticleTypes.ANGRY_VILLAGER, pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5, 0, 0, 0);
+        world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+        return InteractionResult.CONSUME;
+    }
+
+    public static void setTileEntityNBT(Level worldIn, BlockPos pos, BlockState state,
+                                           @Nullable CompoundTag tag,
+                                           @Nullable Player playerIn)
     {
         MinecraftServer minecraftserver = worldIn.getServer();
         if (minecraftserver == null)
@@ -210,18 +220,18 @@ public class PackagedBlock extends Block
 
         if (tag != null)
         {
-            TileEntity tileentity = worldIn.getTileEntity(pos);
+            BlockEntity tileentity = worldIn.getBlockEntity(pos);
 
             if (tileentity != null)
             {
-                if (ConfigValues.isTileEntityBlocked(tileentity) && (playerIn == null || !playerIn.canUseCommandBlock()))
+                if (ConfigValues.isTileEntityBlocked(tileentity) && (playerIn == null || !playerIn.canUseGameMasterBlocks()))
                 {
                     return;
                 }
 
-                CompoundNBT merged = new CompoundNBT();
-                CompoundNBT empty = merged.copy();
-                tileentity.write(merged);
+                CompoundTag merged = new CompoundTag();
+                CompoundTag empty = merged.copy();
+                tileentity.save(merged);
                 merged.merge(tag);
                 merged.putInt("x", pos.getX());
                 merged.putInt("y", pos.getY());
@@ -229,32 +239,32 @@ public class PackagedBlock extends Block
 
                 if (!merged.equals(empty))
                 {
-                    tileentity.read(state, merged);
-                    tileentity.markDirty();
+                    tileentity.load(merged);
+                    tileentity.setChanged();
                 }
             }
         }
     }
 
-    private static ITextComponent makeError(String detail)
+    private static Component makeError(String detail)
     {
-        return new TranslationTextComponent("text.packingtape.packaged.missing_data", new TranslationTextComponent(detail));
+        return new TranslatableComponent("text.packingtape.packaged.missing_data", new TranslatableComponent(detail));
     }
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, @Nullable IBlockReader worldIn, List<ITextComponent> tooltip, ITooltipFlag advanced)
+    public void appendHoverText(ItemStack stack, @Nullable BlockGetter worldIn, List<Component> tooltip, TooltipFlag advanced)
     {
-        super.addInformation(stack, worldIn, tooltip, advanced);
+        super.appendHoverText(stack, worldIn, tooltip, advanced);
 
-        CompoundNBT tag = stack.getTag();
+        CompoundTag tag = stack.getTag();
         if (tag == null)
         {
             tooltip.add(makeError("text.packingtape.packaged.no_nbt"));
             return;
         }
 
-        CompoundNBT info = (CompoundNBT) tag.get("BlockEntityTag");
+        CompoundTag info = (CompoundTag) tag.get("BlockEntityTag");
         if (info == null)
         {
             tooltip.add(makeError("text.packingtape.packaged.no_tag"));
@@ -272,8 +282,8 @@ public class PackagedBlock extends Block
         Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(blockName));
         if (block == null || block == Blocks.AIR)
         {
-            tooltip.add(new TranslationTextComponent("text.packingtape.packaged.unknown_block"));
-            tooltip.add(new StringTextComponent("  " + blockName));
+            tooltip.add(new TranslatableComponent("text.packingtape.packaged.unknown_block"));
+            tooltip.add(new TextComponent("  " + blockName));
             return;
         }
 
@@ -283,13 +293,13 @@ public class PackagedBlock extends Block
             item = ForgeRegistries.ITEMS.getValue(block.getRegistryName());
             if (item == Items.AIR)
             {
-                tooltip.add(new TranslationTextComponent("text.packingtape.packaged.no_item"));
-                tooltip.add(new StringTextComponent("  " + blockName));
+                tooltip.add(new TranslatableComponent("text.packingtape.packaged.no_item"));
+                tooltip.add(new TextComponent("  " + blockName));
                 return;
             }
         }
 
         ItemStack stack1 = new ItemStack(item, 1);
-        tooltip.add(new TranslationTextComponent("text.packingtape.packaged.contains", stack1.getDisplayName()));
+        tooltip.add(new TranslatableComponent("text.packingtape.packaged.contains", stack1.getHoverName()));
     }
 }

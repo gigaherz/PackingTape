@@ -2,22 +2,22 @@ package gigaherz.packingtape.tape;
 
 import gigaherz.packingtape.ConfigValues;
 import gigaherz.packingtape.PackingTapeMod;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ChestBlock;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.state.properties.ChestType;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.Items;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.state.properties.ChestType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 public class TapeItem extends Item
@@ -34,7 +34,7 @@ public class TapeItem extends Item
     }
 
     @Override
-    public boolean isDamageable()
+    public boolean canBeDepleted()
     {
         return true;
     }
@@ -42,61 +42,61 @@ public class TapeItem extends Item
     @Override
     public int getItemStackLimit(ItemStack stack)
     {
-        return stack.getDamage() == 0 ? super.getItemStackLimit(stack) : 1;
+        return stack.getDamageValue() == 0 ? super.getItemStackLimit(stack) : 1;
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context)
+    public InteractionResult useOn(UseOnContext context)
     {
-        PlayerEntity playerIn = context.getPlayer();
-        World world = context.getWorld();
-        BlockPos pos = context.getPos();
+        Player playerIn = context.getPlayer();
+        Level world = context.getLevel();
+        BlockPos pos = context.getClickedPos();
 
-        ItemStack stack = context.getItem();
+        ItemStack stack = context.getItemInHand();
         if (stack.getCount() <= 0)
         {
-            return ActionResultType.PASS;
+            return InteractionResult.PASS;
         }
 
         BlockState state = world.getBlockState(pos);
-        TileEntity te = world.getTileEntity(pos);
+        BlockEntity te = world.getBlockEntity(pos);
 
         if (te == null)
         {
-            return ActionResultType.PASS;
+            return InteractionResult.PASS;
         }
 
-        if (!playerIn.abilities.isCreativeMode && ConfigValues.consumesPaper && !hasPaper(playerIn))
+        if (!playerIn.getAbilities().instabuild && ConfigValues.consumesPaper && !hasPaper(playerIn))
         {
-            TranslationTextComponent textComponent = new TranslationTextComponent("text.packingtape.tape.requires_paper");
-            playerIn.sendStatusMessage(textComponent, true);
-            return ActionResultType.FAIL;
+            TranslatableComponent textComponent = new TranslatableComponent("text.packingtape.tape.requires_paper");
+            playerIn.displayClientMessage(textComponent, true);
+            return InteractionResult.FAIL;
         }
 
-        if (world.isRemote)
+        if (world.isClientSide)
         {
-            return ActionResultType.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
         if (ConfigValues.isTileEntityBlocked(te))
         {
-            return ActionResultType.PASS;
+            return InteractionResult.PASS;
         }
 
         if (state.getBlock() instanceof ChestBlock)
         {
-            if (state.hasProperty(ChestBlock.TYPE) && state.get(ChestBlock.TYPE) != ChestType.SINGLE)
+            if (state.hasProperty(ChestBlock.TYPE) && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE)
             {
-                state = state.with(ChestBlock.TYPE, ChestType.SINGLE);
+                state = state.setValue(ChestBlock.TYPE, ChestType.SINGLE);
             }
         }
 
-        CompoundNBT tag = te.write(new CompoundNBT());
+        CompoundTag tag = te.save(new CompoundTag());
 
-        world.removeTileEntity(pos);
-        world.setBlockState(pos, PackingTapeMod.PACKAGED_BLOCK.get().getDefaultState());
+        world.removeBlockEntity(pos);
+        world.setBlockAndUpdate(pos, PackingTapeMod.PACKAGED_BLOCK.get().defaultBlockState());
 
-        TileEntity te2 = world.getTileEntity(pos);
+        BlockEntity te2 = world.getBlockEntity(pos);
         if (te2 instanceof PackagedBlockEntity)
         {
             PackagedBlockEntity packaged = (PackagedBlockEntity) te2;
@@ -104,7 +104,7 @@ public class TapeItem extends Item
             packaged.setContents(state, tag);
         }
 
-        if (!playerIn.abilities.isCreativeMode)
+        if (!playerIn.getAbilities().instabuild)
         {
             if (ConfigValues.consumesPaper)
                 usePaper(playerIn);
@@ -113,8 +113,8 @@ public class TapeItem extends Item
             {
                 ItemStack split = stack.copy();
                 split.setCount(1);
-                split.setDamage(split.getDamage()+1);
-                if (stack.getDamage() < stack.getMaxDamage())
+                split.setDamageValue(split.getDamageValue()+1);
+                if (stack.getDamageValue() < stack.getMaxDamage())
                 {
                     ItemHandlerHelper.giveItemToPlayer(playerIn, split);
                 }
@@ -122,27 +122,27 @@ public class TapeItem extends Item
             }
             else
             {
-                stack.setDamage(stack.getDamage()+1);
-                if (stack.getDamage() >= stack.getMaxDamage()) {
+                stack.setDamageValue(stack.getDamageValue()+1);
+                if (stack.getDamageValue() >= stack.getMaxDamage()) {
                     stack.shrink(1);
                 }
             }
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
-    private boolean hasPaper(PlayerEntity playerIn)
+    private boolean hasPaper(Player playerIn)
     {
-        ItemStack stack = playerIn.getItemStackFromSlot(EquipmentSlotType.OFFHAND);
+        ItemStack stack = playerIn.getItemBySlot(EquipmentSlot.OFFHAND);
         if (stack.getItem() == Items.PAPER)
         {
             return true;
         }
-        PlayerInventory inv = playerIn.inventory;
-        for (int i = 0; i < inv.getSizeInventory(); i++)
+        Inventory inv = playerIn.getInventory();
+        for (int i = 0; i < inv.getContainerSize(); i++)
         {
-            stack = inv.getStackInSlot(i);
+            stack = inv.getItem(i);
             if (stack.getItem() == Items.PAPER)
             {
                 return true;
@@ -151,24 +151,24 @@ public class TapeItem extends Item
         return false;
     }
 
-    private void usePaper(PlayerEntity playerIn)
+    private void usePaper(Player playerIn)
     {
-        ItemStack stack = playerIn.getItemStackFromSlot(EquipmentSlotType.OFFHAND);
+        ItemStack stack = playerIn.getItemBySlot(EquipmentSlot.OFFHAND);
         if (stack.getItem() == Items.PAPER)
         {
             stack.grow(-1);
             if (stack.getCount() <= 0)
-                playerIn.setItemStackToSlot(EquipmentSlotType.OFFHAND, ItemStack.EMPTY);
+                playerIn.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
         }
-        PlayerInventory inv = playerIn.inventory;
-        for (int i = 0; i < inv.getSizeInventory(); i++)
+        Inventory inv = playerIn.getInventory();
+        for (int i = 0; i < inv.getContainerSize(); i++)
         {
-            stack = inv.getStackInSlot(i);
+            stack = inv.getItem(i);
             if (stack.getItem() == Items.PAPER)
             {
                 stack.grow(-1);
                 if (stack.getCount() <= 0)
-                    inv.setInventorySlotContents(i, ItemStack.EMPTY);
+                    inv.setItem(i, ItemStack.EMPTY);
                 return;
             }
         }

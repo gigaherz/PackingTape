@@ -1,47 +1,48 @@
 package gigaherz.packingtape.tape;
 
 import gigaherz.packingtape.PackingTapeMod;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SUpdateTileEntityPacket;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.core.Direction;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.registries.ObjectHolder;
 
 import javax.annotation.Nullable;
 
-public class PackagedBlockEntity extends TileEntity
+public class PackagedBlockEntity extends BlockEntity
 {
     @ObjectHolder("packingtape:packaged_block")
-    public static TileEntityType<PackagedBlockEntity> TYPE;
+    public static BlockEntityType<PackagedBlockEntity> TYPE;
 
     private BlockState containedBlockState;
-    private CompoundNBT containedTile;
+    private CompoundTag containedTile;
     private Direction preferredDirection;
 
-    public PackagedBlockEntity(TileEntityType<?> tileEntityTypeIn)
+    public PackagedBlockEntity(BlockEntityType<?> tileEntityTypeIn, BlockPos pos, BlockState state)
     {
-        super(tileEntityTypeIn);
+        super(tileEntityTypeIn, pos, state);
     }
 
-    public PackagedBlockEntity()
+    public PackagedBlockEntity(BlockPos pos, BlockState state)
     {
-        super(TYPE);
+        super(TYPE, pos, state);
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound)
+    public CompoundTag save(CompoundTag compound)
     {
-        compound = super.write(compound);
+        compound = super.save(compound);
 
         if (containedBlockState != null)
         {
-            CompoundNBT blockData = NBTUtil.writeBlockState(containedBlockState);
+            CompoundTag blockData = NbtUtils.writeBlockState(containedBlockState);
             compound.put("Block", blockData);
             compound.put("BlockEntity", containedTile.copy());
             if (preferredDirection != null)
@@ -54,17 +55,17 @@ public class PackagedBlockEntity extends TileEntity
     }
 
     @Override
-    public void read(BlockState state, CompoundNBT compound)
+    public void load(CompoundTag compound)
     {
-        super.read(state, compound);
+        super.load(compound);
 
         // Old way.
         if (compound.contains("containedBlock", Constants.NBT.TAG_STRING))
         {
-            CompoundNBT tempTag = new CompoundNBT();
+            CompoundTag tempTag = new CompoundTag();
             tempTag.putString("Name", compound.getString("containedBlock"));
             tempTag.put("Properties", compound.get("containedBlockState"));
-            containedBlockState = NBTUtil.readBlockState(tempTag);
+            containedBlockState = NbtUtils.readBlockState(tempTag);
             containedTile = compound.getCompound("containedTile").copy();
             if (compound.contains("preferredDirection"))
             {
@@ -73,8 +74,8 @@ public class PackagedBlockEntity extends TileEntity
         }
         else
         {
-            CompoundNBT blockTag = compound.getCompound("Block");
-            containedBlockState = NBTUtil.readBlockState(blockTag);
+            CompoundTag blockTag = compound.getCompound("Block");
+            containedBlockState = NbtUtils.readBlockState(blockTag);
             containedTile = compound.getCompound("BlockEntity").copy();
             if (compound.contains("PreferredDirection"))
             {
@@ -88,12 +89,12 @@ public class PackagedBlockEntity extends TileEntity
         return containedBlockState;
     }
 
-    public CompoundNBT getContainedTile()
+    public CompoundTag getContainedTile()
     {
         return containedTile;
     }
 
-    public void setContents(BlockState state, CompoundNBT tag)
+    public void setContents(BlockState state, CompoundTag tag)
     {
         containedBlockState = state;
         containedTile = tag;
@@ -114,13 +115,13 @@ public class PackagedBlockEntity extends TileEntity
     {
         ItemStack stack = new ItemStack(PackingTapeMod.PACKAGED_BLOCK.get());
 
-        CompoundNBT tileEntityData = new CompoundNBT();
-        write(tileEntityData);
+        CompoundTag tileEntityData = new CompoundTag();
+        save(tileEntityData);
         tileEntityData.remove("x");
         tileEntityData.remove("y");
         tileEntityData.remove("z");
 
-        CompoundNBT stackTag = new CompoundNBT();
+        CompoundTag stackTag = new CompoundTag();
         stackTag.put("BlockEntityTag", tileEntityData);
         stack.setTag(stackTag);
 
@@ -130,9 +131,9 @@ public class PackagedBlockEntity extends TileEntity
     }
 
     @Override
-    public CompoundNBT getUpdateTag()
+    public CompoundTag getUpdateTag()
     {
-        return write(new CompoundNBT());
+        return save(new CompoundTag());
     }
 
     //@Nullable
@@ -143,15 +144,15 @@ public class PackagedBlockEntity extends TileEntity
     //}
 
     @Override
-    public void handleUpdateTag(BlockState state, CompoundNBT tag)
+    public void handleUpdateTag(CompoundTag tag)
     {
-        read(state, tag);
+        load(tag);
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt)
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt)
     {
-        handleUpdateTag(getBlockState(), pkt.getNbtCompound());
+        handleUpdateTag(pkt.getTag());
     }
 
     public boolean isEmpty()
