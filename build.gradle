@@ -3,6 +3,7 @@ buildscript {
         maven { url = 'https://maven.minecraftforge.net/' }
         jcenter()
         mavenCentral()
+        mavenLocal()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
@@ -20,14 +21,18 @@ project.afterEvaluate {
     archivesBaseName = "PackingTape-${project.MC_VERSION}"
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(16)
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 sourceSets {
     main.resources.srcDirs += 'src/main/generated_resources'
 }
 
+repositories {
+    mavenLocal()
+}
+
 minecraft {
-    mappings channel: 'official', version: '1.17.1'
+    mappings channel: 'official', version: '1.18-rc1'
 
     runs {
         client {
@@ -74,7 +79,7 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.17.1-37.0.78'
+    minecraft 'net.minecraftforge:forge:1.18-rc1-37.99.0-1.18.x'
 }
 
 jar {

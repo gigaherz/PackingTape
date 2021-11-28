@@ -74,7 +74,7 @@ public class PackagedBlock extends Block implements EntityBlock
     }
 
     @Override
-    public ItemStack getPickBlock(BlockState state, HitResult target, BlockGetter world, BlockPos pos, Player player)
+    public ItemStack getCloneItemStack(BlockState state, HitResult target, BlockGetter world, BlockPos pos, Player player)
     {
         if (Screen.hasShiftDown() || (player.getAbilities().instabuild && Screen.hasControlDown()))
             return new ItemStack(asItem(), 1);

@@ -2,6 +2,7 @@ package gigaherz.packingtape.tape;
 
 import gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
@@ -11,7 +12,6 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.core.Direction;
-import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.registries.ObjectHolder;
 
 import javax.annotation.Nullable;
@@ -60,7 +60,7 @@ public class PackagedBlockEntity extends BlockEntity
         super.load(compound);
 
         // Old way.
-        if (compound.contains("containedBlock", Constants.NBT.TAG_STRING))
+        if (compound.contains("containedBlock", Tag.TAG_STRING))
         {
             CompoundTag tempTag = new CompoundTag();
             tempTag.putString("Name", compound.getString("containedBlock"));
