@@ -91,16 +91,14 @@ public class TapeItem extends Item
             }
         }
 
-        CompoundTag tag = te.save(new CompoundTag());
+        CompoundTag tag = te.saveWithoutMetadata();
 
         world.removeBlockEntity(pos);
         world.setBlockAndUpdate(pos, PackingTapeMod.PACKAGED_BLOCK.get().defaultBlockState());
 
         BlockEntity te2 = world.getBlockEntity(pos);
-        if (te2 instanceof PackagedBlockEntity)
+        if (te2 instanceof PackagedBlockEntity packaged)
         {
-            PackagedBlockEntity packaged = (PackagedBlockEntity) te2;
-
             packaged.setContents(state, tag);
         }
 

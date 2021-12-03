@@ -19,12 +19,12 @@ Adds a simple means to carry thigns with you
 [[dependencies.packingtape]]
     modId="forge"
     mandatory=true
-    versionRange="[37.99.0,)"
+    versionRange="[38.0.0,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.packingtape]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.18-rc1,1.19)"
+    versionRange="[1.18,1.19)"
     ordering="NONE"
     side="BOTH"

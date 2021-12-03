@@ -1,9 +1,7 @@
 buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net/' }
-        jcenter()
         mavenCentral()
-        mavenLocal()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
@@ -13,7 +11,7 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 
-version = "0.11.1"
+version = "0.12.1"
 group= "dev.gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "PackingTape-UNKNOWN"
 
@@ -79,7 +77,7 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.18-rc1-37.99.0-1.18.x'
+    minecraft 'net.minecraftforge:forge:1.18-38.0.0'
 }
 
 jar {

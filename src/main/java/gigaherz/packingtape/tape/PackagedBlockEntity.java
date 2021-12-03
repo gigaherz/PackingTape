@@ -36,9 +36,9 @@ public class PackagedBlockEntity extends BlockEntity
     }
 
     @Override
-    public CompoundTag save(CompoundTag compound)
+    public void saveAdditional(CompoundTag compound)
     {
-        compound = super.save(compound);
+        super.saveAdditional(compound);
 
         if (containedBlockState != null)
         {
@@ -50,8 +50,6 @@ public class PackagedBlockEntity extends BlockEntity
                 compound.putInt("PreferredDirection", preferredDirection.ordinal());
             }
         }
-
-        return compound;
     }
 
     @Override

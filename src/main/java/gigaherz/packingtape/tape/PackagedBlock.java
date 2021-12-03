@@ -195,7 +195,7 @@ public class PackagedBlock extends Block implements EntityBlock
         world.removeBlockEntity(pos);
         world.setBlockAndUpdate(pos, newState);
 
-        setTileEntityNBT(world, pos, newState, entityData, player);
+        setTileEntityNBT(world, player, pos, entityData);
 
         return InteractionResult.SUCCESS;
     }
@@ -208,40 +208,24 @@ public class PackagedBlock extends Block implements EntityBlock
         return InteractionResult.CONSUME;
     }
 
-    public static void setTileEntityNBT(Level worldIn, BlockPos pos, BlockState state,
-                                           @Nullable CompoundTag tag,
-                                           @Nullable Player playerIn)
-    {
-        MinecraftServer minecraftserver = worldIn.getServer();
-        if (minecraftserver == null)
-        {
+    public static void setTileEntityNBT(Level level, @Nullable Player player, BlockPos pos, CompoundTag compoundtag) {
+        MinecraftServer minecraftserver = level.getServer();
+        if (minecraftserver == null) {
             return;
         }
 
-        if (tag != null)
-        {
-            BlockEntity tileentity = worldIn.getBlockEntity(pos);
+        BlockEntity blockentity = level.getBlockEntity(pos);
+        if (blockentity != null) {
+            if (!level.isClientSide && blockentity.onlyOpCanSetNbt() && (player == null || !player.canUseGameMasterBlocks())) {
+                return;
+            }
 
-            if (tileentity != null)
-            {
-                if (ConfigValues.isTileEntityBlocked(tileentity) && (playerIn == null || !playerIn.canUseGameMasterBlocks()))
-                {
-                    return;
-                }
-
-                CompoundTag merged = new CompoundTag();
-                CompoundTag empty = merged.copy();
-                tileentity.save(merged);
-                merged.merge(tag);
-                merged.putInt("x", pos.getX());
-                merged.putInt("y", pos.getY());
-                merged.putInt("z", pos.getZ());
-
-                if (!merged.equals(empty))
-                {
-                    tileentity.load(merged);
-                    tileentity.setChanged();
-                }
+            CompoundTag current = blockentity.saveWithoutMetadata();
+            CompoundTag original = current.copy();
+            current.merge(compoundtag);
+            if (!current.equals(original)) {
+                blockentity.load(current);
+                blockentity.setChanged();
             }
         }
     }
