@@ -1,53 +1,54 @@
 package gigaherz.packingtape.tape;
 
-import gigaherz.packingtape.ConfigValues;
 import gigaherz.packingtape.PackingTapeMod;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.entity.ChestBlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.ChestType;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.core.Direction;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
+import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.ChestType;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 public class PackagedBlock extends Block implements EntityBlock
 {
+    private static Logger LOGGER = LogManager.getLogger();
+
     public static final BooleanProperty UNPACKING = BooleanProperty.create("unpacking");
 
     public PackagedBlock(Properties properties)
@@ -63,7 +64,8 @@ public class PackagedBlock extends Block implements EntityBlock
         return state.getValue(UNPACKING);
     }
 
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
         return new PackagedBlockEntity(pos, state);
     }
 
@@ -83,11 +85,14 @@ public class PackagedBlock extends Block implements EntityBlock
     }
 
     @Override
-    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
+    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player)
+    {
         BlockEntity te = world.getBlockEntity(pos);
-        if (te instanceof PackagedBlockEntity) {
-            PackagedBlockEntity packaged = (PackagedBlockEntity)te;
-            if (!world.isClientSide && player.isCreative() && !packaged.isEmpty()) {
+        if (te instanceof PackagedBlockEntity)
+        {
+            PackagedBlockEntity packaged = (PackagedBlockEntity) te;
+            if (!world.isClientSide && player.isCreative() && !packaged.isEmpty())
+            {
                 ItemStack stack = packaged.getPackedStack();
                 ItemEntity itemEntity = new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), stack);
                 itemEntity.setDefaultPickUpDelay();
@@ -124,7 +129,7 @@ public class PackagedBlock extends Block implements EntityBlock
             return displayBlockMissingError(world, pos);
         }
 
-        PackagedBlockEntity packagedBlock = (PackagedBlockEntity)te;
+        PackagedBlockEntity packagedBlock = (PackagedBlockEntity) te;
 
         BlockState newState = packagedBlock.getContainedBlockState();
         CompoundTag entityData = packagedBlock.getContainedTile();
@@ -203,27 +208,32 @@ public class PackagedBlock extends Block implements EntityBlock
     private InteractionResult displayBlockMissingError(Level world, BlockPos pos)
     {
         LOGGER.error("The packaged block does not contain valid data");
-        world.addParticle(ParticleTypes.ANGRY_VILLAGER, pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5, 0, 0, 0);
+        world.addParticle(ParticleTypes.ANGRY_VILLAGER, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 0, 0, 0);
         world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
         return InteractionResult.CONSUME;
     }
 
-    public static void setTileEntityNBT(Level level, @Nullable Player player, BlockPos pos, CompoundTag compoundtag) {
+    public static void setTileEntityNBT(Level level, @Nullable Player player, BlockPos pos, CompoundTag compoundtag)
+    {
         MinecraftServer minecraftserver = level.getServer();
-        if (minecraftserver == null) {
+        if (minecraftserver == null)
+        {
             return;
         }
 
         BlockEntity blockentity = level.getBlockEntity(pos);
-        if (blockentity != null) {
-            if (!level.isClientSide && blockentity.onlyOpCanSetNbt() && (player == null || !player.canUseGameMasterBlocks())) {
+        if (blockentity != null)
+        {
+            if (!level.isClientSide && blockentity.onlyOpCanSetNbt() && (player == null || !player.canUseGameMasterBlocks()))
+            {
                 return;
             }
 
             CompoundTag current = blockentity.saveWithoutMetadata();
             CompoundTag original = current.copy();
             current.merge(compoundtag);
-            if (!current.equals(original)) {
+            if (!current.equals(original))
+            {
                 blockentity.load(current);
                 blockentity.setChanged();
             }

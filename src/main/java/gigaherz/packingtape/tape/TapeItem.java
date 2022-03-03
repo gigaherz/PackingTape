@@ -2,22 +2,22 @@ package gigaherz.packingtape.tape;
 
 import gigaherz.packingtape.ConfigValues;
 import gigaherz.packingtape.PackingTapeMod;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.ChestBlock;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.Items;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.level.block.state.properties.ChestType;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 public class TapeItem extends Item
@@ -111,7 +111,7 @@ public class TapeItem extends Item
             {
                 ItemStack split = stack.copy();
                 split.setCount(1);
-                split.setDamageValue(split.getDamageValue()+1);
+                split.setDamageValue(split.getDamageValue() + 1);
                 if (stack.getDamageValue() < stack.getMaxDamage())
                 {
                     ItemHandlerHelper.giveItemToPlayer(playerIn, split);
@@ -120,8 +120,9 @@ public class TapeItem extends Item
             }
             else
             {
-                stack.setDamageValue(stack.getDamageValue()+1);
-                if (stack.getDamageValue() >= stack.getMaxDamage()) {
+                stack.setDamageValue(stack.getDamageValue() + 1);
+                if (stack.getDamageValue() >= stack.getMaxDamage())
+                {
                     stack.shrink(1);
                 }
             }

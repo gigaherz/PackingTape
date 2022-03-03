@@ -2,16 +2,16 @@ package gigaherz.packingtape.tape;
 
 import gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.Tag;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.registries.ObjectHolder;
 
 import javax.annotation.Nullable;
@@ -113,11 +113,7 @@ public class PackagedBlockEntity extends BlockEntity
     {
         ItemStack stack = new ItemStack(PackingTapeMod.PACKAGED_BLOCK.get());
 
-        CompoundTag tileEntityData = new CompoundTag();
-        save(tileEntityData);
-        tileEntityData.remove("x");
-        tileEntityData.remove("y");
-        tileEntityData.remove("z");
+        CompoundTag tileEntityData = saveWithoutMetadata();
 
         CompoundTag stackTag = new CompoundTag();
         stackTag.put("BlockEntityTag", tileEntityData);
@@ -131,15 +127,8 @@ public class PackagedBlockEntity extends BlockEntity
     @Override
     public CompoundTag getUpdateTag()
     {
-        return save(new CompoundTag());
+        return saveWithoutMetadata();
     }
-
-    //@Nullable
-    //@Override
-    //public SPacketUpdateTileEntity getUpdatePacket()
-    //{
-    //    return new SPacketUpdateTileEntity(pos, 0, getUpdateTag());
-    //}
 
     @Override
     public void handleUpdateTag(CompoundTag tag)

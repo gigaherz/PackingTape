@@ -1,20 +1,11 @@
 package gigaherz.packingtape;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import net.minecraft.tags.Tag;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.common.ForgeTagHandler;
-import net.minecraftforge.registries.ForgeRegistries;
-import org.apache.commons.lang3.tuple.Pair;
-
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import net.minecraft.core.Registry;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraftforge.common.ForgeConfigSpec;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class ConfigValues
 {
@@ -57,19 +48,22 @@ public class ConfigValues
         }
     }
 
-    public static Tag<BlockEntityType<?>> TE_WHITELIST = ForgeTagHandler.createOptionalTag(ForgeRegistries.BLOCK_ENTITIES, PackingTapeMod.location("te_whitelist"));
-    public static Tag<BlockEntityType<?>> TE_BLACKLIST = ForgeTagHandler.createOptionalTag(ForgeRegistries.BLOCK_ENTITIES, PackingTapeMod.location("te_blacklist"));
+    public static TagKey<BlockEntityType<?>> TE_WHITELIST = TagKey.create(Registry.BLOCK_ENTITY_TYPE_REGISTRY, PackingTapeMod.location("te_whitelist"));
+    public static TagKey<BlockEntityType<?>> TE_BLACKLIST = TagKey.create(Registry.BLOCK_ENTITY_TYPE_REGISTRY, PackingTapeMod.location("te_blacklist"));
 
     public static boolean isTileEntityBlocked(BlockEntity te)
     {
         BlockEntityType<?> type = te.getType();
 
-        if (type.isIn(TE_WHITELIST))
+        var rk = Registry.BLOCK_ENTITY_TYPE.getResourceKey(type).orElseThrow();
+        var holder = Registry.BLOCK_ENTITY_TYPE.getHolderOrThrow(rk);
+
+        if (holder.is(TE_WHITELIST))
             return false;
 
         if (te.onlyOpCanSetNbt())
             return true;
 
-        return type.isIn(TE_BLACKLIST);
+        return holder.is(TE_BLACKLIST);
     }
 }

@@ -19,7 +19,7 @@ Adds a simple means to carry thigns with you
 [[dependencies.packingtape]]
     modId="forge"
     mandatory=true
-    versionRange="[38.0.0,)"
+    versionRange="[38.0.14,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.packingtape]]

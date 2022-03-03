@@ -5,19 +5,31 @@ import com.mojang.datafixers.util.Pair;
 import gigaherz.packingtape.tape.PackagedBlock;
 import gigaherz.packingtape.tape.PackagedBlockEntity;
 import gigaherz.packingtape.tape.TapeItem;
+import net.minecraft.data.DataGenerator;
+import net.minecraft.data.DataProvider;
+import net.minecraft.data.loot.BlockLoot;
+import net.minecraft.data.loot.LootTableProvider;
+import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.Material;
-import net.minecraft.data.*;
-import net.minecraft.data.loot.BlockLoot;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.ValidationContext;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.CopyNameFunction;
 import net.minecraft.world.level.storage.loot.functions.CopyNbtFunction;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.providers.nbt.ContextNbtProvider;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraftforge.common.crafting.conditions.IConditionBuilder;
@@ -41,19 +53,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import net.minecraft.world.level.block.state.BlockBehaviour;
-
-import net.minecraft.data.loot.LootTableProvider;
-import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.data.recipes.RecipeProvider;
-import net.minecraft.data.recipes.ShapelessRecipeBuilder;
-import net.minecraft.world.level.storage.loot.LootPool;
-import net.minecraft.world.level.storage.loot.LootTable;
-import net.minecraft.world.level.storage.loot.ValidationContext;
-import net.minecraft.world.level.storage.loot.entries.LootItem;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
-
 @Mod(PackingTapeMod.MODID)
 public class PackingTapeMod
 {
@@ -65,6 +64,7 @@ public class PackingTapeMod
 
     public static final RegistryObject<PackagedBlock> PACKAGED_BLOCK = BLOCKS.register("packaged_block", () ->
             new PackagedBlock(BlockBehaviour.Properties.of(Material.WOOL).strength(0.5f, 0.5f).sound(SoundType.WOOD)));
+
     static
     {
         ITEMS.register(PACKAGED_BLOCK.getId().getPath(), () ->
@@ -137,7 +137,6 @@ public class PackingTapeMod
                         .requires(Items.PAPER)
                         .unlockedBy("has_slime_ball", has(Items.SLIME_BALL))
                         .save(consumer);
-
             }
         }
 
@@ -163,7 +162,8 @@ public class PackingTapeMod
             }
 
             @Override
-            protected void validate(Map<ResourceLocation, LootTable> map, ValidationContext validationtracker) {
+            protected void validate(Map<ResourceLocation, LootTable> map, ValidationContext validationtracker)
+            {
                 map.forEach((p_218436_2_, p_218436_3_) -> {
                     net.minecraft.world.level.storage.loot.LootTables.validate(validationtracker, p_218436_2_, p_218436_3_);
                 });
@@ -177,7 +177,8 @@ public class PackingTapeMod
                     this.add(PackingTapeMod.PACKAGED_BLOCK.get(), BlockTables::dropWithPackagedContents);
                 }
 
-                protected static LootTable.Builder dropWithPackagedContents(Block p_218544_0_) {
+                protected static LootTable.Builder dropWithPackagedContents(Block p_218544_0_)
+                {
                     return LootTable.lootTable()
                             .withPool(applyExplosionCondition(p_218544_0_, LootPool.lootPool()
                                     .setRolls(ConstantValue.exactly(1))
@@ -198,6 +199,5 @@ public class PackingTapeMod
                 }
             }
         }
-
     }
 }
