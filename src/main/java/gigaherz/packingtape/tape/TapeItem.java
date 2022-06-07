@@ -4,7 +4,7 @@ import gigaherz.packingtape.ConfigValues;
 import gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
@@ -68,7 +68,7 @@ public class TapeItem extends Item
 
         if (!playerIn.getAbilities().instabuild && ConfigValues.consumesPaper && !hasPaper(playerIn))
         {
-            TranslatableComponent textComponent = new TranslatableComponent("text.packingtape.tape.requires_paper");
+            var textComponent = Component.translatable("text.packingtape.tape.requires_paper");
             playerIn.displayClientMessage(textComponent, true);
             return InteractionResult.FAIL;
         }

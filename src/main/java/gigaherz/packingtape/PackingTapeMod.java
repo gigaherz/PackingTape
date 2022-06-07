@@ -64,15 +64,10 @@ public class PackingTapeMod
 
     public static final RegistryObject<PackagedBlock> PACKAGED_BLOCK = BLOCKS.register("packaged_block", () ->
             new PackagedBlock(BlockBehaviour.Properties.of(Material.WOOL).strength(0.5f, 0.5f).sound(SoundType.WOOD)));
-
-    static
-    {
-        ITEMS.register(PACKAGED_BLOCK.getId().getPath(), () ->
-                new BlockItem(PACKAGED_BLOCK.get(), new Item.Properties().stacksTo(16).tab(CreativeModeTab.TAB_MISC)));
-        BLOCK_ENTITIES.register(PACKAGED_BLOCK.getId().getPath(), () ->
-                BlockEntityType.Builder.of(PackagedBlockEntity::new, PACKAGED_BLOCK.get()).build(null));
-    }
-
+    public static final RegistryObject<BlockItem> PACKAGED_BLOCK_ITEM = ITEMS.register(PACKAGED_BLOCK.getId().getPath(), () ->
+        new BlockItem(PACKAGED_BLOCK.get(), new Item.Properties().stacksTo(16).tab(CreativeModeTab.TAB_MISC)));
+    public static final RegistryObject<BlockEntityType<?>> PACKAGED_BLOCK_ENTITY = BLOCK_ENTITIES.register(PACKAGED_BLOCK.getId().getPath(), () ->
+        BlockEntityType.Builder.of(PackagedBlockEntity::new, PACKAGED_BLOCK.get()).build(null));
     public static final RegistryObject<TapeItem> TAPE = ITEMS.register("tape", () ->
             new TapeItem(new Item.Properties().stacksTo(16).tab(CreativeModeTab.TAB_MISC)));
 
@@ -114,11 +109,8 @@ public class PackingTapeMod
         {
             DataGenerator gen = event.getGenerator();
 
-            if (event.includeServer())
-            {
-                gen.addProvider(new LootTables(gen));
-                gen.addProvider(new Recipes(gen));
-            }
+            gen.addProvider(event.includeServer(), new LootTables(gen));
+            gen.addProvider(event.includeServer(), new Recipes(gen));
         }
 
         private static class Recipes extends RecipeProvider implements DataProvider, IConditionBuilder
@@ -193,8 +185,9 @@ public class PackingTapeMod
                 @Override
                 protected Iterable<Block> getKnownBlocks()
                 {
-                    return ForgeRegistries.BLOCKS.getValues().stream()
-                            .filter(b -> b.getRegistryName().getNamespace().equals(PackingTapeMod.MODID))
+                    return ForgeRegistries.BLOCKS.getEntries().stream()
+                            .filter(e -> e.getKey().location().getNamespace().equals(PackingTapeMod.MODID))
+                            .map(Map.Entry::getValue)
                             .collect(Collectors.toList());
                 }
             }

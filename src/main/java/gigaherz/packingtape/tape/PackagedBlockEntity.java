@@ -18,9 +18,6 @@ import javax.annotation.Nullable;
 
 public class PackagedBlockEntity extends BlockEntity
 {
-    @ObjectHolder("packingtape:packaged_block")
-    public static BlockEntityType<PackagedBlockEntity> TYPE;
-
     private BlockState containedBlockState;
     private CompoundTag containedTile;
     private Direction preferredDirection;
@@ -32,7 +29,7 @@ public class PackagedBlockEntity extends BlockEntity
 
     public PackagedBlockEntity(BlockPos pos, BlockState state)
     {
-        super(TYPE, pos, state);
+        super(PackingTapeMod.PACKAGED_BLOCK_ENTITY.get(), pos, state);
     }
 
     @Override

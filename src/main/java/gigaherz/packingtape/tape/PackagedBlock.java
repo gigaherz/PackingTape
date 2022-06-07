@@ -7,8 +7,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.InteractionHand;
@@ -242,7 +240,7 @@ public class PackagedBlock extends Block implements EntityBlock
 
     private static Component makeError(String detail)
     {
-        return new TranslatableComponent("text.packingtape.packaged.missing_data", new TranslatableComponent(detail));
+        return Component.translatable("text.packingtape.packaged.missing_data", Component.translatable(detail));
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -276,24 +274,24 @@ public class PackagedBlock extends Block implements EntityBlock
         Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(blockName));
         if (block == null || block == Blocks.AIR)
         {
-            tooltip.add(new TranslatableComponent("text.packingtape.packaged.unknown_block"));
-            tooltip.add(new TextComponent("  " + blockName));
+            tooltip.add(Component.translatable("text.packingtape.packaged.unknown_block"));
+            tooltip.add(Component.literal("  " + blockName));
             return;
         }
 
         Item item = block.asItem();
         if (item == Items.AIR)
         {
-            item = ForgeRegistries.ITEMS.getValue(block.getRegistryName());
+            item = ForgeRegistries.ITEMS.getValue(ForgeRegistries.BLOCKS.getKey(block));
             if (item == Items.AIR)
             {
-                tooltip.add(new TranslatableComponent("text.packingtape.packaged.no_item"));
-                tooltip.add(new TextComponent("  " + blockName));
+                tooltip.add(Component.translatable("text.packingtape.packaged.no_item"));
+                tooltip.add(Component.literal("  " + blockName));
                 return;
             }
         }
 
         ItemStack stack1 = new ItemStack(item, 1);
-        tooltip.add(new TranslatableComponent("text.packingtape.packaged.contains", stack1.getHoverName()));
+        tooltip.add(Component.translatable("text.packingtape.packaged.contains", stack1.getHoverName()));
     }
 }
