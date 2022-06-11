@@ -1,0 +1,7 @@
+{
+  "__comment": "Lists the tileentities that are not normally movable in vanilla, due to the possibility of unfair gameplay advantage",
+  "values": [
+    "minecraft:end_portal",
+    "minecraft:end_gateway"
+  ]
+}

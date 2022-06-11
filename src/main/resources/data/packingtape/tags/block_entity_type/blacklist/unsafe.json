@@ -1,0 +1,9 @@
+{
+  "__comment": "Lists the tileentities that could cause security / griefing issues in a server if they were moved without OP permission",
+  "values": [
+    "minecraft:command_block",
+    "minecraft:structure_block",
+    "minecraft:jigsaw",
+    "minecraft:sign"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "__comment": "Lists the tileentities that are of blocks that don't contain any useful information, and can be mined and moved normally without issue.",
+  "values": [
+    "minecraft:enchanting_table",
+    "minecraft:bell",
+    "minecraft:comparator",
+    "minecraft:daylight_detector"
+  ]
+}
