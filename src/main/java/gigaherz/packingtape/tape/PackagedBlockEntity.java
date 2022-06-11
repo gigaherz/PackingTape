@@ -12,12 +12,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.ObjectHolder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 
 public class PackagedBlockEntity extends BlockEntity
 {
+    private static Logger LOGGER = LogManager.getLogger();
+
     private BlockState containedBlockState;
     private CompoundTag containedTile;
     private Direction preferredDirection;
@@ -116,7 +119,7 @@ public class PackagedBlockEntity extends BlockEntity
         stackTag.put("BlockEntityTag", tileEntityData);
         stack.setTag(stackTag);
 
-        PackingTapeMod.logger.debug(String.format("Created Packed stack with %s", containedBlockState.toString()));
+        LOGGER.debug(String.format("Created Packed stack with %s", containedBlockState.toString()));
 
         return stack;
     }

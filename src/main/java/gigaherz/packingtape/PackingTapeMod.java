@@ -71,8 +71,6 @@ public class PackingTapeMod
     public static final RegistryObject<TapeItem> TAPE = ITEMS.register("tape", () ->
             new TapeItem(new Item.Properties().stacksTo(16).tab(CreativeModeTab.TAB_MISC)));
 
-    public static Logger logger = LogManager.getLogger(MODID);
-
     public PackingTapeMod()
     {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
