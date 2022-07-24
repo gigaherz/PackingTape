@@ -40,9 +40,9 @@ public class TapeItem extends Item
     }
 
     @Override
-    public int getItemStackLimit(ItemStack stack)
+    public int getMaxStackSize(ItemStack stack)
     {
-        return stack.getDamageValue() == 0 ? super.getItemStackLimit(stack) : 1;
+        return stack.getDamageValue() == 0 ? super.getMaxStackSize(stack) : 1;
     }
 
     @Override
