@@ -104,7 +104,7 @@ public class PackagedBlock extends Block implements EntityBlock
     @Override
     public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
     {
-        if (!placer.isShiftKeyDown() && placer instanceof Player)
+        if (placer instanceof Player && !placer.isShiftKeyDown())
         {
             Player player = (Player) placer;
             PackagedBlockEntity te = (PackagedBlockEntity) worldIn.getBlockEntity(pos);
