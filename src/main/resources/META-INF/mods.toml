@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[41,)"
+loaderVersion="[44,)"
 issueTrackerURL="https://github.com/gigaherz/PackingTape/issues"
 license="BSD (3 clause)"
 
@@ -17,12 +17,12 @@ authors="gigaherz"
 [[dependencies.packingtape]]
     modId="forge"
     mandatory=true
-    versionRange="[41.0.1,)"
+    versionRange="[44.0.6,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.packingtape]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.19,1.20)"
+    versionRange="[1.19.3,1.20)"
     ordering="NONE"
     side="BOTH"

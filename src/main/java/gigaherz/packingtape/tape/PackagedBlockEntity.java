@@ -3,12 +3,16 @@ package gigaherz.packingtape.tape;
 import gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -57,28 +61,14 @@ public class PackagedBlockEntity extends BlockEntity
     {
         super.load(compound);
 
-        // Old way.
-        if (compound.contains("containedBlock", Tag.TAG_STRING))
+        HolderGetter<Block> holdergetter = this.level != null ? this.level.holderLookup(Registries.BLOCK) : BuiltInRegistries.BLOCK.asLookup();
+
+        CompoundTag blockTag = compound.getCompound("Block");
+        containedBlockState = NbtUtils.readBlockState(holdergetter, blockTag);
+        containedTile = compound.getCompound("BlockEntity").copy();
+        if (compound.contains("PreferredDirection"))
         {
-            CompoundTag tempTag = new CompoundTag();
-            tempTag.putString("Name", compound.getString("containedBlock"));
-            tempTag.put("Properties", compound.get("containedBlockState"));
-            containedBlockState = NbtUtils.readBlockState(tempTag);
-            containedTile = compound.getCompound("containedTile").copy();
-            if (compound.contains("preferredDirection"))
-            {
-                preferredDirection = Direction.values()[compound.getInt("preferredDirection")];
-            }
-        }
-        else
-        {
-            CompoundTag blockTag = compound.getCompound("Block");
-            containedBlockState = NbtUtils.readBlockState(blockTag);
-            containedTile = compound.getCompound("BlockEntity").copy();
-            if (compound.contains("PreferredDirection"))
-            {
-                preferredDirection = Direction.byName(compound.getString("PreferredDirection"));
-            }
+            preferredDirection = Direction.byName(compound.getString("PreferredDirection"));
         }
     }
 

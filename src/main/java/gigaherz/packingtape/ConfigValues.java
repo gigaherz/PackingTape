@@ -1,10 +1,13 @@
 package gigaherz.packingtape;
 
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class ConfigValues
@@ -48,15 +51,15 @@ public class ConfigValues
         }
     }
 
-    public static TagKey<BlockEntityType<?>> TE_WHITELIST = TagKey.create(Registry.BLOCK_ENTITY_TYPE_REGISTRY, PackingTapeMod.location("te_whitelist"));
-    public static TagKey<BlockEntityType<?>> TE_BLACKLIST = TagKey.create(Registry.BLOCK_ENTITY_TYPE_REGISTRY, PackingTapeMod.location("te_blacklist"));
+    public static TagKey<BlockEntityType<?>> TE_WHITELIST = TagKey.create(Registries.BLOCK_ENTITY_TYPE, PackingTapeMod.location("te_whitelist"));
+    public static TagKey<BlockEntityType<?>> TE_BLACKLIST = TagKey.create(Registries.BLOCK_ENTITY_TYPE, PackingTapeMod.location("te_blacklist"));
 
     public static boolean isTileEntityBlocked(BlockEntity te)
     {
         BlockEntityType<?> type = te.getType();
 
-        var rk = Registry.BLOCK_ENTITY_TYPE.getResourceKey(type).orElseThrow();
-        var holder = Registry.BLOCK_ENTITY_TYPE.getHolderOrThrow(rk);
+        var rk = ForgeRegistries.BLOCK_ENTITY_TYPES.getResourceKey(type).orElseThrow();
+        var holder = ForgeRegistries.BLOCK_ENTITY_TYPES.getHolder(rk).orElseThrow();
 
         if (holder.is(TE_WHITELIST))
             return false;

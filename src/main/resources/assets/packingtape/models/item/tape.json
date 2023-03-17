@@ -1,6 +1,6 @@
 {
   "parent": "item/generated",
   "textures": {
-    "layer0": "packingtape:items/tape"
+    "layer0": "packingtape:item/tape"
   }
 }
