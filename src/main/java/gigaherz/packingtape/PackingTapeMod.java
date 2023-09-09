@@ -19,7 +19,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
@@ -30,7 +30,7 @@ import net.minecraft.world.level.storage.loot.providers.nbt.ContextNbtProvider;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraftforge.common.crafting.conditions.IConditionBuilder;
 import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.event.CreativeModeTabEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -57,7 +57,7 @@ public class PackingTapeMod
     private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
 
     public static final RegistryObject<PackagedBlock> PACKAGED_BLOCK = BLOCKS.register("packaged_block", () ->
-            new PackagedBlock(BlockBehaviour.Properties.of(Material.WOOL).strength(0.5f, 0.5f).sound(SoundType.WOOD)));
+            new PackagedBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOL).strength(0.5f, 0.5f).sound(SoundType.WOOD)));
     public static final RegistryObject<BlockItem> PACKAGED_BLOCK_ITEM = ITEMS.register(PACKAGED_BLOCK.getId().getPath(), () ->
         new BlockItem(PACKAGED_BLOCK.get(), new Item.Properties().stacksTo(16)));
     public static final RegistryObject<BlockEntityType<?>> PACKAGED_BLOCK_ENTITY = BLOCK_ENTITIES.register(PACKAGED_BLOCK.getId().getPath(), () ->
@@ -80,9 +80,9 @@ public class PackingTapeMod
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ConfigValues.SERVER_SPEC);
     }
 
-    private void addItemsToTabs(CreativeModeTabEvent.BuildContents event)
+    private void addItemsToTabs(BuildCreativeModeTabContentsEvent event)
     {
-        if (event.getTab() == CreativeModeTabs.TOOLS_AND_UTILITIES)
+        if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES)
         {
             event.accept(TAPE);
             event.accept(PACKAGED_BLOCK_ITEM, CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);

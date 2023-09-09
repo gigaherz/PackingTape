@@ -4,6 +4,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -54,19 +55,33 @@ public class ConfigValues
     public static TagKey<BlockEntityType<?>> TE_WHITELIST = TagKey.create(Registries.BLOCK_ENTITY_TYPE, PackingTapeMod.location("te_whitelist"));
     public static TagKey<BlockEntityType<?>> TE_BLACKLIST = TagKey.create(Registries.BLOCK_ENTITY_TYPE, PackingTapeMod.location("te_blacklist"));
 
+    public static TagKey<Block> BLOCK_WHITELIST = TagKey.create(Registries.BLOCK, PackingTapeMod.location("te_whitelist"));
+    public static TagKey<Block> BLOCK_BLACKLIST = TagKey.create(Registries.BLOCK, PackingTapeMod.location("te_blacklist"));
+
     public static boolean isTileEntityBlocked(BlockEntity te)
     {
-        BlockEntityType<?> type = te.getType();
+        var block = te.getBlockState().getBlock();
 
-        var rk = ForgeRegistries.BLOCK_ENTITY_TYPES.getResourceKey(type).orElseThrow();
-        var holder = ForgeRegistries.BLOCK_ENTITY_TYPES.getHolder(rk).orElseThrow();
+        var rk0 = ForgeRegistries.BLOCKS.getResourceKey(block).orElseThrow();
+        var holder0 = ForgeRegistries.BLOCKS.getHolder(rk0).orElseThrow();
 
-        if (holder.is(TE_WHITELIST))
+        if (holder0.is(BLOCK_WHITELIST))
+            return false;
+
+        if (holder0.is(BLOCK_BLACKLIST))
+            return true;
+
+        var type = te.getType();
+
+        var rk1 = ForgeRegistries.BLOCK_ENTITY_TYPES.getResourceKey(type).orElseThrow();
+        var holder1 = ForgeRegistries.BLOCK_ENTITY_TYPES.getHolder(rk1).orElseThrow();
+
+        if (holder1.is(TE_WHITELIST))
             return false;
 
         if (te.onlyOpCanSetNbt())
             return true;
 
-        return holder.is(TE_BLACKLIST);
+        return holder1.is(TE_BLACKLIST);
     }
 }
