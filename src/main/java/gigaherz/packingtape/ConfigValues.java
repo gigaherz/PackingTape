@@ -1,7 +1,5 @@
 package gigaherz.packingtape;
 
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
@@ -58,9 +56,27 @@ public class ConfigValues
     public static TagKey<Block> BLOCK_WHITELIST = TagKey.create(Registries.BLOCK, PackingTapeMod.location("te_whitelist"));
     public static TagKey<Block> BLOCK_BLACKLIST = TagKey.create(Registries.BLOCK, PackingTapeMod.location("te_blacklist"));
 
-    public static boolean isTileEntityBlocked(BlockEntity te)
+    public static boolean isBlockEntityWhitelisted(BlockEntity be)
     {
-        var block = te.getBlockState().getBlock();
+        var block = be.getBlockState().getBlock();
+
+        var rk0 = ForgeRegistries.BLOCKS.getResourceKey(block).orElseThrow();
+        var holder0 = ForgeRegistries.BLOCKS.getHolder(rk0).orElseThrow();
+
+        if (holder0.is(BLOCK_WHITELIST))
+            return true;
+
+        var type = be.getType();
+
+        var rk1 = ForgeRegistries.BLOCK_ENTITY_TYPES.getResourceKey(type).orElseThrow();
+        var holder1 = ForgeRegistries.BLOCK_ENTITY_TYPES.getHolder(rk1).orElseThrow();
+
+        return holder1.is(TE_WHITELIST);
+    }
+
+    public static boolean isBlockEntityBlocked(BlockEntity be)
+    {
+        var block = be.getBlockState().getBlock();
 
         var rk0 = ForgeRegistries.BLOCKS.getResourceKey(block).orElseThrow();
         var holder0 = ForgeRegistries.BLOCKS.getHolder(rk0).orElseThrow();
@@ -71,7 +87,7 @@ public class ConfigValues
         if (holder0.is(BLOCK_BLACKLIST))
             return true;
 
-        var type = te.getType();
+        var type = be.getType();
 
         var rk1 = ForgeRegistries.BLOCK_ENTITY_TYPES.getResourceKey(type).orElseThrow();
         var holder1 = ForgeRegistries.BLOCK_ENTITY_TYPES.getHolder(rk1).orElseThrow();
@@ -79,7 +95,7 @@ public class ConfigValues
         if (holder1.is(TE_WHITELIST))
             return false;
 
-        if (te.onlyOpCanSetNbt())
+        if (be.onlyOpCanSetNbt())
             return true;
 
         return holder1.is(TE_BLACKLIST);

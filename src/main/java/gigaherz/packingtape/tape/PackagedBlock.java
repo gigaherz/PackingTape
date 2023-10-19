@@ -1,5 +1,6 @@
 package gigaherz.packingtape.tape;
 
+import gigaherz.packingtape.ConfigValues;
 import gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
@@ -213,6 +214,9 @@ public class PackagedBlock extends Block implements EntityBlock
 
     public static void setTileEntityNBT(Level level, @Nullable Player player, BlockPos pos, CompoundTag compoundtag)
     {
+        if (level.isClientSide)
+            return;
+
         MinecraftServer minecraftserver = level.getServer();
         if (minecraftserver == null)
         {
@@ -222,7 +226,7 @@ public class PackagedBlock extends Block implements EntityBlock
         BlockEntity blockentity = level.getBlockEntity(pos);
         if (blockentity != null)
         {
-            if (!level.isClientSide && blockentity.onlyOpCanSetNbt() && (player == null || !player.canUseGameMasterBlocks()))
+            if (blockentity.onlyOpCanSetNbt() && player != null && !player.canUseGameMasterBlocks() && !ConfigValues.isBlockEntityWhitelisted(blockentity))
             {
                 return;
             }

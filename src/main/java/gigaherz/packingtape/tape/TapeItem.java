@@ -78,7 +78,7 @@ public class TapeItem extends Item
             return InteractionResult.SUCCESS;
         }
 
-        if (ConfigValues.isTileEntityBlocked(te))
+        if (ConfigValues.isBlockEntityBlocked(te))
         {
             return InteractionResult.PASS;
         }

@@ -14,7 +14,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 apply plugin: 'maven-publish'
 
-version = "0.14.1"
+version = "0.14.2"
 group= "dev.gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "PackingTape-UNKNOWN"
 
