@@ -1,28 +1,25 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net/' }
-        maven { url = 'https://maven.parchmentmc.org' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-        classpath 'org.parchmentmc:librarian:1.+'
-    }
+plugins {
+    id 'java-library'
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.neoforged.gradle.userdev' version '7.0.46'
+    //id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+    id 'net.neoforged.gradle.mixin' version '7.0.46'
 }
-
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'org.parchmentmc.librarian.forgegradle'
-apply plugin: 'maven-publish'
 
 version = "0.14.2"
 group= "dev.gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "PackingTape-UNKNOWN"
 
-project.afterEvaluate {
-    archivesBaseName = "PackingTape-${project.MC_VERSION}"
+base {
+    archivesName = "PackingTape-1.20.2"
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
 
 sourceSets {
     main.resources.srcDirs += 'src/main/generated_resources'
@@ -32,56 +29,30 @@ repositories {
     mavenLocal()
 }
 
-minecraft {
-    //mappings channel: 'official', version: '1.19.4'
-    mappings channel: 'parchment', version: '1.19.3-2023.03.12-1.20.1'
+runs {
+    // applies to all the run configs below
+    configureEach {
+        systemProperty 'forge.logging.markers', '' // 'REGISTRIES'
+        systemProperty 'forge.logging.console.level', 'debug'
 
-    runs {
-        client {
-            workingDirectory project.file('run')
+        //ideaModule "${project.name}.main"
 
-            property 'forge.logging.markers', ''
-            property 'forge.logging.console.level', 'debug'
+        workingDirectory project.file('run')
 
-            mods {
-                self {
-                    sources sourceSets.main
-                }
-            }
-        }
+        //programArguments.addAll "--mixin=jsonthings.mixins.json"
 
-        server {
-            workingDirectory project.file('run')
+        modSource project.sourceSets.main
+    }
 
-            property 'forge.logging.markers', ''
-            property 'forge.logging.console.level', 'debug'
+    client {
+    }
 
-            mods {
-                self {
-                    sources sourceSets.main
-                }
-            }
-        }
-
-        data {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', ''
-            property 'forge.logging.console.level', 'debug'
-
-            args '--mod', 'packingtape', '--all', '--output', file('src/main/generated_resources/'), '--existing', file('src/main/resources/')
-
-            mods {
-                self {
-                    sources sourceSets.main
-                }
-            }
-        }
+    server {
     }
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.20.1-47.1.3'
+    implementation 'net.neoforged:neoforge:20.2.62-beta'
 }
 
 jar {
@@ -95,7 +66,7 @@ jar {
                 "Specification-Vendor": "gigaherz",
                 "Specification-Version": "1", // We are version 1 of ourselves
                 "Implementation-Title": project.name,
-                "Implementation-Version": "${version}",
+                "Implementation-Version": project.version,
                 "Implementation-Vendor" :"gigaherz",
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])

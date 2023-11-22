@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -35,9 +36,6 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -247,7 +245,6 @@ public class PackagedBlock extends Block implements EntityBlock
         return Component.translatable("text.packingtape.packaged.missing_data", Component.translatable(detail));
     }
 
-    @OnlyIn(Dist.CLIENT)
     @Override
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter worldIn, List<Component> tooltip, TooltipFlag advanced)
     {
@@ -275,7 +272,7 @@ public class PackagedBlock extends Block implements EntityBlock
 
         String blockName = info.getCompound("Block").getString("Name");
 
-        Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(blockName));
+        Block block = BuiltInRegistries.BLOCK.get(new ResourceLocation(blockName));
         if (block == null || block == Blocks.AIR)
         {
             tooltip.add(Component.translatable("text.packingtape.packaged.unknown_block"));
@@ -286,7 +283,7 @@ public class PackagedBlock extends Block implements EntityBlock
         Item item = block.asItem();
         if (item == Items.AIR)
         {
-            item = ForgeRegistries.ITEMS.getValue(ForgeRegistries.BLOCKS.getKey(block));
+            item = BuiltInRegistries.ITEM.get(BuiltInRegistries.BLOCK.getKey(block));
             if (item == Items.AIR)
             {
                 tooltip.add(Component.translatable("text.packingtape.packaged.no_item"));

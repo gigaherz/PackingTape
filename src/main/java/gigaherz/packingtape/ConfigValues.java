@@ -1,51 +1,55 @@
 package gigaherz.packingtape;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class ConfigValues
 {
     public static final ServerConfig SERVER;
-    public static final ForgeConfigSpec SERVER_SPEC;
+    public static final ModConfigSpec SERVER_SPEC;
 
     static
     {
-        final Pair<ServerConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(ServerConfig::new);
+        final Pair<ServerConfig, ModConfigSpec> specPair = new ModConfigSpec.Builder().configure(ServerConfig::new);
         SERVER_SPEC = specPair.getRight();
         SERVER = specPair.getLeft();
     }
 
     public static int tapeRollUses = 8;
     public static boolean consumesPaper = true;
+    public static int maxStorageSize = 1000000;
 
     public static void bake()
     {
         tapeRollUses = SERVER.tapeRollUses.get();
         consumesPaper = SERVER.consumesPaper.get();
+        maxStorageSize = SERVER.maxStorageSize.get();
     }
 
     public static class ServerConfig
     {
-        public ForgeConfigSpec.IntValue tapeRollUses;
-        public ForgeConfigSpec.BooleanValue consumesPaper;
+        public ModConfigSpec.IntValue tapeRollUses;
+        public ModConfigSpec.BooleanValue consumesPaper;
+        public ModConfigSpec.IntValue maxStorageSize;
 
-        ServerConfig(ForgeConfigSpec.Builder builder)
+        ServerConfig(ModConfigSpec.Builder builder)
         {
             builder.push("general");
             tapeRollUses = builder
                     .comment("How many times the tape roll can be used before it breaks")
-                    .translation("text.packingtape.config.tape_roll_uses")
                     .defineInRange("tape_roll_uses", 8, 0, Integer.MAX_VALUE - 1);
             consumesPaper = builder
                     .comment("Whether the tape roll consumes paper when used")
-                    .translation("text.packingtape.config.consume_paper")
                     .define("consume_paper", true);
+            maxStorageSize = builder
+                    .comment("How much space (in bytes) the packaged block contents can take up.")
+                    .defineInRange("max_storage_size", 1000000, 0, Integer.MAX_VALUE);
             builder.pop();
         }
     }
@@ -60,16 +64,16 @@ public class ConfigValues
     {
         var block = be.getBlockState().getBlock();
 
-        var rk0 = ForgeRegistries.BLOCKS.getResourceKey(block).orElseThrow();
-        var holder0 = ForgeRegistries.BLOCKS.getHolder(rk0).orElseThrow();
+        var rk0 = BuiltInRegistries.BLOCK.getResourceKey(block).orElseThrow();
+        var holder0 = BuiltInRegistries.BLOCK.getHolder(rk0).orElseThrow();
 
         if (holder0.is(BLOCK_WHITELIST))
             return true;
 
         var type = be.getType();
 
-        var rk1 = ForgeRegistries.BLOCK_ENTITY_TYPES.getResourceKey(type).orElseThrow();
-        var holder1 = ForgeRegistries.BLOCK_ENTITY_TYPES.getHolder(rk1).orElseThrow();
+        var rk1 = BuiltInRegistries.BLOCK_ENTITY_TYPE.getResourceKey(type).orElseThrow();
+        var holder1 = BuiltInRegistries.BLOCK_ENTITY_TYPE.getHolder(rk1).orElseThrow();
 
         return holder1.is(TE_WHITELIST);
     }
@@ -78,8 +82,8 @@ public class ConfigValues
     {
         var block = be.getBlockState().getBlock();
 
-        var rk0 = ForgeRegistries.BLOCKS.getResourceKey(block).orElseThrow();
-        var holder0 = ForgeRegistries.BLOCKS.getHolder(rk0).orElseThrow();
+        var rk0 = BuiltInRegistries.BLOCK.getResourceKey(block).orElseThrow();
+        var holder0 = BuiltInRegistries.BLOCK.getHolder(rk0).orElseThrow();
 
         if (holder0.is(BLOCK_WHITELIST))
             return false;
@@ -89,8 +93,8 @@ public class ConfigValues
 
         var type = be.getType();
 
-        var rk1 = ForgeRegistries.BLOCK_ENTITY_TYPES.getResourceKey(type).orElseThrow();
-        var holder1 = ForgeRegistries.BLOCK_ENTITY_TYPES.getHolder(rk1).orElseThrow();
+        var rk1 = BuiltInRegistries.BLOCK_ENTITY_TYPE.getResourceKey(type).orElseThrow();
+        var holder1 = BuiltInRegistries.BLOCK_ENTITY_TYPE.getHolder(rk1).orElseThrow();
 
         if (holder1.is(TE_WHITELIST))
             return false;

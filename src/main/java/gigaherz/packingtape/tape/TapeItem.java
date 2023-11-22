@@ -2,9 +2,11 @@ package gigaherz.packingtape.tape;
 
 import gigaherz.packingtape.ConfigValues;
 import gigaherz.packingtape.PackingTapeMod;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
@@ -18,7 +20,7 @@ import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 public class TapeItem extends Item
 {
@@ -48,8 +50,8 @@ public class TapeItem extends Item
     @Override
     public InteractionResult useOn(UseOnContext context)
     {
-        Player playerIn = context.getPlayer();
-        Level world = context.getLevel();
+        Player player = context.getPlayer();
+        Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
 
         ItemStack stack = context.getItemInHand();
@@ -58,22 +60,22 @@ public class TapeItem extends Item
             return InteractionResult.PASS;
         }
 
-        BlockState state = world.getBlockState(pos);
-        BlockEntity te = world.getBlockEntity(pos);
+        BlockState state = level.getBlockState(pos);
+        BlockEntity te = level.getBlockEntity(pos);
 
         if (te == null)
         {
             return InteractionResult.PASS;
         }
 
-        if (!playerIn.getAbilities().instabuild && ConfigValues.consumesPaper && !hasPaper(playerIn))
+        if (!player.getAbilities().instabuild && ConfigValues.consumesPaper && !hasPaper(player))
         {
             var textComponent = Component.translatable("text.packingtape.tape.requires_paper");
-            playerIn.displayClientMessage(textComponent, true);
+            player.displayClientMessage(textComponent, true);
             return InteractionResult.FAIL;
         }
 
-        if (world.isClientSide)
+        if (level.isClientSide)
         {
             return InteractionResult.SUCCESS;
         }
@@ -93,19 +95,28 @@ public class TapeItem extends Item
 
         CompoundTag tag = te.saveWithoutMetadata();
 
-        world.removeBlockEntity(pos);
-        world.setBlockAndUpdate(pos, PackingTapeMod.PACKAGED_BLOCK.get().defaultBlockState());
+        int bytes = tag.sizeInBytes();
+        if (bytes > ConfigValues.maxStorageSize)
+        {
+            player.displayClientMessage(
+                    Component.translatable("text.packingtape.tape.too_big", bytes, ConfigValues.maxStorageSize).withStyle(style -> style.withColor(ChatFormatting.RED))
+            , true);
+            return InteractionResult.FAIL;
+        }
 
-        BlockEntity te2 = world.getBlockEntity(pos);
+        level.removeBlockEntity(pos);
+        level.setBlockAndUpdate(pos, PackingTapeMod.PACKAGED_BLOCK.get().defaultBlockState());
+
+        BlockEntity te2 = level.getBlockEntity(pos);
         if (te2 instanceof PackagedBlockEntity packaged)
         {
             packaged.setContents(state, tag);
         }
 
-        if (!playerIn.getAbilities().instabuild)
+        if (!player.getAbilities().instabuild)
         {
             if (ConfigValues.consumesPaper)
-                usePaper(playerIn);
+                usePaper(player);
 
             if (stack.getCount() > 1)
             {
@@ -114,7 +125,7 @@ public class TapeItem extends Item
                 split.setDamageValue(split.getDamageValue() + 1);
                 if (stack.getDamageValue() < stack.getMaxDamage())
                 {
-                    ItemHandlerHelper.giveItemToPlayer(playerIn, split);
+                    ItemHandlerHelper.giveItemToPlayer(player, split);
                 }
                 stack.shrink(1);
             }

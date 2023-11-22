@@ -3,15 +3,14 @@ package gigaherz.packingtape;
 import gigaherz.packingtape.tape.PackagedBlock;
 import gigaherz.packingtape.tape.PackagedBlockEntity;
 import gigaherz.packingtape.tape.TapeItem;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.data.loot.LootTableProvider;
-import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.data.recipes.RecipeProvider;
-import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.data.recipes.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.*;
@@ -28,22 +27,24 @@ import net.minecraft.world.level.storage.loot.functions.CopyNbtFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.providers.nbt.ContextNbtProvider;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
-import net.minecraftforge.common.crafting.conditions.IConditionBuilder;
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.neoforge.common.conditions.IConditionBuilder;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.registries.DeferredBlock;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredItem;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -52,17 +53,17 @@ public class PackingTapeMod
 {
     public static final String MODID = "packingtape";
 
-    private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
-    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
-    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
+    private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
+    private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
+    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, MODID);
 
-    public static final RegistryObject<PackagedBlock> PACKAGED_BLOCK = BLOCKS.register("packaged_block", () ->
+    public static final DeferredBlock<PackagedBlock> PACKAGED_BLOCK = BLOCKS.register("packaged_block", () ->
             new PackagedBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOL).strength(0.5f, 0.5f).sound(SoundType.WOOD)));
-    public static final RegistryObject<BlockItem> PACKAGED_BLOCK_ITEM = ITEMS.register(PACKAGED_BLOCK.getId().getPath(), () ->
+    public static final DeferredItem<BlockItem> PACKAGED_BLOCK_ITEM = ITEMS.register(PACKAGED_BLOCK.getId().getPath(), () ->
         new BlockItem(PACKAGED_BLOCK.get(), new Item.Properties().stacksTo(16)));
-    public static final RegistryObject<BlockEntityType<?>> PACKAGED_BLOCK_ENTITY = BLOCK_ENTITIES.register(PACKAGED_BLOCK.getId().getPath(), () ->
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PackagedBlockEntity>> PACKAGED_BLOCK_ENTITY = BLOCK_ENTITIES.register(PACKAGED_BLOCK.getId().getPath(), () ->
         BlockEntityType.Builder.of(PackagedBlockEntity::new, PACKAGED_BLOCK.get()).build(null));
-    public static final RegistryObject<TapeItem> TAPE = ITEMS.register("tape", () ->
+    public static final DeferredItem<TapeItem> TAPE = ITEMS.register("tape", () ->
             new TapeItem(new Item.Properties().stacksTo(16)));
 
     public PackingTapeMod()
@@ -112,18 +113,18 @@ public class PackingTapeMod
             DataGenerator gen = event.getGenerator();
 
             gen.addProvider(event.includeServer(), Loot.create(gen.getPackOutput()));
-            gen.addProvider(event.includeServer(), new Recipes(gen));
+            gen.addProvider(event.includeServer(), new Recipes(gen, event.getLookupProvider()));
         }
 
         private static class Recipes extends RecipeProvider implements DataProvider, IConditionBuilder
         {
-            public Recipes(DataGenerator gen)
+            public Recipes(DataGenerator gen, CompletableFuture<HolderLookup.Provider> lookupProvider)
             {
-                super(gen.getPackOutput());
+                super(gen.getPackOutput(), lookupProvider);
             }
 
             @Override
-            protected void buildRecipes(Consumer<FinishedRecipe> consumer)
+            protected void buildRecipes(RecipeOutput consumer)
             {
                 ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, PackingTapeMod.TAPE.get())
                         .requires(Items.SLIME_BALL)
@@ -173,7 +174,7 @@ public class PackingTapeMod
                 @Override
                 protected Iterable<Block> getKnownBlocks()
                 {
-                    return ForgeRegistries.BLOCKS.getEntries().stream()
+                    return BuiltInRegistries.BLOCK.entrySet().stream()
                             .filter(e -> e.getKey().location().getNamespace().equals(PackingTapeMod.MODID))
                             .map(Map.Entry::getValue)
                             .collect(Collectors.toList());
