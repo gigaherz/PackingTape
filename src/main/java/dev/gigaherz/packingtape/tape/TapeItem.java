@@ -1,12 +1,11 @@
-package gigaherz.packingtape.tape;
+package dev.gigaherz.packingtape.tape;
 
-import gigaherz.packingtape.ConfigValues;
-import gigaherz.packingtape.PackingTapeMod;
+import dev.gigaherz.packingtape.ConfigValues;
+import dev.gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;

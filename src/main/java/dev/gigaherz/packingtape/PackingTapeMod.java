@@ -1,8 +1,8 @@
-package gigaherz.packingtape;
+package dev.gigaherz.packingtape;
 
-import gigaherz.packingtape.tape.PackagedBlock;
-import gigaherz.packingtape.tape.PackagedBlockEntity;
-import gigaherz.packingtape.tape.TapeItem;
+import dev.gigaherz.packingtape.tape.PackagedBlock;
+import dev.gigaherz.packingtape.tape.PackagedBlockEntity;
+import dev.gigaherz.packingtape.tape.TapeItem;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.DataGenerator;
@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Mod(PackingTapeMod.MODID)

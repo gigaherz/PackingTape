@@ -1,4 +1,4 @@
-package gigaherz.packingtape;
+package dev.gigaherz.packingtape;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
