@@ -23,6 +23,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
@@ -73,7 +74,7 @@ public class PackagedBlock extends Block implements EntityBlock
     }
 
     @Override
-    public ItemStack getCloneItemStack(BlockState state, HitResult target, BlockGetter world, BlockPos pos, Player player)
+    public ItemStack getCloneItemStack(BlockState state, HitResult target, LevelReader level, BlockPos pos, Player player)
     {
         if (Screen.hasShiftDown() || (player.getAbilities().instabuild && Screen.hasControlDown()))
             return new ItemStack(asItem(), 1);
@@ -82,7 +83,7 @@ public class PackagedBlock extends Block implements EntityBlock
     }
 
     @Override
-    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player)
+    public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player)
     {
         BlockEntity te = world.getBlockEntity(pos);
         if (te instanceof PackagedBlockEntity)
@@ -97,7 +98,7 @@ public class PackagedBlock extends Block implements EntityBlock
             }
         }
 
-        super.playerWillDestroy(world, pos, state, player);
+        return super.playerWillDestroy(world, pos, state, player);
     }
 
     @Override

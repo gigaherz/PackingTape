@@ -3,16 +3,14 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.46'
-    //id 'org.parchmentmc.librarian.forgegradle' version '1.+'
-    id 'net.neoforged.gradle.mixin' version '7.0.46'
+    id 'net.neoforged.gradle.userdev' version '7.0.72'
 }
 
-version = "0.14.2"
+version = "0.14.3"
 group= "dev.gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 
 base {
-    archivesName = "PackingTape-1.20.2"
+    archivesName = "PackingTape-1.20.4"
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
@@ -52,7 +50,7 @@ runs {
 }
 
 dependencies {
-    implementation 'net.neoforged:neoforge:20.2.62-beta'
+    implementation 'net.neoforged:neoforge:20.4.60-beta'
 }
 
 jar {
