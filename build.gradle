@@ -3,7 +3,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.72'
+    id 'net.neoforged.gradle.userdev' version '7.0.76'
 }
 
 version = "0.14.3"
@@ -49,8 +49,15 @@ runs {
     }
 }
 
+subsystems {
+    parchment {
+        minecraftVersion="1.20.3"
+        mappingsVersion="2023.12.31"
+    }
+}
+
 dependencies {
-    implementation 'net.neoforged:neoforge:20.4.60-beta'
+    implementation 'net.neoforged:neoforge:20.4.72-beta'
 }
 
 jar {
