@@ -1,9 +1,12 @@
 package dev.gigaherz.packingtape;
 
+import dev.gigaherz.packingtape.tape.ContainedBlockData;
 import dev.gigaherz.packingtape.tape.PackagedBlock;
 import dev.gigaherz.packingtape.tape.PackagedBlockEntity;
 import dev.gigaherz.packingtape.tape.TapeItem;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
@@ -22,17 +25,16 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 import net.minecraft.world.level.storage.loot.functions.CopyNameFunction;
-import net.minecraft.world.level.storage.loot.functions.CopyNbtFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.providers.nbt.ContextNbtProvider;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
-import net.neoforged.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.neoforged.neoforge.common.conditions.IConditionBuilder;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
@@ -55,29 +57,41 @@ public class PackingTapeMod
     private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
     private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, MODID);
+    private static final DeferredRegister<DataComponentType<?>> DATA_COMPONENTS = DeferredRegister.create(BuiltInRegistries.DATA_COMPONENT_TYPE, MODID);
 
-    public static final DeferredBlock<PackagedBlock> PACKAGED_BLOCK = BLOCKS.register("packaged_block", () ->
-            new PackagedBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOL).strength(0.5f, 0.5f).sound(SoundType.WOOD)));
-    public static final DeferredItem<BlockItem> PACKAGED_BLOCK_ITEM = ITEMS.register(PACKAGED_BLOCK.getId().getPath(), () ->
-        new BlockItem(PACKAGED_BLOCK.get(), new Item.Properties().stacksTo(16)));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PackagedBlockEntity>> PACKAGED_BLOCK_ENTITY = BLOCK_ENTITIES.register(PACKAGED_BLOCK.getId().getPath(), () ->
-        BlockEntityType.Builder.of(PackagedBlockEntity::new, PACKAGED_BLOCK.get()).build(null));
-    public static final DeferredItem<TapeItem> TAPE = ITEMS.register("tape", () ->
-            new TapeItem(new Item.Properties().stacksTo(16)));
+    public static final DeferredBlock<PackagedBlock>
+            PACKAGED_BLOCK = BLOCKS.register("packaged_block", () -> new PackagedBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOL).strength(0.5f, 0.5f).sound(SoundType.WOOD)));
 
-    public PackingTapeMod()
+    public static final DeferredItem<BlockItem>
+            PACKAGED_BLOCK_ITEM = ITEMS.register(PACKAGED_BLOCK.getId().getPath(), () -> new BlockItem(PACKAGED_BLOCK.get(), new Item.Properties().stacksTo(16)));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PackagedBlockEntity>>
+            PACKAGED_BLOCK_ENTITY = BLOCK_ENTITIES.register(PACKAGED_BLOCK.getId().getPath(), () -> BlockEntityType.Builder.of(PackagedBlockEntity::new, PACKAGED_BLOCK.get()).build(null));
+
+    public static final DeferredItem<TapeItem>
+            TAPE = ITEMS.register("tape", () -> new TapeItem(new Item.Properties()
+                    //.component(DataComponents.MAX_DAMAGE, ConfigValues.tapeRollUses)
+                    //.component(DataComponents.DAMAGE, 0)
+                    .stacksTo(16)));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ContainedBlockData>>
+            CONTAINED_BLOCK = DATA_COMPONENTS.register("contained_block", () -> DataComponentType.<ContainedBlockData>builder()
+                    .persistent(ContainedBlockData.CODEC)
+                    .networkSynchronized(ContainedBlockData.STREAM_CODEC)
+                    .build());
+
+    public PackingTapeMod(ModContainer thisContainer, IEventBus modEventBus)
     {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         BLOCK_ENTITIES.register(modEventBus);
+        DATA_COMPONENTS.register(modEventBus);
 
         modEventBus.addListener(this::serverConfig);
         modEventBus.addListener(this::gatherData);
         modEventBus.addListener(this::addItemsToTabs);
 
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ConfigValues.SERVER_SPEC);
+        thisContainer.registerConfig(ModConfig.Type.SERVER, ConfigValues.SERVER_SPEC);
     }
 
     private void addItemsToTabs(BuildCreativeModeTabContentsEvent event)
@@ -111,7 +125,7 @@ public class PackingTapeMod
         {
             DataGenerator gen = event.getGenerator();
 
-            gen.addProvider(event.includeServer(), Loot.create(gen.getPackOutput()));
+            gen.addProvider(event.includeServer(), Loot.create(gen.getPackOutput(), event.getLookupProvider()));
             gen.addProvider(event.includeServer(), new Recipes(gen, event.getLookupProvider()));
         }
 
@@ -136,11 +150,11 @@ public class PackingTapeMod
 
         private static class Loot
         {
-            public static LootTableProvider create(PackOutput gen)
+            public static LootTableProvider create(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookup)
             {
-                return new LootTableProvider(gen, Set.of(), List.of(
+                return new LootTableProvider(packOutput, Set.of(), List.of(
                         new LootTableProvider.SubProviderEntry(Loot.BlockTables::new, LootContextParamSets.BLOCK)
-                ));
+                ), lookup);
             }
 
 
@@ -157,17 +171,17 @@ public class PackingTapeMod
                     this.add(PackingTapeMod.PACKAGED_BLOCK.get(), this::dropWithPackagedContents);
                 }
 
-                protected LootTable.Builder dropWithPackagedContents(Block p_218544_0_)
+                protected LootTable.Builder dropWithPackagedContents(Block block)
                 {
                     return LootTable.lootTable()
-                            .withPool(applyExplosionCondition(p_218544_0_, LootPool.lootPool()
+                            .withPool(applyExplosionCondition(block, LootPool.lootPool()
                                     .setRolls(ConstantValue.exactly(1))
-                                    .add(LootItem.lootTableItem(p_218544_0_)
+                                    .add(LootItem.lootTableItem(block)
                                             .apply(CopyNameFunction.copyName(CopyNameFunction.NameSource.BLOCK_ENTITY))
-                                            .apply(CopyNbtFunction.copyData(ContextNbtProvider.BLOCK_ENTITY)
-                                                    .copy("Block", "BlockEntityTag.Block")
-                                                    .copy("BlockEntity", "BlockEntityTag.BlockEntity")
-                                                    .copy("PreferredDirection", "BlockEntityTag.PreferredDirection")))));
+                                            .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                                                    .include(PackingTapeMod.CONTAINED_BLOCK.get()))
+                                    )
+                            ));
                 }
 
                 @Override

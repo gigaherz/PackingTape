@@ -17,23 +17,9 @@
               "source": "block_entity"
             },
             {
-              "function": "minecraft:copy_nbt",
-              "ops": [
-                {
-                  "op": "replace",
-                  "source": "Block",
-                  "target": "BlockEntityTag.Block"
-                },
-                {
-                  "op": "replace",
-                  "source": "BlockEntity",
-                  "target": "BlockEntityTag.BlockEntity"
-                },
-                {
-                  "op": "replace",
-                  "source": "PreferredDirection",
-                  "target": "BlockEntityTag.PreferredDirection"
-                }
+              "function": "minecraft:copy_components",
+              "include": [
+                "packingtape:contained_block"
               ],
               "source": "block_entity"
             }
@@ -43,5 +29,6 @@
       ],
       "rolls": 1.0
     }
-  ]
+  ],
+  "random_sequence": "packingtape:blocks/packaged_block"
 }

@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -104,9 +105,8 @@ public class PackagedBlock extends Block implements EntityBlock
     @Override
     public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
     {
-        if (placer instanceof Player && !placer.isShiftKeyDown())
+        if (placer instanceof Player player && !placer.isShiftKeyDown())
         {
-            Player player = (Player) placer;
             PackagedBlockEntity te = (PackagedBlockEntity) worldIn.getBlockEntity(pos);
             assert te != null;
             te.setPreferredDirection(Direction.fromYRot(player.getYHeadRot()).getOpposite());
@@ -115,16 +115,27 @@ public class PackagedBlock extends Block implements EntityBlock
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult blockRayTraceResult)
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult)
     {
-        if (world.isClientSide)
-            return InteractionResult.SUCCESS;
+        return use(level, pos, player).result();
+    }
 
-        BlockEntity te = world.getBlockEntity(pos);
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult)
+    {
+        return use(level, pos, player);
+    }
+
+    public ItemInteractionResult use(Level level, BlockPos pos, Player player)
+    {
+        if (level.isClientSide)
+            return ItemInteractionResult.SUCCESS;
+
+        BlockEntity te = level.getBlockEntity(pos);
 
         if (!(te instanceof PackagedBlockEntity))
         {
-            return displayBlockMissingError(world, pos);
+            return displayBlockMissingError(level, pos);
         }
 
         PackagedBlockEntity packagedBlock = (PackagedBlockEntity) te;
@@ -135,7 +146,7 @@ public class PackagedBlock extends Block implements EntityBlock
 
         if (newState == null || entityData == null)
         {
-            return displayBlockMissingError(world, pos);
+            return displayBlockMissingError(level, pos);
         }
 
         EnumProperty<Direction> facing = null;
@@ -172,43 +183,43 @@ public class PackagedBlock extends Block implements EntityBlock
                 Direction right = chestFacing.getCounterClockWise();
 
                 // test left side connection
-                BlockState leftState = world.getBlockState(pos.relative(left));
+                BlockState leftState = level.getBlockState(pos.relative(left));
                 if (leftState.getBlock() == newState.getBlock()
                         && leftState.getValue(ChestBlock.TYPE) == ChestType.SINGLE
                         && leftState.getValue(ChestBlock.FACING) == chestFacing)
                 {
-                    world.setBlockAndUpdate(pos.relative(left), leftState.setValue(ChestBlock.TYPE, ChestType.RIGHT));
+                    level.setBlockAndUpdate(pos.relative(left), leftState.setValue(ChestBlock.TYPE, ChestType.RIGHT));
                     newState = newState.setValue(ChestBlock.TYPE, ChestType.LEFT);
                 }
                 else
                 {
                     // test right side connection
-                    BlockState rightState = world.getBlockState(pos.relative(right));
+                    BlockState rightState = level.getBlockState(pos.relative(right));
                     if (rightState.getBlock() == newState.getBlock()
                             && rightState.getValue(ChestBlock.TYPE) == ChestType.SINGLE
                             && rightState.getValue(ChestBlock.FACING) == chestFacing)
                     {
-                        world.setBlockAndUpdate(pos.relative(right), rightState.setValue(ChestBlock.TYPE, ChestType.LEFT));
+                        level.setBlockAndUpdate(pos.relative(right), rightState.setValue(ChestBlock.TYPE, ChestType.LEFT));
                         newState = newState.setValue(ChestBlock.TYPE, ChestType.RIGHT);
                     }
                 }
             }
         }
 
-        world.removeBlockEntity(pos);
-        world.setBlockAndUpdate(pos, newState);
+        level.removeBlockEntity(pos);
+        level.setBlockAndUpdate(pos, newState);
 
-        setTileEntityNBT(world, player, pos, entityData);
+        setTileEntityNBT(level, player, pos, entityData);
 
-        return InteractionResult.SUCCESS;
+        return ItemInteractionResult.SUCCESS;
     }
 
-    private InteractionResult displayBlockMissingError(Level world, BlockPos pos)
+    private ItemInteractionResult displayBlockMissingError(Level world, BlockPos pos)
     {
         LOGGER.error("The packaged block does not contain valid data");
         world.addParticle(ParticleTypes.ANGRY_VILLAGER, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 0, 0, 0);
         world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
-        return InteractionResult.CONSUME;
+        return ItemInteractionResult.CONSUME;
     }
 
     public static void setTileEntityNBT(Level level, @Nullable Player player, BlockPos pos, CompoundTag compoundtag)
@@ -230,12 +241,12 @@ public class PackagedBlock extends Block implements EntityBlock
                 return;
             }
 
-            CompoundTag current = blockentity.saveWithoutMetadata();
+            CompoundTag current = blockentity.saveWithoutMetadata(level.registryAccess());
             CompoundTag original = current.copy();
             current.merge(compoundtag);
             if (!current.equals(original))
             {
-                blockentity.load(current);
+                blockentity.loadWithComponents(current, level.registryAccess());
                 blockentity.setChanged();
             }
         }
@@ -247,34 +258,20 @@ public class PackagedBlock extends Block implements EntityBlock
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable BlockGetter worldIn, List<Component> tooltip, TooltipFlag advanced)
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag advanced)
     {
-        super.appendHoverText(stack, worldIn, tooltip, advanced);
+        super.appendHoverText(stack, context, tooltip, advanced);
 
-        CompoundTag tag = stack.getTag();
-        if (tag == null)
+        ContainedBlockData data = stack.get(PackingTapeMod.CONTAINED_BLOCK);
+        if (data == null)
         {
             tooltip.add(makeError("text.packingtape.packaged.no_nbt"));
             return;
         }
 
-        CompoundTag info = (CompoundTag) tag.get("BlockEntityTag");
-        if (info == null)
-        {
-            tooltip.add(makeError("text.packingtape.packaged.no_tag"));
-            return;
-        }
-
-        if (!info.contains("Block") || !info.contains("BlockEntity"))
-        {
-            tooltip.add(makeError("text.packingtape.packaged.no_block"));
-            return;
-        }
-
-        String blockName = info.getCompound("Block").getString("Name");
-
-        Block block = BuiltInRegistries.BLOCK.get(new ResourceLocation(blockName));
-        if (block == null || block == Blocks.AIR)
+        Block block = data.getBlock();
+        ResourceLocation blockName = BuiltInRegistries.BLOCK.getKey(block);
+        if (block == Blocks.AIR)
         {
             tooltip.add(Component.translatable("text.packingtape.packaged.unknown_block"));
             tooltip.add(Component.literal("  " + blockName));
@@ -284,7 +281,7 @@ public class PackagedBlock extends Block implements EntityBlock
         Item item = block.asItem();
         if (item == Items.AIR)
         {
-            item = BuiltInRegistries.ITEM.get(BuiltInRegistries.BLOCK.getKey(block));
+            item = BuiltInRegistries.ITEM.get(blockName);
             if (item == Items.AIR)
             {
                 tooltip.add(Component.translatable("text.packingtape.packaged.no_item"));

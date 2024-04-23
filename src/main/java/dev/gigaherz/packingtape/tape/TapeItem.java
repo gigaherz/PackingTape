@@ -4,6 +4,7 @@ import dev.gigaherz.packingtape.ConfigValues;
 import dev.gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
@@ -32,12 +33,6 @@ public class TapeItem extends Item
     public int getMaxDamage(ItemStack stack)
     {
         return ConfigValues.tapeRollUses;
-    }
-
-    @Override
-    public boolean canBeDepleted()
-    {
-        return true;
     }
 
     @Override
@@ -92,7 +87,7 @@ public class TapeItem extends Item
             }
         }
 
-        CompoundTag tag = te.saveWithoutMetadata();
+        CompoundTag tag = te.saveWithoutMetadata(level.registryAccess());
 
         int bytes = tag.sizeInBytes();
         if (bytes > ConfigValues.maxStorageSize)
@@ -121,8 +116,7 @@ public class TapeItem extends Item
             {
                 ItemStack split = stack.copy();
                 split.setCount(1);
-                split.setDamageValue(split.getDamageValue() + 1);
-                if (stack.getDamageValue() < stack.getMaxDamage())
+                if (consumeRoll(split))
                 {
                     ItemHandlerHelper.giveItemToPlayer(player, split);
                 }
@@ -130,8 +124,7 @@ public class TapeItem extends Item
             }
             else
             {
-                stack.setDamageValue(stack.getDamageValue() + 1);
-                if (stack.getDamageValue() >= stack.getMaxDamage())
+                if (consumeRoll(stack))
                 {
                     stack.shrink(1);
                 }
@@ -139,6 +132,13 @@ public class TapeItem extends Item
         }
 
         return InteractionResult.SUCCESS;
+    }
+
+    private static boolean consumeRoll(ItemStack stack)
+    {
+        stack.set(DataComponents.MAX_DAMAGE, ConfigValues.tapeRollUses);
+        stack.setDamageValue(stack.getDamageValue() + 1);
+        return stack.getDamageValue() < stack.getMaxDamage();
     }
 
     private boolean hasPaper(Player playerIn)

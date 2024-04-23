@@ -4,6 +4,8 @@ import dev.gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderGetter;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -17,8 +19,11 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
+import java.util.Optional;
 
 public class PackagedBlockEntity extends BlockEntity
 {
@@ -38,10 +43,40 @@ public class PackagedBlockEntity extends BlockEntity
         super(PackingTapeMod.PACKAGED_BLOCK_ENTITY.get(), pos, state);
     }
 
-    @Override
-    public void saveAdditional(CompoundTag compound)
+    public BlockState getContainedBlockState()
     {
-        super.saveAdditional(compound);
+        return containedBlockState;
+    }
+
+    public CompoundTag getContainedTile()
+    {
+        return containedTile;
+    }
+
+    @Nullable
+    public Direction getPreferredDirection()
+    {
+        return preferredDirection;
+    }
+
+    public void setPreferredDirection(Direction preferredDirection)
+    {
+        this.preferredDirection = preferredDirection;
+    }
+
+    @NotNull
+    private ContainedBlockData makeContainedData()
+    {
+        return new ContainedBlockData(
+                Objects.requireNonNull(containedBlockState),
+                Objects.requireNonNullElseGet(containedTile, CompoundTag::new),
+                Optional.ofNullable(preferredDirection));
+    }
+
+    @Override
+    public void saveAdditional(CompoundTag compound, HolderLookup.Provider provider)
+    {
+        super.saveAdditional(compound, provider);
 
         if (containedBlockState != null)
         {
@@ -56,9 +91,9 @@ public class PackagedBlockEntity extends BlockEntity
     }
 
     @Override
-    public void load(CompoundTag compound)
+    public void loadAdditional(CompoundTag compound, HolderLookup.Provider provider)
     {
-        super.load(compound);
+        super.loadAdditional(compound, provider);
 
         HolderGetter<Block> holdergetter = this.level != null ? this.level.holderLookup(Registries.BLOCK) : BuiltInRegistries.BLOCK.asLookup();
 
@@ -71,14 +106,25 @@ public class PackagedBlockEntity extends BlockEntity
         }
     }
 
-    public BlockState getContainedBlockState()
+    @Override
+    protected void applyImplicitComponents(DataComponentInput input)
     {
-        return containedBlockState;
+        var data = input.get(PackingTapeMod.CONTAINED_BLOCK);
+        if (data != null)
+        {
+            containedBlockState = data.state();
+            containedTile = data.blockEntityTag();
+            preferredDirection = data.preferredDirection().orElse(null);
+        }
     }
 
-    public CompoundTag getContainedTile()
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder collector)
     {
-        return containedTile;
+        if (containedBlockState != null)
+        {
+            collector.set(PackingTapeMod.CONTAINED_BLOCK, makeContainedData());
+        }
     }
 
     public void setContents(BlockState state, CompoundTag tag)
@@ -87,26 +133,11 @@ public class PackagedBlockEntity extends BlockEntity
         containedTile = tag;
     }
 
-    @Nullable
-    public Direction getPreferredDirection()
-    {
-        return preferredDirection;
-    }
-
-    public void setPreferredDirection(Direction preferredDirection)
-    {
-        this.preferredDirection = preferredDirection;
-    }
-
     public ItemStack getPackedStack()
     {
         ItemStack stack = new ItemStack(PackingTapeMod.PACKAGED_BLOCK.get());
 
-        CompoundTag tileEntityData = saveWithoutMetadata();
-
-        CompoundTag stackTag = new CompoundTag();
-        stackTag.put("BlockEntityTag", tileEntityData);
-        stack.setTag(stackTag);
+        stack.set(PackingTapeMod.CONTAINED_BLOCK, makeContainedData());
 
         LOGGER.debug(String.format("Created Packed stack with %s", containedBlockState.toString()));
 
@@ -114,21 +145,21 @@ public class PackagedBlockEntity extends BlockEntity
     }
 
     @Override
-    public CompoundTag getUpdateTag()
+    public CompoundTag getUpdateTag(HolderLookup.Provider provider)
     {
-        return saveWithoutMetadata();
+        return saveWithoutMetadata(provider);
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag tag)
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider provider)
     {
-        load(tag);
+        this.loadWithComponents(tag, provider);
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt)
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider provider)
     {
-        handleUpdateTag(pkt.getTag());
+        handleUpdateTag(pkt.getTag(), provider);
     }
 
     public boolean isEmpty()
