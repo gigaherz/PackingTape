@@ -6,7 +6,6 @@ import dev.gigaherz.packingtape.tape.PackagedBlockEntity;
 import dev.gigaherz.packingtape.tape.TapeItem;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
@@ -28,7 +27,6 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 import net.minecraft.world.level.storage.loot.functions.CopyNameFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
-import net.minecraft.world.level.storage.loot.providers.nbt.ContextNbtProvider;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -116,7 +114,7 @@ public class PackingTapeMod
 
     public static ResourceLocation location(String path)
     {
-        return new ResourceLocation(MODID, path);
+        return ResourceLocation.fromNamespaceAndPath(MODID, path);
     }
 
     public static class DataGen
@@ -153,16 +151,16 @@ public class PackingTapeMod
             public static LootTableProvider create(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookup)
             {
                 return new LootTableProvider(packOutput, Set.of(), List.of(
-                        new LootTableProvider.SubProviderEntry(Loot.BlockTables::new, LootContextParamSets.BLOCK)
+                        new LootTableProvider.SubProviderEntry(BlockTables::new, LootContextParamSets.BLOCK)
                 ), lookup);
             }
 
 
             public static class BlockTables extends BlockLootSubProvider
             {
-                public BlockTables()
+                public BlockTables(HolderLookup.Provider provider)
                 {
-                    super(Set.of(), FeatureFlags.REGISTRY.allFlags());
+                    super(Set.of(), FeatureFlags.REGISTRY.allFlags(), provider);
                 }
 
                 @Override

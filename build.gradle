@@ -3,7 +3,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.107'
+    id 'net.neoforged.gradle.userdev' version '7.0.142'
 }
 
 version = "0.15.0"
@@ -29,6 +29,17 @@ sourceSets {
 
 repositories {
     mavenLocal()
+}
+
+repositories {
+    maven {
+        name 'Maven for PR #1076' // https://github.com/neoforged/NeoForge/pull/1076
+        url 'https://prmaven.neoforged.net/NeoForge/pr1076'
+        content {
+            includeModule('net.neoforged', 'testframework')
+            includeModule('net.neoforged', 'neoforge')
+        }
+    }
 }
 
 runs {
@@ -65,7 +76,7 @@ subsystems {
 }
 
 dependencies {
-    implementation 'net.neoforged:neoforge:20.5.0-beta'
+    implementation 'net.neoforged:neoforge:21.0.0-alpha.1.21-pre4.20240609.093716'
 }
 
 jar {
