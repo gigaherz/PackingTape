@@ -260,8 +260,6 @@ public class PackagedBlock extends Block implements EntityBlock
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag advanced)
     {
-        super.appendHoverText(stack, context, tooltip, advanced);
-
         ContainedBlockData data = stack.get(PackingTapeMod.CONTAINED_BLOCK);
         if (data == null)
         {

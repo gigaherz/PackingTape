@@ -6,7 +6,7 @@ plugins {
     id 'net.neoforged.gradle.userdev' version '7.0.142'
 }
 
-version = "0.15.0"
+version = "0.15.1"
 group= "dev.gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 
 Provider<String> minecraftVersion(Transformer<String, String> mapper) {
@@ -31,7 +31,7 @@ repositories {
     mavenLocal()
 }
 
-repositories {
+/*repositories {
     maven {
         name 'Maven for PR #1076' // https://github.com/neoforged/NeoForge/pull/1076
         url 'https://prmaven.neoforged.net/NeoForge/pr1076'
@@ -40,7 +40,7 @@ repositories {
             includeModule('net.neoforged', 'neoforge')
         }
     }
-}
+}*/
 
 runs {
     // applies to all the run configs below
@@ -70,13 +70,13 @@ runs {
 
 subsystems {
     parchment {
-        minecraftVersion="1.20.3"
-        mappingsVersion="2023.12.31"
+        minecraftVersion="1.20.6"
+        mappingsVersion="2024.05.01"
     }
 }
 
 dependencies {
-    implementation 'net.neoforged:neoforge:21.0.0-alpha.1.21-pre4.20240609.093716'
+    implementation 'net.neoforged:neoforge:21.0.0-beta'
 }
 
 jar {
