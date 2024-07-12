@@ -7,6 +7,7 @@ import dev.gigaherz.packingtape.tape.TapeItem;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
@@ -16,6 +17,8 @@ import net.minecraft.data.recipes.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.*;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -85,7 +88,8 @@ public class PackingTapeMod
         BLOCK_ENTITIES.register(modEventBus);
         DATA_COMPONENTS.register(modEventBus);
 
-        modEventBus.addListener(this::serverConfig);
+        modEventBus.addListener(this::modConfigLoad);
+        modEventBus.addListener(this::modConfigReload);
         modEventBus.addListener(this::gatherData);
         modEventBus.addListener(this::addItemsToTabs);
 
@@ -106,7 +110,17 @@ public class PackingTapeMod
         DataGen.gatherData(event);
     }
 
-    public void serverConfig(ModConfigEvent event)
+    public void modConfigLoad(ModConfigEvent.Loading event)
+    {
+        refreshConfig(event);
+    }
+
+    public void modConfigReload(ModConfigEvent.Reloading event)
+    {
+        refreshConfig(event);
+    }
+
+    private void refreshConfig(ModConfigEvent event)
     {
         if (event.getConfig().getSpec() == ConfigValues.SERVER_SPEC)
             ConfigValues.bake();

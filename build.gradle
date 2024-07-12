@@ -3,10 +3,10 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.142'
+    id 'net.neoforged.gradle.userdev' version '7.0.153'
 }
 
-version = "0.15.1"
+version = "0.15.2"
 group= "dev.gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 
 Provider<String> minecraftVersion(Transformer<String, String> mapper) {
@@ -76,7 +76,7 @@ subsystems {
 }
 
 dependencies {
-    implementation 'net.neoforged:neoforge:21.0.0-beta'
+    implementation 'net.neoforged:neoforge:21.0.86-beta'
 }
 
 jar {
