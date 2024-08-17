@@ -38,6 +38,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -77,7 +78,7 @@ public class PackagedBlock extends Block implements EntityBlock
     @Override
     public ItemStack getCloneItemStack(BlockState state, HitResult target, LevelReader level, BlockPos pos, Player player)
     {
-        if (Screen.hasShiftDown() || (player.getAbilities().instabuild && Screen.hasControlDown()))
+        if (player instanceof FakePlayer || player.level().isClientSide && ClientKeys.isStrictPicking(player))
             return new ItemStack(asItem(), 1);
         else
             return new ItemStack(PackingTapeMod.TAPE.get(), 1);
@@ -87,9 +88,8 @@ public class PackagedBlock extends Block implements EntityBlock
     public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player)
     {
         BlockEntity te = world.getBlockEntity(pos);
-        if (te instanceof PackagedBlockEntity)
+        if (te instanceof PackagedBlockEntity packaged)
         {
-            PackagedBlockEntity packaged = (PackagedBlockEntity) te;
             if (!world.isClientSide && player.isCreative() && !packaged.isEmpty())
             {
                 ItemStack stack = packaged.getPackedStack();
@@ -290,5 +290,13 @@ public class PackagedBlock extends Block implements EntityBlock
 
         ItemStack stack1 = new ItemStack(item, 1);
         tooltip.add(Component.translatable("text.packingtape.packaged.contains", stack1.getHoverName()));
+    }
+
+    private static class ClientKeys
+    {
+        public static boolean isStrictPicking(Player player)
+        {
+            return Screen.hasShiftDown() || (player.getAbilities().instabuild && Screen.hasControlDown());
+        }
     }
 }
