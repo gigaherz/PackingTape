@@ -37,6 +37,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -77,7 +78,7 @@ public class PackagedBlock extends Block implements EntityBlock
     @Override
     public ItemStack getCloneItemStack(BlockState state, HitResult target, BlockGetter world, BlockPos pos, Player player)
     {
-        if (Screen.hasShiftDown() || (player.getAbilities().instabuild && Screen.hasControlDown()))
+        if (player instanceof FakePlayer || player.level().isClientSide && ClientKeys.isStrictPicking(player))
             return new ItemStack(asItem(), 1);
         else
             return new ItemStack(PackingTapeMod.TAPE.get(), 1);
@@ -297,5 +298,13 @@ public class PackagedBlock extends Block implements EntityBlock
 
         ItemStack stack1 = new ItemStack(item, 1);
         tooltip.add(Component.translatable("text.packingtape.packaged.contains", stack1.getHoverName()));
+    }
+
+    private static class ClientKeys
+    {
+        public static boolean isStrictPicking(Player player)
+        {
+            return Screen.hasShiftDown() || (player.getAbilities().instabuild && Screen.hasControlDown());
+        }
     }
 }
