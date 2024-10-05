@@ -88,6 +88,11 @@ public class Config
         if (net.minecraft.tileentity.TileEntityBed.class.isAssignableFrom(teClass))
             return false;
 
+        //blacklist IC2 machines; they turn into invalid tiles upon unpacking
+        if (te.getWorld().getBlockState(te.getPos()).getBlock().getRegistryName().toString().equals("ic2:te"))
+            return false;
+
+
         // TODO: Blacklist more Vanilla stuffs.
 
         return true;
