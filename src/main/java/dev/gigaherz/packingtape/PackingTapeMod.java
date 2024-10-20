@@ -15,6 +15,7 @@ import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.data.recipes.*;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
@@ -36,6 +37,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.conditions.IConditionBuilder;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
@@ -152,8 +154,8 @@ public class PackingTapeMod
             protected void buildRecipes(RecipeOutput consumer)
             {
                 ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, PackingTapeMod.TAPE.get())
-                        .requires(Items.SLIME_BALL)
-                        .requires(Items.STRING)
+                        .requires(Tags.Items.SLIME_BALLS)
+                        .requires(Tags.Items.STRINGS)
                         .requires(Items.PAPER)
                         .unlockedBy("has_slime_ball", has(Items.SLIME_BALL))
                         .save(consumer);

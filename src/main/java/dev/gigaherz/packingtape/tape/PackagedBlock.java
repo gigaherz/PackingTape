@@ -109,7 +109,9 @@ public class PackagedBlock extends Block implements EntityBlock
         {
             PackagedBlockEntity te = (PackagedBlockEntity) worldIn.getBlockEntity(pos);
             assert te != null;
-            te.setPreferredDirection(Direction.fromYRot(player.getYHeadRot()).getOpposite());
+            var allDirection = Direction.getNearest(player.getLookAngle()).getOpposite();
+            var horizontalDirection = player.getDirection().getOpposite();
+            te.setPreferredDirection(allDirection, horizontalDirection);
         }
         super.setPlacedBy(worldIn, pos, state, placer, stack);
     }
@@ -142,32 +144,25 @@ public class PackagedBlock extends Block implements EntityBlock
 
         BlockState newState = packagedBlock.getContainedBlockState();
         CompoundTag entityData = packagedBlock.getContainedTile();
-        Direction preferred = packagedBlock.getPreferredDirection();
+        Direction preferredAll = packagedBlock.getPreferredDirectionAll();
+        Direction preferredHorizontal = packagedBlock.getPreferredDirectionHorizontal();
 
         if (newState == null || entityData == null)
         {
             return displayBlockMissingError(level, pos);
         }
 
-        EnumProperty<Direction> facing = null;
-        for (Property<?> prop : newState.getProperties())
-        {
-            if (prop.getName().equalsIgnoreCase("facing") || prop.getName().equalsIgnoreCase("rotation"))
-            {
-                if (prop instanceof EnumProperty && prop.getValueClass() == Direction.class)
-                {
-                    //noinspection unchecked
-                    facing = (EnumProperty<Direction>) prop;
-                    break;
-                }
-            }
-        }
+        EnumProperty<Direction> facing = findFacingProperty(newState);
 
-        if (preferred != null && facing != null)
+        if (facing != null)
         {
-            if (facing.getPossibleValues().contains(preferred))
+            if (preferredAll != null && facing.getPossibleValues().contains(preferredAll))
             {
-                newState = newState.setValue(facing, preferred);
+                newState = newState.setValue(facing, preferredAll);
+            }
+            else if (preferredHorizontal != null && facing.getPossibleValues().contains(preferredHorizontal))
+            {
+                newState = newState.setValue(facing, preferredHorizontal);
             }
         }
 
@@ -212,6 +207,24 @@ public class PackagedBlock extends Block implements EntityBlock
         setTileEntityNBT(level, player, pos, entityData);
 
         return ItemInteractionResult.SUCCESS;
+    }
+
+    public static @org.jetbrains.annotations.Nullable EnumProperty<Direction> findFacingProperty(BlockState newState)
+    {
+        EnumProperty<Direction> facing = null;
+        for (Property<?> prop : newState.getProperties())
+        {
+            if (prop.getName().equalsIgnoreCase("facing") || prop.getName().equalsIgnoreCase("rotation"))
+            {
+                if (prop instanceof EnumProperty && prop.getValueClass() == Direction.class)
+                {
+                    //noinspection unchecked
+                    facing = (EnumProperty<Direction>) prop;
+                    break;
+                }
+            }
+        }
+        return facing;
     }
 
     private ItemInteractionResult displayBlockMissingError(Level world, BlockPos pos)

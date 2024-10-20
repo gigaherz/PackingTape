@@ -1,27 +1,18 @@
 plugins {
     id 'java-library'
-    id 'eclipse'
-    id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.153'
+    id 'net.neoforged.moddev' version '2.0.9-beta'
 }
 
 version = "0.15.3"
 group= "dev.gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 
-Provider<String> minecraftVersion(Transformer<String, String> mapper) {
-    return project.userDevRuntime.runtimes.map(r -> r.values().first().specification.minecraftVersion).map(mapper)
-}
-
+var minecraftVersionResolver = project.neoForge.version.map { "1." + (it =~ /^(\d+(?:\.[1-9]\d*|))\./)[0][1] }
 base {
-    archivesName = minecraftVersion { "PackingTape-${it}" }
+    archivesName = minecraftVersionResolver.map { "PackingTape-${it}" }
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
-}
 
 sourceSets {
     main.resources.srcDirs += 'src/main/generated_resources'
@@ -31,52 +22,45 @@ repositories {
     mavenLocal()
 }
 
-/*repositories {
-    maven {
-        name 'Maven for PR #1076' // https://github.com/neoforged/NeoForge/pull/1076
-        url 'https://prmaven.neoforged.net/NeoForge/pr1076'
-        content {
-            includeModule('net.neoforged', 'testframework')
-            includeModule('net.neoforged', 'neoforge')
+neoForge {
+    version = "21.1.8"
+
+    runs {
+        // applies to all the run configs below
+        configureEach {
+            gameDirectory = project.file('run')
+            logLevel = org.slf4j.event.Level.DEBUG
+            jvmArgument "-Dmixin.debug.export=true"
+            jvmArgument "-Dmixin.debug.verbose=true"
+        }
+
+        client {
+            client()
+        }
+
+        server {
+            server()
+        }
+
+        data {
+            data()
+            programArguments.addAll '--mod', 'packingtape', '--all', '--output', file('src/main/generated_resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
         }
     }
-}*/
 
-runs {
-    // applies to all the run configs below
-    configureEach {
-        systemProperty 'forge.logging.markers', '' // 'REGISTRIES'
-        systemProperty 'forge.logging.console.level', 'debug'
-
-        //ideaModule "${project.name}.main"
-
-        workingDirectory project.file('run')
-
-        //programArguments.addAll "--mixin=jsonthings.mixins.json"
-
-        modSource project.sourceSets.main
+    mods {
+        thismod {
+            sourceSet(sourceSets.main)
+        }
     }
 
-    client {
-    }
-
-    server {
-    }
-
-    data {
-        programArguments.addAll '--mod', 'packingtape', '--all', '--output', file('src/main/generated_resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
-    }
-}
-
-subsystems {
     parchment {
-        minecraftVersion="1.20.6"
-        mappingsVersion="2024.05.01"
+        minecraftVersion = "1.21"
+        mappingsVersion = "2024.07.28"
     }
 }
 
 dependencies {
-    implementation 'net.neoforged:neoforge:21.0.86-beta'
 }
 
 jar {
@@ -94,5 +78,17 @@ jar {
                 "Implementation-Vendor" :"gigaherz",
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+// IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
     }
 }

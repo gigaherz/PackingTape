@@ -31,7 +31,8 @@ public class PackagedBlockEntity extends BlockEntity
 
     private BlockState containedBlockState;
     private CompoundTag containedTile;
-    private Direction preferredDirection;
+    private Direction preferredAll;
+    private Direction preferredHorizontal;
 
     public PackagedBlockEntity(BlockEntityType<?> tileEntityTypeIn, BlockPos pos, BlockState state)
     {
@@ -41,6 +42,12 @@ public class PackagedBlockEntity extends BlockEntity
     public PackagedBlockEntity(BlockPos pos, BlockState state)
     {
         super(PackingTapeMod.PACKAGED_BLOCK_ENTITY.get(), pos, state);
+    }
+
+    public void setContents(BlockState state, CompoundTag tag)
+    {
+        containedBlockState = state;
+        containedTile = tag;
     }
 
     public BlockState getContainedBlockState()
@@ -54,23 +61,21 @@ public class PackagedBlockEntity extends BlockEntity
     }
 
     @Nullable
-    public Direction getPreferredDirection()
+    public Direction getPreferredDirectionAll()
     {
-        return preferredDirection;
+        return preferredAll;
     }
 
-    public void setPreferredDirection(Direction preferredDirection)
+    @Nullable
+    public Direction getPreferredDirectionHorizontal()
     {
-        this.preferredDirection = preferredDirection;
+        return preferredHorizontal;
     }
 
-    @NotNull
-    private ContainedBlockData makeContainedData()
+    public void setPreferredDirection(Direction preferredAll, Direction preferredHorizontal)
     {
-        return new ContainedBlockData(
-                Objects.requireNonNull(containedBlockState),
-                Objects.requireNonNullElseGet(containedTile, CompoundTag::new),
-                Optional.ofNullable(preferredDirection));
+        this.preferredAll = preferredAll;
+        this.preferredHorizontal = preferredHorizontal;
     }
 
     @Override
@@ -83,9 +88,13 @@ public class PackagedBlockEntity extends BlockEntity
             CompoundTag blockData = NbtUtils.writeBlockState(containedBlockState);
             compound.put("Block", blockData);
             compound.put("BlockEntity", containedTile.copy());
-            if (preferredDirection != null)
+            if (preferredAll != null)
             {
-                compound.putInt("PreferredDirection", preferredDirection.ordinal());
+                compound.putInt("PreferredDirection", preferredAll.ordinal());
+            }
+            if (preferredHorizontal != null)
+            {
+                compound.putInt("PreferredHorizontal", preferredHorizontal.ordinal());
             }
         }
     }
@@ -102,7 +111,11 @@ public class PackagedBlockEntity extends BlockEntity
         containedTile = compound.getCompound("BlockEntity").copy();
         if (compound.contains("PreferredDirection"))
         {
-            preferredDirection = Direction.byName(compound.getString("PreferredDirection"));
+            preferredAll = Direction.byName(compound.getString("PreferredDirection"));
+        }
+        if (compound.contains("PreferredDirection"))
+        {
+            preferredHorizontal = Direction.byName(compound.getString("PreferredHorizontal"));
         }
     }
 
@@ -114,7 +127,8 @@ public class PackagedBlockEntity extends BlockEntity
         {
             containedBlockState = data.state();
             containedTile = data.blockEntityTag();
-            preferredDirection = data.preferredDirection().orElse(null);
+            preferredAll = data.preferredAll().orElse(null);
+            preferredHorizontal = data.preferredHorizontal().orElse(null);
         }
     }
 
@@ -127,10 +141,14 @@ public class PackagedBlockEntity extends BlockEntity
         }
     }
 
-    public void setContents(BlockState state, CompoundTag tag)
+    @NotNull
+    private ContainedBlockData makeContainedData()
     {
-        containedBlockState = state;
-        containedTile = tag;
+        return new ContainedBlockData(
+                Objects.requireNonNull(containedBlockState),
+                Objects.requireNonNullElseGet(containedTile, CompoundTag::new),
+                Optional.ofNullable(preferredAll),
+                Optional.ofNullable(preferredHorizontal));
     }
 
     public ItemStack getPackedStack()
