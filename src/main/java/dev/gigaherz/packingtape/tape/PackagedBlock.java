@@ -13,7 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -109,7 +108,7 @@ public class PackagedBlock extends Block implements EntityBlock
         {
             PackagedBlockEntity te = (PackagedBlockEntity) worldIn.getBlockEntity(pos);
             assert te != null;
-            var allDirection = Direction.getNearest(player.getLookAngle()).getOpposite();
+            var allDirection = Direction.getApproximateNearest(player.getLookAngle()).getOpposite();
             var horizontalDirection = player.getDirection().getOpposite();
             te.setPreferredDirection(allDirection, horizontalDirection);
         }
@@ -119,19 +118,21 @@ public class PackagedBlock extends Block implements EntityBlock
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult)
     {
-        return use(level, pos, player).result();
+        return use(level, pos, player);
     }
 
+
+
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult)
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult)
     {
         return use(level, pos, player);
     }
 
-    public ItemInteractionResult use(Level level, BlockPos pos, Player player)
+    public InteractionResult use(Level level, BlockPos pos, Player player)
     {
         if (level.isClientSide)
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
 
         BlockEntity te = level.getBlockEntity(pos);
 
@@ -206,7 +207,7 @@ public class PackagedBlock extends Block implements EntityBlock
 
         setTileEntityNBT(level, player, pos, entityData);
 
-        return ItemInteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     public static @org.jetbrains.annotations.Nullable EnumProperty<Direction> findFacingProperty(BlockState newState)
@@ -227,12 +228,12 @@ public class PackagedBlock extends Block implements EntityBlock
         return facing;
     }
 
-    private ItemInteractionResult displayBlockMissingError(Level world, BlockPos pos)
+    private InteractionResult displayBlockMissingError(Level world, BlockPos pos)
     {
         LOGGER.error("The packaged block does not contain valid data");
         world.addParticle(ParticleTypes.ANGRY_VILLAGER, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 0, 0, 0);
         world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
-        return ItemInteractionResult.CONSUME;
+        return InteractionResult.CONSUME;
     }
 
     public static void setTileEntityNBT(Level level, @Nullable Player player, BlockPos pos, CompoundTag compoundtag)
@@ -292,7 +293,7 @@ public class PackagedBlock extends Block implements EntityBlock
         Item item = block.asItem();
         if (item == Items.AIR)
         {
-            item = BuiltInRegistries.ITEM.get(blockName);
+            item = BuiltInRegistries.ITEM.getOptional(blockName).orElse(Items.AIR);
             if (item == Items.AIR)
             {
                 tooltip.add(Component.translatable("text.packingtape.packaged.no_item"));

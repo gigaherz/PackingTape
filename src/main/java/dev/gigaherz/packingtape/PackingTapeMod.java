@@ -7,19 +7,17 @@ import dev.gigaherz.packingtape.tape.TapeItem;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.data.loot.LootTableProvider;
-import net.minecraft.data.recipes.*;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.packs.VanillaRecipeProvider;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.*;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -38,7 +36,6 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.Tags;
-import net.neoforged.neoforge.common.conditions.IConditionBuilder;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -63,25 +60,27 @@ public class PackingTapeMod
     private static final DeferredRegister<DataComponentType<?>> DATA_COMPONENTS = DeferredRegister.create(BuiltInRegistries.DATA_COMPONENT_TYPE, MODID);
 
     public static final DeferredBlock<PackagedBlock>
-            PACKAGED_BLOCK = BLOCKS.register("packaged_block", () -> new PackagedBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOL).strength(0.5f, 0.5f).sound(SoundType.WOOD)));
+            PACKAGED_BLOCK = BLOCKS.registerBlock("packaged_block", props ->
+                    new PackagedBlock(props
+                            .mapColor(MapColor.WOOL).strength(0.5f, 0.5f).sound(SoundType.WOOD)),
+            BlockBehaviour.Properties.of());
 
     public static final DeferredItem<BlockItem>
-            PACKAGED_BLOCK_ITEM = ITEMS.register(PACKAGED_BLOCK.getId().getPath(), () -> new BlockItem(PACKAGED_BLOCK.get(), new Item.Properties().stacksTo(16)));
+            PACKAGED_BLOCK_ITEM = ITEMS.registerItem(PACKAGED_BLOCK.getId().getPath(), props ->
+                    new BlockItem(PACKAGED_BLOCK.get(), props.stacksTo(16)));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PackagedBlockEntity>>
-            PACKAGED_BLOCK_ENTITY = BLOCK_ENTITIES.register(PACKAGED_BLOCK.getId().getPath(), () -> BlockEntityType.Builder.of(PackagedBlockEntity::new, PACKAGED_BLOCK.get()).build(null));
+            PACKAGED_BLOCK_ENTITY = BLOCK_ENTITIES.register(PACKAGED_BLOCK.getId().getPath(), () ->
+                    new BlockEntityType<>(PackagedBlockEntity::new, PACKAGED_BLOCK.get()));
 
     public static final DeferredItem<TapeItem>
-            TAPE = ITEMS.register("tape", () -> new TapeItem(new Item.Properties()
-                    //.component(DataComponents.MAX_DAMAGE, ConfigValues.tapeRollUses)
-                    //.component(DataComponents.DAMAGE, 0)
-                    .stacksTo(16)));
+            TAPE = ITEMS.registerItem("tape", props -> new TapeItem(props.stacksTo(16)));
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ContainedBlockData>>
             CONTAINED_BLOCK = DATA_COMPONENTS.register("contained_block", () -> DataComponentType.<ContainedBlockData>builder()
-                    .persistent(ContainedBlockData.CODEC)
-                    .networkSynchronized(ContainedBlockData.STREAM_CODEC)
-                    .build());
+            .persistent(ContainedBlockData.CODEC)
+            .networkSynchronized(ContainedBlockData.STREAM_CODEC)
+            .build());
 
     public PackingTapeMod(ModContainer thisContainer, IEventBus modEventBus)
     {
@@ -138,27 +137,41 @@ public class PackingTapeMod
         public static void gatherData(GatherDataEvent event)
         {
             DataGenerator gen = event.getGenerator();
+            PackOutput output = gen.getPackOutput();
 
-            gen.addProvider(event.includeServer(), Loot.create(gen.getPackOutput(), event.getLookupProvider()));
-            gen.addProvider(event.includeServer(), new Recipes(gen, event.getLookupProvider()));
+            gen.addProvider(event.includeServer(), Loot.create(output, event.getLookupProvider()));
+            gen.addProvider(event.includeServer(), new Recipes(output, event.getLookupProvider()));
         }
 
-        private static class Recipes extends RecipeProvider implements DataProvider, IConditionBuilder
+        private static class Recipes extends RecipeProvider.Runner
         {
-            public Recipes(DataGenerator gen, CompletableFuture<HolderLookup.Provider> lookupProvider)
+            public Recipes(PackOutput output, CompletableFuture<HolderLookup.Provider> lookup)
             {
-                super(gen.getPackOutput(), lookupProvider);
+                super(output, lookup);
             }
 
             @Override
-            protected void buildRecipes(RecipeOutput consumer)
+            protected RecipeProvider createRecipeProvider(HolderLookup.Provider lookup, RecipeOutput output)
             {
-                ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, PackingTapeMod.TAPE.get())
-                        .requires(Tags.Items.SLIME_BALLS)
-                        .requires(Tags.Items.STRINGS)
-                        .requires(Items.PAPER)
-                        .unlockedBy("has_slime_ball", has(Items.SLIME_BALL))
-                        .save(consumer);
+                return new VanillaRecipeProvider(lookup, output)
+                {
+                    @Override
+                    protected void buildRecipes()
+                    {
+                        shapeless(RecipeCategory.TOOLS, PackingTapeMod.TAPE.get())
+                                .requires(Tags.Items.SLIME_BALLS)
+                                .requires(Tags.Items.STRINGS)
+                                .requires(Items.PAPER)
+                                .unlockedBy("has_slime_ball", has(Items.SLIME_BALL))
+                                .save(output);
+                    }
+                };
+            }
+
+            @Override
+            public String getName()
+            {
+                return "Packing Tape Recipes";
             }
         }
 

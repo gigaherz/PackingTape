@@ -65,7 +65,7 @@ public class ConfigValues
         var block = be.getBlockState().getBlock();
 
         var rk0 = BuiltInRegistries.BLOCK.getResourceKey(block).orElseThrow();
-        var holder0 = BuiltInRegistries.BLOCK.getHolder(rk0).orElseThrow();
+        var holder0 = BuiltInRegistries.BLOCK.getOrThrow(rk0);
 
         if (holder0.is(BLOCK_WHITELIST))
             return true;
@@ -73,7 +73,7 @@ public class ConfigValues
         var type = be.getType();
 
         var rk1 = BuiltInRegistries.BLOCK_ENTITY_TYPE.getResourceKey(type).orElseThrow();
-        var holder1 = BuiltInRegistries.BLOCK_ENTITY_TYPE.getHolder(rk1).orElseThrow();
+        var holder1 = BuiltInRegistries.BLOCK_ENTITY_TYPE.getOrThrow(rk1);
 
         return holder1.is(TE_WHITELIST);
     }
@@ -83,7 +83,7 @@ public class ConfigValues
         var block = be.getBlockState().getBlock();
 
         var rk0 = BuiltInRegistries.BLOCK.getResourceKey(block).orElseThrow();
-        var holder0 = BuiltInRegistries.BLOCK.getHolder(rk0).orElseThrow();
+        var holder0 = BuiltInRegistries.BLOCK.getOrThrow(rk0);
 
         if (holder0.is(BLOCK_WHITELIST))
             return false;
@@ -94,7 +94,7 @@ public class ConfigValues
         var type = be.getType();
 
         var rk1 = BuiltInRegistries.BLOCK_ENTITY_TYPE.getResourceKey(type).orElseThrow();
-        var holder1 = BuiltInRegistries.BLOCK_ENTITY_TYPE.getHolder(rk1).orElseThrow();
+        var holder1 = BuiltInRegistries.BLOCK_ENTITY_TYPE.getOrThrow(rk1);
 
         if (holder1.is(TE_WHITELIST))
             return false;

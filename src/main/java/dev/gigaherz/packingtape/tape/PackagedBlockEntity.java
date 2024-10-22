@@ -104,7 +104,7 @@ public class PackagedBlockEntity extends BlockEntity
     {
         super.loadAdditional(compound, provider);
 
-        HolderGetter<Block> holdergetter = this.level != null ? this.level.holderLookup(Registries.BLOCK) : BuiltInRegistries.BLOCK.asLookup();
+        HolderGetter<Block> holdergetter = this.level != null ? this.level.holderLookup(Registries.BLOCK) : BuiltInRegistries.BLOCK;
 
         CompoundTag blockTag = compound.getCompound("Block");
         containedBlockState = NbtUtils.readBlockState(holdergetter, blockTag);
