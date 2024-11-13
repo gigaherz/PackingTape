@@ -67,7 +67,7 @@ public class PackingTapeMod
 
     public static final DeferredItem<BlockItem>
             PACKAGED_BLOCK_ITEM = ITEMS.registerItem(PACKAGED_BLOCK.getId().getPath(), props ->
-                    new BlockItem(PACKAGED_BLOCK.get(), props.stacksTo(16)));
+                    new BlockItem(PACKAGED_BLOCK.get(), props.stacksTo(16).useBlockDescriptionPrefix()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PackagedBlockEntity>>
             PACKAGED_BLOCK_ENTITY = BLOCK_ENTITIES.register(PACKAGED_BLOCK.getId().getPath(), () ->
@@ -78,9 +78,9 @@ public class PackingTapeMod
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ContainedBlockData>>
             CONTAINED_BLOCK = DATA_COMPONENTS.register("contained_block", () -> DataComponentType.<ContainedBlockData>builder()
-            .persistent(ContainedBlockData.CODEC)
-            .networkSynchronized(ContainedBlockData.STREAM_CODEC)
-            .build());
+                    .persistent(ContainedBlockData.CODEC)
+                    .networkSynchronized(ContainedBlockData.STREAM_CODEC)
+                    .build());
 
     public PackingTapeMod(ModContainer thisContainer, IEventBus modEventBus)
     {

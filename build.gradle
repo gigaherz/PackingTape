@@ -5,7 +5,7 @@ plugins {
     id 'net.neoforged.moddev' version '2.0.42-beta'
 }
 
-version = "0.15.4"
+version = "0.16.0"
 group= "dev.gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 
 var minecraftVersionResolver = project.neoForge.version.map { "1." + (it =~ /^(\d+(?:\.[1-9]\d*|))\./)[0][1] }
@@ -24,7 +24,7 @@ repositories {
 }
 
 neoForge {
-    version = "21.2.0-beta"
+    version = "21.3.19-beta"
 
     runs {
         // applies to all the run configs below
@@ -57,7 +57,7 @@ neoForge {
 
     parchment {
         minecraftVersion = "1.21"
-        mappingsVersion = "2024.07.28"
+        mappingsVersion = "2024.11.10"
     }
 }
 
@@ -65,9 +65,7 @@ dependencies {
 }
 
 jar {
-    from('/') {
-        include 'LICENSE.txt'
-    }
+    from(files('LICENSE.txt'))
 
     manifest {
         attributes([
