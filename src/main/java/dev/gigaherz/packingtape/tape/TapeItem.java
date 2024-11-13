@@ -124,7 +124,7 @@ public class TapeItem extends Item
             }
             else
             {
-                if (consumeRoll(stack))
+                if (!consumeRoll(stack))
                 {
                     stack.shrink(1);
                 }

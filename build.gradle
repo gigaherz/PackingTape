@@ -1,10 +1,11 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.9-beta'
+    id 'idea'
+    id 'net.neoforged.moddev' version '2.0.42-beta'
 }
 
-version = "0.15.3"
+version = "0.15.5"
 group= "dev.gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 
 var minecraftVersionResolver = project.neoForge.version.map { "1." + (it =~ /^(\d+(?:\.[1-9]\d*|))\./)[0][1] }
@@ -23,15 +24,15 @@ repositories {
 }
 
 neoForge {
-    version = "21.1.8"
+    version = "21.1.77"
 
     runs {
         // applies to all the run configs below
         configureEach {
             gameDirectory = project.file('run')
             logLevel = org.slf4j.event.Level.DEBUG
-            jvmArgument "-Dmixin.debug.export=true"
-            jvmArgument "-Dmixin.debug.verbose=true"
+            //jvmArgument "-Dmixin.debug.export=true"
+            //jvmArgument "-Dmixin.debug.verbose=true"
         }
 
         client {
@@ -56,7 +57,7 @@ neoForge {
 
     parchment {
         minecraftVersion = "1.21"
-        mappingsVersion = "2024.07.28"
+        mappingsVersion = "2024.11.10"
     }
 }
 
@@ -64,9 +65,7 @@ dependencies {
 }
 
 jar {
-    from('/') {
-        include 'LICENSE.txt'
-    }
+    from(files('LICENSE.txt'))
 
     manifest {
         attributes([
