@@ -75,7 +75,7 @@ public class PackagedBlock extends Block implements EntityBlock
     }
 
     @Override
-    public ItemStack getCloneItemStack(BlockState state, HitResult target, LevelReader level, BlockPos pos, Player player)
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player)
     {
         if (player instanceof FakePlayer || player.level().isClientSide && ClientKeys.isStrictPicking(player))
             return new ItemStack(asItem(), 1);
@@ -250,7 +250,7 @@ public class PackagedBlock extends Block implements EntityBlock
         BlockEntity blockentity = level.getBlockEntity(pos);
         if (blockentity != null)
         {
-            if (blockentity.onlyOpCanSetNbt() && player != null && !player.canUseGameMasterBlocks() && !ConfigValues.isBlockEntityWhitelisted(blockentity))
+            if (blockentity.getType().onlyOpCanSetNbt() && player != null && !player.canUseGameMasterBlocks() && !ConfigValues.isBlockEntityWhitelisted(blockentity))
             {
                 return;
             }

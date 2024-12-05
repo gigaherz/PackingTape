@@ -106,7 +106,7 @@ public class PackingTapeMod
         }
     }
 
-    private void gatherData(GatherDataEvent event)
+    private void gatherData(GatherDataEvent.Client event)
     {
         DataGen.gatherData(event);
     }
@@ -134,13 +134,13 @@ public class PackingTapeMod
 
     public static class DataGen
     {
-        public static void gatherData(GatherDataEvent event)
+        public static void gatherData(GatherDataEvent.Client event)
         {
             DataGenerator gen = event.getGenerator();
             PackOutput output = gen.getPackOutput();
 
-            gen.addProvider(event.includeServer(), Loot.create(output, event.getLookupProvider()));
-            gen.addProvider(event.includeServer(), new Recipes(output, event.getLookupProvider()));
+            gen.addProvider(true, Loot.create(output, event.getLookupProvider()));
+            gen.addProvider(true, new Recipes(output, event.getLookupProvider()));
         }
 
         private static class Recipes extends RecipeProvider.Runner

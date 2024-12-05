@@ -2,10 +2,10 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.42-beta'
+    id 'net.neoforged.moddev' version '2.0.54-beta'
 }
 
-version = "0.16.0"
+version = "0.17.0"
 group= "dev.gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 
 var minecraftVersionResolver = project.neoForge.version.map { "1." + (it =~ /^(\d+(?:\.[1-9]\d*|))\./)[0][1] }
@@ -24,7 +24,7 @@ repositories {
 }
 
 neoForge {
-    version = "21.3.19-beta"
+    version = "21.4.8-beta"
 
     runs {
         // applies to all the run configs below
@@ -43,8 +43,8 @@ neoForge {
             server()
         }
 
-        data {
-            data()
+        clientData {
+            clientData()
             programArguments.addAll '--mod', 'packingtape', '--all', '--output', file('src/main/generated_resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
         }
     }

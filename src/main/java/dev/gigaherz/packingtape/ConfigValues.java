@@ -99,7 +99,7 @@ public class ConfigValues
         if (holder1.is(TE_WHITELIST))
             return false;
 
-        if (be.onlyOpCanSetNbt())
+        if (type.onlyOpCanSetNbt())
             return true;
 
         return holder1.is(TE_BLACKLIST);
