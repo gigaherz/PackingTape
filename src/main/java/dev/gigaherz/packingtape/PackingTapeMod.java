@@ -62,8 +62,7 @@ public class PackingTapeMod
     public static final DeferredBlock<PackagedBlock>
             PACKAGED_BLOCK = BLOCKS.registerBlock("packaged_block", props ->
                     new PackagedBlock(props
-                            .mapColor(MapColor.WOOL).strength(0.5f, 0.5f).sound(SoundType.WOOD)),
-            BlockBehaviour.Properties.of());
+                            .mapColor(MapColor.WOOL).strength(0.5f, 0.5f).sound(SoundType.WOOD)));
 
     public static final DeferredItem<BlockItem>
             PACKAGED_BLOCK_ITEM = ITEMS.registerItem(PACKAGED_BLOCK.getId().getPath(), props ->
