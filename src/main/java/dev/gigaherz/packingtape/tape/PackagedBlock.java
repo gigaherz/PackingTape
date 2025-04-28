@@ -19,9 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
@@ -36,17 +34,16 @@ import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
-import java.util.List;
+import java.util.function.Consumer;
 
 public class PackagedBlock extends Block implements EntityBlock
 {
-    private static Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public static final BooleanProperty UNPACKING = BooleanProperty.create("unpacking");
 
@@ -77,7 +74,7 @@ public class PackagedBlock extends Block implements EntityBlock
     @Override
     public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player)
     {
-        if (player instanceof FakePlayer || player.level().isClientSide && ClientKeys.isStrictPicking(player))
+        if (includeData)
             return new ItemStack(asItem(), 1);
         else
             return new ItemStack(PackingTapeMod.TAPE.get(), 1);
@@ -271,13 +268,12 @@ public class PackagedBlock extends Block implements EntityBlock
         return Component.translatable("text.packingtape.packaged.missing_data", Component.translatable(detail));
     }
 
-    @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag advanced)
+    public void appendHoverText(ItemStack stack, Consumer<Component> lineConsumer)
     {
         ContainedBlockData data = stack.get(PackingTapeMod.CONTAINED_BLOCK);
         if (data == null)
         {
-            tooltip.add(makeError("text.packingtape.packaged.no_nbt"));
+            lineConsumer.accept(makeError("text.packingtape.packaged.no_nbt"));
             return;
         }
 
@@ -285,8 +281,8 @@ public class PackagedBlock extends Block implements EntityBlock
         ResourceLocation blockName = BuiltInRegistries.BLOCK.getKey(block);
         if (block == Blocks.AIR)
         {
-            tooltip.add(Component.translatable("text.packingtape.packaged.unknown_block"));
-            tooltip.add(Component.literal("  " + blockName));
+            lineConsumer.accept(Component.translatable("text.packingtape.packaged.unknown_block"));
+            lineConsumer.accept(Component.literal("  " + blockName));
             return;
         }
 
@@ -296,14 +292,14 @@ public class PackagedBlock extends Block implements EntityBlock
             item = BuiltInRegistries.ITEM.getOptional(blockName).orElse(Items.AIR);
             if (item == Items.AIR)
             {
-                tooltip.add(Component.translatable("text.packingtape.packaged.no_item"));
-                tooltip.add(Component.literal("  " + blockName));
+                lineConsumer.accept(Component.translatable("text.packingtape.packaged.no_item"));
+                lineConsumer.accept(Component.literal("  " + blockName));
                 return;
             }
         }
 
         ItemStack stack1 = new ItemStack(item, 1);
-        tooltip.add(Component.translatable("text.packingtape.packaged.contains", stack1.getHoverName()));
+        lineConsumer.accept(Component.translatable("text.packingtape.packaged.contains", stack1.getHoverName()));
     }
 
     private static class ClientKeys

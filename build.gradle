@@ -2,16 +2,13 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.54-beta'
+    id 'net.neoforged.moddev' version '2.0.82'
 }
 
+neoForge.version = "21.5.62-beta"
 version = "0.17.0"
-group= "dev.gigaherz.packingtape" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-
-var minecraftVersionResolver = project.neoForge.version.map { "1." + (it =~ /^(\d+(?:\.[1-9]\d*|))\./)[0][1] }
-base {
-    archivesName = minecraftVersionResolver.map { "PackingTape-${it}" }
-}
+group= "dev.gigaherz.packingtape"
+base.archivesName = "PackingTape-${neoForge.minecraftVersion}"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
@@ -24,8 +21,6 @@ repositories {
 }
 
 neoForge {
-    version = "21.4.8-beta"
-
     runs {
         // applies to all the run configs below
         configureEach {
@@ -56,8 +51,8 @@ neoForge {
     }
 
     parchment {
-        minecraftVersion = "1.21"
-        mappingsVersion = "2024.11.10"
+        minecraftVersion = "1.21.4"
+        mappingsVersion = "2025.03.23"
     }
 }
 

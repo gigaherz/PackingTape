@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -106,21 +107,23 @@ public class PackagedBlockEntity extends BlockEntity
 
         HolderGetter<Block> holdergetter = this.level != null ? this.level.holderLookup(Registries.BLOCK) : BuiltInRegistries.BLOCK;
 
-        CompoundTag blockTag = compound.getCompound("Block");
+        CompoundTag blockTag = compound.getCompoundOrEmpty("Block");
         containedBlockState = NbtUtils.readBlockState(holdergetter, blockTag);
-        containedTile = compound.getCompound("BlockEntity").copy();
+        containedTile = compound.getCompoundOrEmpty("BlockEntity").copy();
         if (compound.contains("PreferredDirection"))
         {
-            preferredAll = Direction.byName(compound.getString("PreferredDirection"));
+            preferredAll = compound.getString("PreferredDirection").map(Direction::byName).orElse(null);
         }
-        if (compound.contains("PreferredDirection"))
+        if (compound.contains("PreferredHorizontal"))
         {
-            preferredHorizontal = Direction.byName(compound.getString("PreferredHorizontal"));
+            preferredHorizontal = compound.getString("PreferredHorizontal").map(Direction::byName).orElse(null);
         }
     }
 
+
+
     @Override
-    protected void applyImplicitComponents(DataComponentInput input)
+    protected void applyImplicitComponents(DataComponentGetter input)
     {
         var data = input.get(PackingTapeMod.CONTAINED_BLOCK);
         if (data != null)

@@ -15,13 +15,14 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.packs.VanillaRecipeProvider;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -47,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Mod(PackingTapeMod.MODID)
@@ -66,7 +68,7 @@ public class PackingTapeMod
 
     public static final DeferredItem<BlockItem>
             PACKAGED_BLOCK_ITEM = ITEMS.registerItem(PACKAGED_BLOCK.getId().getPath(), props ->
-                    new BlockItem(PACKAGED_BLOCK.get(), props.stacksTo(16).useBlockDescriptionPrefix()));
+            new PackagedBlockItem(PackingTapeMod.PACKAGED_BLOCK.get(), props.stacksTo(16).useBlockDescriptionPrefix()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PackagedBlockEntity>>
             PACKAGED_BLOCK_ENTITY = BLOCK_ENTITIES.register(PACKAGED_BLOCK.getId().getPath(), () ->
@@ -219,6 +221,22 @@ public class PackingTapeMod
                             .collect(Collectors.toList());
                 }
             }
+        }
+    }
+
+    private static class PackagedBlockItem extends BlockItem
+    {
+
+        public PackagedBlockItem(PackagedBlock block, Properties properties)
+        {
+            super(block, properties);
+        }
+
+        @Deprecated
+        @Override
+        public void appendHoverText(ItemStack p_41421_, TooltipContext p_339594_, TooltipDisplay p_399753_, Consumer<Component> p_399884_, TooltipFlag p_41424_)
+        {
+            ((PackagedBlock)getBlock()).appendHoverText(p_41421_, p_399884_);
         }
     }
 }
