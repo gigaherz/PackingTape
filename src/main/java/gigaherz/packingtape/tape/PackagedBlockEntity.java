@@ -51,7 +51,7 @@ public class PackagedBlockEntity extends BlockEntity
             compound.put("BlockEntity", containedTile.copy());
             if (preferredDirection != null)
             {
-                compound.putInt("PreferredDirection", preferredDirection.ordinal());
+                compound.putString("PreferredDirection", preferredDirection.getSerializedName());
             }
         }
     }
@@ -66,9 +66,16 @@ public class PackagedBlockEntity extends BlockEntity
         CompoundTag blockTag = compound.getCompound("Block");
         containedBlockState = NbtUtils.readBlockState(holdergetter, blockTag);
         containedTile = compound.getCompound("BlockEntity").copy();
-        if (compound.contains("PreferredDirection"))
+        if (compound.contains("PreferredDirection", Tag.TAG_STRING))
         {
             preferredDirection = Direction.byName(compound.getString("PreferredDirection"));
+        }
+        else if (compound.contains("PreferredDirection", Tag.TAG_ANY_NUMERIC))
+        {
+            var values = Direction.values();
+            var ordinal = compound.getInt("PreferredDirection");
+            if (ordinal >= 0 && ordinal < values.length)
+                preferredDirection = values[ordinal];
         }
     }
 
