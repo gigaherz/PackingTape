@@ -18,6 +18,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -51,11 +53,13 @@ public class PackagedBlockEntity extends BlockEntity
         containedTile = tag;
     }
 
+    @Nullable
     public BlockState getContainedBlockState()
     {
         return containedBlockState;
     }
 
+    @Nullable
     public CompoundTag getContainedTile()
     {
         return containedTile;
@@ -80,47 +84,41 @@ public class PackagedBlockEntity extends BlockEntity
     }
 
     @Override
-    public void saveAdditional(CompoundTag compound, HolderLookup.Provider provider)
+    public void saveAdditional(ValueOutput output)
     {
-        super.saveAdditional(compound, provider);
+        super.saveAdditional(output);
 
         if (containedBlockState != null)
         {
-            CompoundTag blockData = NbtUtils.writeBlockState(containedBlockState);
-            compound.put("Block", blockData);
-            compound.put("BlockEntity", containedTile.copy());
+            output.store("Block", BlockState.CODEC, containedBlockState);
+            output.store("BlockEntity", CompoundTag.CODEC, containedTile.copy());
             if (preferredAll != null)
             {
-                compound.putInt("PreferredDirection", preferredAll.ordinal());
+                output.putString("PreferredDirection", preferredAll.getSerializedName());
             }
             if (preferredHorizontal != null)
             {
-                compound.putInt("PreferredHorizontal", preferredHorizontal.ordinal());
+                output.putString("PreferredHorizontal", preferredHorizontal.getSerializedName());
             }
         }
     }
 
     @Override
-    public void loadAdditional(CompoundTag compound, HolderLookup.Provider provider)
+    public void loadAdditional(ValueInput input)
     {
-        super.loadAdditional(compound, provider);
+        super.loadAdditional(input);
 
-        HolderGetter<Block> holdergetter = this.level != null ? this.level.holderLookup(Registries.BLOCK) : BuiltInRegistries.BLOCK;
-
-        CompoundTag blockTag = compound.getCompoundOrEmpty("Block");
-        containedBlockState = NbtUtils.readBlockState(holdergetter, blockTag);
-        containedTile = compound.getCompoundOrEmpty("BlockEntity").copy();
-        if (compound.contains("PreferredDirection"))
-        {
-            preferredAll = compound.getString("PreferredDirection").map(Direction::byName).orElse(null);
-        }
-        if (compound.contains("PreferredHorizontal"))
-        {
-            preferredHorizontal = compound.getString("PreferredHorizontal").map(Direction::byName).orElse(null);
-        }
+        var blockStateOpt = input.read("Block", BlockState.CODEC);
+        if (blockStateOpt.isEmpty())
+            return;
+        containedBlockState = blockStateOpt.get();
+        var blockEntityTagOpt = input.read("BlockEntity", CompoundTag.CODEC);
+        if (blockEntityTagOpt.isEmpty())
+            return;
+        containedTile = blockEntityTagOpt.get().copy();
+        preferredAll = input.getString("PreferredDirection").map(Direction::byName).orElse(null);
+        preferredHorizontal = input.getString("PreferredHorizontal").map(Direction::byName).orElse(null);
     }
-
-
 
     @Override
     protected void applyImplicitComponents(DataComponentGetter input)
@@ -172,15 +170,17 @@ public class PackagedBlockEntity extends BlockEntity
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider provider)
+    public void handleUpdateTag(ValueInput input)
     {
-        this.loadWithComponents(tag, provider);
+        this.loadWithComponents(input);
     }
 
+
+
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider provider)
+    public void onDataPacket(Connection net, ValueInput input)
     {
-        handleUpdateTag(pkt.getTag(), provider);
+        handleUpdateTag(input);
     }
 
     public boolean isEmpty()

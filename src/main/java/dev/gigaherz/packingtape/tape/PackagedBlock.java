@@ -1,5 +1,6 @@
 package dev.gigaherz.packingtape.tape;
 
+import com.mojang.logging.LogUtils;
 import dev.gigaherz.packingtape.ConfigValues;
 import dev.gigaherz.packingtape.PackingTapeMod;
 import net.minecraft.client.gui.screens.Screen;
@@ -11,6 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -33,17 +35,16 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 public class PackagedBlock extends Block implements EntityBlock
 {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     public static final BooleanProperty UNPACKING = BooleanProperty.create("unpacking");
 
@@ -133,12 +134,10 @@ public class PackagedBlock extends Block implements EntityBlock
 
         BlockEntity te = level.getBlockEntity(pos);
 
-        if (!(te instanceof PackagedBlockEntity))
+        if (!(te instanceof PackagedBlockEntity packagedBlock))
         {
             return displayBlockMissingError(level, pos);
         }
-
-        PackagedBlockEntity packagedBlock = (PackagedBlockEntity) te;
 
         BlockState newState = packagedBlock.getContainedBlockState();
         CompoundTag entityData = packagedBlock.getContainedTile();
@@ -257,8 +256,10 @@ public class PackagedBlock extends Block implements EntityBlock
             current.merge(compoundtag);
             if (!current.equals(original))
             {
-                blockentity.loadWithComponents(current, level.registryAccess());
-                blockentity.setChanged();
+                try (ProblemReporter.ScopedCollector problemreporter$scopedcollector = new ProblemReporter.ScopedCollector(LOGGER)) {
+                    blockentity.loadWithComponents(TagValueInput.create(problemreporter$scopedcollector, level.registryAccess(), current));
+                    blockentity.setChanged();
+                }
             }
         }
     }
@@ -300,13 +301,5 @@ public class PackagedBlock extends Block implements EntityBlock
 
         ItemStack stack1 = new ItemStack(item, 1);
         lineConsumer.accept(Component.translatable("text.packingtape.packaged.contains", stack1.getHoverName()));
-    }
-
-    private static class ClientKeys
-    {
-        public static boolean isStrictPicking(Player player)
-        {
-            return Screen.hasShiftDown() || (player.getAbilities().instabuild && Screen.hasControlDown());
-        }
     }
 }
