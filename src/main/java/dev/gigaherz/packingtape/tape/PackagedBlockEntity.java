@@ -10,6 +10,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.item.ItemStack;
@@ -50,11 +51,13 @@ public class PackagedBlockEntity extends BlockEntity
         containedTile = tag;
     }
 
+    @Nullable
     public BlockState getContainedBlockState()
     {
         return containedBlockState;
     }
 
+    @Nullable
     public CompoundTag getContainedTile()
     {
         return containedTile;
@@ -90,11 +93,11 @@ public class PackagedBlockEntity extends BlockEntity
             compound.put("BlockEntity", containedTile.copy());
             if (preferredAll != null)
             {
-                compound.putInt("PreferredDirection", preferredAll.ordinal());
+                compound.putString("PreferredDirection", preferredAll.getSerializedName());
             }
             if (preferredHorizontal != null)
             {
-                compound.putInt("PreferredHorizontal", preferredHorizontal.ordinal());
+                compound.putString("PreferredHorizontal", preferredHorizontal.getSerializedName());
             }
         }
     }
@@ -109,13 +112,27 @@ public class PackagedBlockEntity extends BlockEntity
         CompoundTag blockTag = compound.getCompound("Block");
         containedBlockState = NbtUtils.readBlockState(holdergetter, blockTag);
         containedTile = compound.getCompound("BlockEntity").copy();
-        if (compound.contains("PreferredDirection"))
+        if (compound.contains("PreferredDirection", Tag.TAG_STRING))
         {
             preferredAll = Direction.byName(compound.getString("PreferredDirection"));
         }
-        if (compound.contains("PreferredDirection"))
+        else if (compound.contains("PreferredDirection", Tag.TAG_ANY_NUMERIC))
+        {
+            var values = Direction.values();
+            var ordinal = compound.getInt("PreferredDirection");
+            if (ordinal >= 0 && ordinal < values.length)
+                preferredAll = values[ordinal];
+        }
+        if (compound.contains("PreferredHorizontal", Tag.TAG_STRING))
         {
             preferredHorizontal = Direction.byName(compound.getString("PreferredHorizontal"));
+        }
+        else if (compound.contains("PreferredHorizontal", Tag.TAG_ANY_NUMERIC))
+        {
+            var values = Direction.values();
+            var ordinal = compound.getInt("PreferredHorizontal");
+            if (ordinal >= 0 && ordinal < values.length)
+                preferredHorizontal = values[ordinal];
         }
     }
 
