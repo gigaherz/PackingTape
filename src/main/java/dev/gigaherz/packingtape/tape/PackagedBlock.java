@@ -87,7 +87,7 @@ public class PackagedBlock extends Block implements EntityBlock
         BlockEntity te = world.getBlockEntity(pos);
         if (te instanceof PackagedBlockEntity packaged)
         {
-            if (!world.isClientSide && player.isCreative() && !packaged.isEmpty())
+            if (!world.isClientSide() && player.isCreative() && !packaged.isEmpty())
             {
                 ItemStack stack = packaged.getPackedStack();
                 ItemEntity itemEntity = new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), stack);
@@ -129,7 +129,7 @@ public class PackagedBlock extends Block implements EntityBlock
 
     public InteractionResult use(Level level, BlockPos pos, Player player)
     {
-        if (level.isClientSide)
+        if (level.isClientSide())
             return InteractionResult.SUCCESS;
 
         BlockEntity te = level.getBlockEntity(pos);
@@ -234,7 +234,7 @@ public class PackagedBlock extends Block implements EntityBlock
 
     public static void setTileEntityNBT(Level level, @Nullable Player player, BlockPos pos, CompoundTag compoundtag)
     {
-        if (level.isClientSide)
+        if (level.isClientSide())
             return;
 
         MinecraftServer minecraftserver = level.getServer();

@@ -69,7 +69,7 @@ public class TapeItem extends Item
             return InteractionResult.FAIL;
         }
 
-        if (level.isClientSide)
+        if (level.isClientSide())
         {
             return InteractionResult.SUCCESS;
         }

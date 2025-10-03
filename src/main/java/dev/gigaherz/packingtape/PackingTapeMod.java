@@ -6,6 +6,7 @@ import dev.gigaherz.packingtape.tape.PackagedBlockEntity;
 import dev.gigaherz.packingtape.tape.TapeItem;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -30,6 +31,7 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 import net.minecraft.world.level.storage.loot.functions.CopyNameFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -205,8 +207,8 @@ public class PackingTapeMod
                             .withPool(applyExplosionCondition(block, LootPool.lootPool()
                                     .setRolls(ConstantValue.exactly(1))
                                     .add(LootItem.lootTableItem(block)
-                                            .apply(CopyNameFunction.copyName(CopyNameFunction.NameSource.BLOCK_ENTITY))
-                                            .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                                            .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
+                                                    .include(DataComponents.CUSTOM_NAME)
                                                     .include(PackingTapeMod.CONTAINED_BLOCK.get()))
                                     )
                             ));
