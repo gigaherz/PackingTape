@@ -118,7 +118,7 @@ public class TapeItem extends Item
                 split.setCount(1);
                 if (consumeRoll(split))
                 {
-                    ItemHandlerHelper.giveItemToPlayer(player, split);
+                    player.getInventory().placeItemBackInInventory(split);
                 }
                 stack.shrink(1);
             }

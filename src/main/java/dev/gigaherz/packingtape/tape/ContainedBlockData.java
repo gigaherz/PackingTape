@@ -19,7 +19,7 @@ public record ContainedBlockData(BlockState state, CompoundTag blockEntityTag, O
             BlockState.CODEC.fieldOf("state").forGetter(ContainedBlockData::state),
             CompoundTag.CODEC.fieldOf("blockEntityTag").forGetter(ContainedBlockData::blockEntityTag),
             Direction.CODEC.optionalFieldOf("preferredDirection").forGetter(ContainedBlockData::preferredAll),
-            Direction.CODEC.optionalFieldOf("preferredHorizontal").forGetter(ContainedBlockData::preferredAll)
+            Direction.CODEC.optionalFieldOf("preferredHorizontal").forGetter(ContainedBlockData::preferredHorizontal)
     ).apply(inst, ContainedBlockData::new));
 
     private static final StreamCodec<ByteBuf, BlockState> BLOCKSTATE_STREAM_CODEC = ByteBufCodecs.fromCodec(BlockState.CODEC);

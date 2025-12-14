@@ -10,7 +10,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
@@ -279,7 +279,7 @@ public class PackagedBlock extends Block implements EntityBlock
         }
 
         Block block = data.getBlock();
-        ResourceLocation blockName = BuiltInRegistries.BLOCK.getKey(block);
+        Identifier blockName = BuiltInRegistries.BLOCK.getKey(block);
         if (block == Blocks.AIR)
         {
             lineConsumer.accept(Component.translatable("text.packingtape.packaged.unknown_block"));

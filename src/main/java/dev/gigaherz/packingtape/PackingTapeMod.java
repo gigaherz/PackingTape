@@ -17,7 +17,7 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.packs.VanillaRecipeProvider;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.TooltipDisplay;
@@ -130,9 +130,9 @@ public class PackingTapeMod
             ConfigValues.bake();
     }
 
-    public static ResourceLocation location(String path)
+    public static Identifier location(String path)
     {
-        return ResourceLocation.fromNamespaceAndPath(MODID, path);
+        return Identifier.fromNamespaceAndPath(MODID, path);
     }
 
     public static class DataGen
@@ -218,7 +218,7 @@ public class PackingTapeMod
                 protected Iterable<Block> getKnownBlocks()
                 {
                     return BuiltInRegistries.BLOCK.entrySet().stream()
-                            .filter(e -> e.getKey().location().getNamespace().equals(PackingTapeMod.MODID))
+                            .filter(e -> e.getKey().identifier().getNamespace().equals(PackingTapeMod.MODID))
                             .map(Map.Entry::getValue)
                             .collect(Collectors.toList());
                 }
