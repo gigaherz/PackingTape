@@ -2,15 +2,15 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.124'
+    id 'net.neoforged.moddev' version '2.0.134'
 }
 
-neoForge.version = "21.11.6-beta"
+neoForge.version = "26.1.0.0-alpha.1+snapshot-1"
 version = "0.21.0"
 group= "dev.gigaherz.packingtape"
 base.archivesName = "PackingTape-${neoForge.minecraftVersion}"
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 sourceSets {
     main.resources.srcDirs += 'src/main/generated_resources'
@@ -48,11 +48,6 @@ neoForge {
         thismod {
             sourceSet(sourceSets.main)
         }
-    }
-
-    parchment {
-        minecraftVersion = "1.21.8"
-        mappingsVersion = "BLEEDING-SNAPSHOT"
     }
 }
 

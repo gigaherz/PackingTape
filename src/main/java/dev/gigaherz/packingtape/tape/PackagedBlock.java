@@ -3,7 +3,6 @@ package dev.gigaherz.packingtape.tape;
 import com.mojang.logging.LogUtils;
 import dev.gigaherz.packingtape.ConfigValues;
 import dev.gigaherz.packingtape.PackingTapeMod;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
