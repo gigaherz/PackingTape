@@ -29,7 +29,6 @@ import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
-import net.minecraft.world.level.storage.loot.functions.CopyNameFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
@@ -70,7 +69,7 @@ public class PackingTapeMod
 
     public static final DeferredItem<BlockItem>
             PACKAGED_BLOCK_ITEM = ITEMS.registerItem(PACKAGED_BLOCK.getId().getPath(), props ->
-            new PackagedBlockItem(PackingTapeMod.PACKAGED_BLOCK.get(), props.stacksTo(16).useBlockDescriptionPrefix()));
+                    new PackagedBlockItem(PackingTapeMod.PACKAGED_BLOCK.get(), props.stacksTo(16).useBlockDescriptionPrefix()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PackagedBlockEntity>>
             PACKAGED_BLOCK_ENTITY = BLOCK_ENTITIES.register(PACKAGED_BLOCK.getId().getPath(), () ->
@@ -238,7 +237,7 @@ public class PackingTapeMod
         @Override
         public void appendHoverText(ItemStack p_41421_, TooltipContext p_339594_, TooltipDisplay p_399753_, Consumer<Component> p_399884_, TooltipFlag p_41424_)
         {
-            ((PackagedBlock)getBlock()).appendHoverText(p_41421_, p_399884_);
+            ((PackagedBlock) getBlock()).appendHoverText(p_41421_, p_399884_);
         }
     }
 }

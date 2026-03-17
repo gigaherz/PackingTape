@@ -20,7 +20,6 @@ import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 public class TapeItem extends Item
 {
@@ -65,7 +64,7 @@ public class TapeItem extends Item
         if (!player.getAbilities().instabuild && ConfigValues.consumesPaper && !hasPaper(player))
         {
             var textComponent = Component.translatable("text.packingtape.tape.requires_paper");
-            player.displayClientMessage(textComponent, true);
+            player.sendOverlayMessage(textComponent);
             return InteractionResult.FAIL;
         }
 
@@ -92,9 +91,9 @@ public class TapeItem extends Item
         int bytes = tag.sizeInBytes();
         if (bytes > ConfigValues.maxStorageSize)
         {
-            player.displayClientMessage(
-                    Component.translatable("text.packingtape.tape.too_big", bytes, ConfigValues.maxStorageSize).withStyle(style -> style.withColor(ChatFormatting.RED))
-            , true);
+            player.sendOverlayMessage(
+                    Component.translatable("text.packingtape.tape.too_big", bytes, ConfigValues.maxStorageSize)
+                            .withStyle(style -> style.withColor(ChatFormatting.RED)));
             return InteractionResult.FAIL;
         }
 

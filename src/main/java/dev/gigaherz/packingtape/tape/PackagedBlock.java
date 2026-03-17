@@ -119,7 +119,6 @@ public class PackagedBlock extends Block implements EntityBlock
     }
 
 
-
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult)
     {
@@ -255,7 +254,8 @@ public class PackagedBlock extends Block implements EntityBlock
             current.merge(compoundtag);
             if (!current.equals(original))
             {
-                try (ProblemReporter.ScopedCollector problemreporter$scopedcollector = new ProblemReporter.ScopedCollector(LOGGER)) {
+                try (ProblemReporter.ScopedCollector problemreporter$scopedcollector = new ProblemReporter.ScopedCollector(LOGGER))
+                {
                     blockentity.loadWithComponents(TagValueInput.create(problemreporter$scopedcollector, level.registryAccess(), current));
                     blockentity.setChanged();
                 }
