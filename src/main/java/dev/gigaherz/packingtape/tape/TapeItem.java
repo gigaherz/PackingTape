@@ -97,7 +97,8 @@ public class TapeItem extends Item
             return InteractionResult.FAIL;
         }
 
-        level.removeBlockEntity(pos);
+        //level.removeBlockEntity(pos);
+        te.setRemoved();
         level.setBlockAndUpdate(pos, PackingTapeMod.PACKAGED_BLOCK.get().defaultBlockState());
 
         BlockEntity te2 = level.getBlockEntity(pos);
@@ -129,6 +130,8 @@ public class TapeItem extends Item
                 }
             }
         }
+
+        level.invalidateCapabilities(pos);
 
         return InteractionResult.SUCCESS;
     }

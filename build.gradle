@@ -2,11 +2,11 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.140'
+    id 'net.neoforged.moddev' version '2.0.141'
 }
 
-neoForge.version = "26.1.0.1-beta"
-version = "0.22.0"
+neoForge.version = "26.1.2.76"
+version = "0.22.2"
 group= "dev.gigaherz.packingtape"
 base.archivesName = "PackingTape-${neoForge.minecraftVersion}"
 
@@ -18,6 +18,12 @@ sourceSets {
 
 repositories {
     mavenLocal()
+    maven {
+        url "https://www.cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
 }
 
 neoForge {
@@ -49,6 +55,8 @@ neoForge {
 }
 
 dependencies {
+    //runtimeOnly 'curse.maven:sophisticated-core-618298:7934175'
+    //runtimeOnly 'curse.maven:sophisticated-storage-619320:7937154'
 }
 
 jar {

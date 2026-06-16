@@ -1,0 +1,10 @@
+{
+  "values": [
+    "#packingtape:blacklist/cheaty",
+    "#packingtape:blacklist/multiblock",
+    "#packingtape:blacklist/pointless",
+    "#packingtape:blacklist/problematic",
+    "#packingtape:blacklist/unsafe",
+    "#c:relocation_not_supported"
+  ]
+}

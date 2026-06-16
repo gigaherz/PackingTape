@@ -1,0 +1,8 @@
+// 26.1.2	2026-05-03T15:47:19.4773336	Tags for minecraft:block_entity_type mod id packingtape
+f835cdeac806ff176e388bdfc26f543b95288939 data/packingtape/tags/block_entity_type/blacklist/cheaty.json
+6d3746dd3d740df667e833ed7c1279f8db9fc411 data/packingtape/tags/block_entity_type/blacklist/multiblock.json
+003bf0e643b5991ade1c050a402b1193d4d800ef data/packingtape/tags/block_entity_type/blacklist/pointless.json
+af0ca5409c8dec7f2ffb1a2aabc212e4e0a22722 data/packingtape/tags/block_entity_type/blacklist/problematic.json
+b03ff05e75fa850473b559a17c75c0f544b163e4 data/packingtape/tags/block_entity_type/blacklist/unsafe.json
+3ac1642ad0dbf6f47d4f158d4a6fccd2ba787771 data/packingtape/tags/block_entity_type/te_blacklist.json
+35133e95f1c8fdd7a1c21afcc231fc0bffefb9a8 data/packingtape/tags/block_entity_type/te_whitelist.json

@@ -1,6 +1,0 @@
-{
-  "values": [
-    { "id": "#forge:movable", "required": false },
-    { "id": "#forge:relocation_supported", "required": false }
-  ]
-}

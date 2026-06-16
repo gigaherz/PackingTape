@@ -196,8 +196,9 @@ public class PackagedBlock extends Block implements EntityBlock
             }
         }
 
-        level.removeBlockEntity(pos);
-        level.setBlockAndUpdate(pos, newState);
+        //te.setRemoved();
+        //level.removeBlockEntity(pos);
+        level.setBlock(pos, newState, Block.UPDATE_ALL | Block.UPDATE_SKIP_BLOCK_ENTITY_SIDEEFFECTS | Block.UPDATE_SUPPRESS_DROPS);
 
         setTileEntityNBT(level, player, pos, entityData);
 
