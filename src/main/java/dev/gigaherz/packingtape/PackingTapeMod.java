@@ -5,7 +5,6 @@ import dev.gigaherz.packingtape.tape.PackagedBlock;
 import dev.gigaherz.packingtape.tape.PackagedBlockEntity;
 import dev.gigaherz.packingtape.tape.TapeItem;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -18,11 +17,12 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.packs.VanillaRecipeProvider;
-import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
+import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.network.chat.Component;
+import net.minecraft.references.BlockIds;
+import net.minecraft.references.BlockItemIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.TagEntry;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.*;
@@ -31,6 +31,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.entity.BlockEntityTypeIds;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -154,7 +155,7 @@ public class PackingTapeMod
             gen.addProvider(true, new BlockEntityTagGen(output, event.getLookupProvider()));
         }
 
-        private static class BlockTagGen extends IntrinsicHolderTagsProvider<Block>
+        private static class BlockTagGen extends TagsProvider<Block>
         {
             public static TagKey<Block> BLACKLIST_CHEATY = TagKey.create(Registries.BLOCK, PackingTapeMod.location("blacklist/cheaty"));
             public static TagKey<Block> BLACKLIST_MULTIBLOCK = TagKey.create(Registries.BLOCK, PackingTapeMod.location("blacklist/multiblock"));
@@ -164,20 +165,22 @@ public class PackingTapeMod
 
             public BlockTagGen(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookupProvider)
             {
-                //noinspection deprecation
-                super(packOutput, Registries.BLOCK, lookupProvider, block -> block.builtInRegistryHolder().key(), MODID);
+                super(packOutput, Registries.BLOCK, lookupProvider, MODID);
             }
 
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings({"unchecked", "DataFlowIssue", "deprecation"})
             @Override
             protected void addTags(HolderLookup.Provider lookup)
             {
-                tag(BLACKLIST_CHEATY).add(Blocks.END_PORTAL_FRAME, Blocks.END_GATEWAY, Blocks.SPAWNER, Blocks.TRIAL_SPAWNER);
-                tag(BLACKLIST_MULTIBLOCK).addTags(BlockTags.DOORS, BlockTags.BEDS).add(Blocks.PISTON, Blocks.PISTON_HEAD);
-                tag(BLACKLIST_POINTLESS).add(Blocks.ENCHANTING_TABLE, Blocks.BELL, Blocks.COMPARATOR, Blocks.DAYLIGHT_DETECTOR, PACKAGED_BLOCK.get());
-                tag(BLACKLIST_PROBLEMATIC).addTags(Tags.Blocks.SKULLS, BlockTags.BANNERS).add(Blocks.CONDUIT);
-                tag(BLACKLIST_UNSAFE).add(Blocks.COMMAND_BLOCK, Blocks.CHAIN_COMMAND_BLOCK, Blocks.REPEATING_COMMAND_BLOCK,
-                        Blocks.STRUCTURE_BLOCK, Blocks.JIGSAW, Blocks.TEST_BLOCK, Blocks.TEST_INSTANCE_BLOCK).addTags(BlockTags.ALL_SIGNS);
+                tag(BLACKLIST_CHEATY).add(BlockItemIds.END_PORTAL_FRAME.block(), Blocks.END_GATEWAY.builtInRegistryHolder().getKey(), BlockItemIds.SPAWNER.block(), BlockItemIds.TRIAL_SPAWNER.block());
+                tag(BLACKLIST_MULTIBLOCK).addTags(BlockTags.DOORS).add(BlockItemIds.PISTON.block(), Blocks.PISTON_HEAD.builtInRegistryHolder().getKey());
+                tag(BLACKLIST_POINTLESS).add(
+                        BlockItemIds.ENCHANTING_TABLE.block(), BlockItemIds.BELL.block(), BlockItemIds.COMPARATOR.block(),
+                        BlockItemIds.DAYLIGHT_DETECTOR.block(), BlockItemIds.POTENT_SULFUR.block(),
+                        PACKAGED_BLOCK.getKey());
+                tag(BLACKLIST_PROBLEMATIC).addTags(Tags.Blocks.SKULLS, BlockTags.BANNERS).add(BlockItemIds.CONDUIT.block());
+                tag(BLACKLIST_UNSAFE).add(BlockItemIds.COMMAND_BLOCK.block(), BlockItemIds.CHAIN_COMMAND_BLOCK.block(), BlockItemIds.REPEATING_COMMAND_BLOCK.block(),
+                        BlockItemIds.STRUCTURE_BLOCK.block(), BlockItemIds.JIGSAW.block(), BlockItemIds.TEST_BLOCK.block(), BlockItemIds.TEST_INSTANCE_BLOCK.block()).addTags(BlockTags.ALL_SIGNS);
                 tag(ConfigValues.BLOCK_BLACKLIST).addTags(
                         BLACKLIST_CHEATY, BLACKLIST_MULTIBLOCK, BLACKLIST_POINTLESS,
                         BLACKLIST_PROBLEMATIC, BLACKLIST_UNSAFE,
@@ -186,7 +189,7 @@ public class PackingTapeMod
             }
         }
 
-        private static class BlockEntityTagGen extends IntrinsicHolderTagsProvider<BlockEntityType<?>>
+        private static class BlockEntityTagGen extends TagsProvider<BlockEntityType<?>>
         {
             public static TagKey<BlockEntityType<?>> BLACKLIST_CHEATY = TagKey.create(Registries.BLOCK_ENTITY_TYPE, PackingTapeMod.location("blacklist/cheaty"));
             public static TagKey<BlockEntityType<?>> BLACKLIST_MULTIBLOCK = TagKey.create(Registries.BLOCK_ENTITY_TYPE, PackingTapeMod.location("blacklist/multiblock"));
@@ -196,19 +199,20 @@ public class PackingTapeMod
 
             public BlockEntityTagGen(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookupProvider)
             {
-                //noinspection DataFlowIssue,deprecation
-                super(packOutput, Registries.BLOCK_ENTITY_TYPE, lookupProvider, type -> type.builtInRegistryHolder().getKey(), MODID);
+                super(packOutput, Registries.BLOCK_ENTITY_TYPE, lookupProvider, MODID);
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             protected void addTags(HolderLookup.Provider lookup)
             {
-                tag(BLACKLIST_CHEATY).add(BlockEntityType.END_PORTAL, BlockEntityType.END_GATEWAY);
-                tag(BLACKLIST_MULTIBLOCK).add(BlockEntityType.BED, BlockEntityType.PISTON);
-                tag(BLACKLIST_POINTLESS).add(BlockEntityType.ENCHANTING_TABLE, BlockEntityType.BELL,
-                        BlockEntityType.COMPARATOR, BlockEntityType.DAYLIGHT_DETECTOR, PACKAGED_BLOCK_ENTITY.get());
-                tag(BLACKLIST_PROBLEMATIC).add(BlockEntityType.SKULL, BlockEntityType.BANNER, BlockEntityType.CONDUIT);
-                tag(BLACKLIST_UNSAFE).add(BlockEntityType.COMMAND_BLOCK, BlockEntityType.STRUCTURE_BLOCK, BlockEntityType.JIGSAW, BlockEntityType.SIGN, BlockEntityType.HANGING_SIGN);
+                tag(BLACKLIST_CHEATY).add(BlockEntityTypeIds.END_PORTAL, BlockEntityTypeIds.END_GATEWAY);
+                tag(BLACKLIST_MULTIBLOCK).add(BlockEntityTypeIds.PISTON);
+                tag(BLACKLIST_POINTLESS).add(BlockEntityTypeIds.ENCHANTING_TABLE, BlockEntityTypeIds.BELL,
+                        BlockEntityTypeIds.COMPARATOR, BlockEntityTypeIds.DAYLIGHT_DETECTOR, BlockEntityTypeIds.POTENT_SULFUR,
+                        PACKAGED_BLOCK_ENTITY.getKey());
+                tag(BLACKLIST_PROBLEMATIC).add(BlockEntityTypeIds.SKULL, BlockEntityTypeIds.BANNER, BlockEntityTypeIds.CONDUIT);
+                tag(BLACKLIST_UNSAFE).add(BlockEntityTypeIds.COMMAND_BLOCK, BlockEntityTypeIds.STRUCTURE_BLOCK, BlockEntityTypeIds.JIGSAW, BlockEntityTypeIds.SIGN, BlockEntityTypeIds.HANGING_SIGN);
                 tag(ConfigValues.TE_BLACKLIST).addTags(
                         BLACKLIST_CHEATY, BLACKLIST_MULTIBLOCK, BLACKLIST_POINTLESS,
                         BLACKLIST_PROBLEMATIC, BLACKLIST_UNSAFE);

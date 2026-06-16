@@ -1,7 +1,7 @@
-// 26.1.2	2026-05-03T15:47:19.4763352	Tags for minecraft:block mod id packingtape
+// 26.2	2026-06-16T18:23:59.068018	Tags for minecraft:block mod id packingtape
 ae615ff8295e0dafd4d10a9fd7e44743f47f6ce5 data/packingtape/tags/block/blacklist/cheaty.json
-c7644a5db9a6b7b4a03111d867698ca3cfeb9f05 data/packingtape/tags/block/blacklist/multiblock.json
-003bf0e643b5991ade1c050a402b1193d4d800ef data/packingtape/tags/block/blacklist/pointless.json
+9bdcdf14954807a0b9ccf3725fd3f6d643255eac data/packingtape/tags/block/blacklist/multiblock.json
+23a0c26eafc7b74e502d2f2986ee7e0e95b5f7d2 data/packingtape/tags/block/blacklist/pointless.json
 170bce0000c912e7d0ec02ea925853d8445fb161 data/packingtape/tags/block/blacklist/problematic.json
 ab1eddf7aaeebc05fdcbc3b217d7417e8f3d15a0 data/packingtape/tags/block/blacklist/unsafe.json
 42151c6c53fcbb3cdc2f371cb73b414190994a24 data/packingtape/tags/block/te_blacklist.json

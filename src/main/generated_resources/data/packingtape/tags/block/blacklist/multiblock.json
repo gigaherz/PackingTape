@@ -1,7 +1,6 @@
 {
   "values": [
     "#minecraft:doors",
-    "#minecraft:beds",
     "minecraft:piston",
     "minecraft:piston_head"
   ]
