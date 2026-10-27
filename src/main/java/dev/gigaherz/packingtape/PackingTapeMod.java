@@ -1,10 +1,9 @@
 package dev.gigaherz.packingtape;
 
-import dev.gigaherz.packingtape.tape.ContainedBlockData;
-import dev.gigaherz.packingtape.tape.PackagedBlock;
-import dev.gigaherz.packingtape.tape.PackagedBlockEntity;
-import dev.gigaherz.packingtape.tape.TapeItem;
+import dev.gigaherz.packingtape.tape.*;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -14,19 +13,16 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
-import net.minecraft.data.recipes.packs.VanillaRecipeProvider;
 import net.minecraft.data.tags.TagsProvider;
-import net.minecraft.network.chat.Component;
-import net.minecraft.references.BlockIds;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.references.BlockItemIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.*;
-import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
@@ -39,7 +35,7 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -47,6 +43,7 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.data.event.GatherDataRegistryEntriesEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -57,7 +54,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Mod(PackingTapeMod.MODID)
@@ -102,9 +98,10 @@ public class PackingTapeMod
         modEventBus.addListener(this::modConfigLoad);
         modEventBus.addListener(this::modConfigReload);
         modEventBus.addListener(this::gatherData);
+        modEventBus.addListener(this::gatherRegistryData);
         modEventBus.addListener(this::addItemsToTabs);
 
-        thisContainer.registerConfig(ModConfig.Type.SERVER, ConfigValues.SERVER_SPEC);
+        thisContainer.registerConfig(ModConfig.Type.SYNCED, ConfigValues.SERVER_SPEC);
     }
 
     private void addItemsToTabs(BuildCreativeModeTabContentsEvent event)
@@ -119,6 +116,11 @@ public class PackingTapeMod
     private void gatherData(GatherDataEvent.Client event)
     {
         DataGen.gatherData(event);
+    }
+
+    private void gatherRegistryData(GatherDataRegistryEntriesEvent event)
+    {
+        DataGen.gatherRegistryData(event);
     }
 
     public void modConfigLoad(ModConfigEvent.Loading event)
@@ -149,10 +151,15 @@ public class PackingTapeMod
             DataGenerator gen = event.getGenerator();
             PackOutput output = gen.getPackOutput();
 
-            gen.addProvider(true, Loot.create(output, event.getLookupProvider()));
-            gen.addProvider(true, new Recipes(output, event.getLookupProvider()));
-            gen.addProvider(true, new BlockTagGen(output, event.getLookupProvider()));
-            gen.addProvider(true, new BlockEntityTagGen(output, event.getLookupProvider()));
+            gen.addProvider(true, new BlockTagGen(output, event.getWorldLookupProvider()));
+            gen.addProvider(true, new BlockEntityTagGen(output, event.getWorldLookupProvider()));
+        }
+
+        public static void gatherRegistryData(GatherDataRegistryEntriesEvent event)
+        {
+            event.gatherFor(MODID)
+                    .add(Registries.LOOT_TABLE, Loot.create())
+                    .recipe(Recipes::new);
         }
 
         private static class BlockTagGen extends TagsProvider<Block>
@@ -172,12 +179,12 @@ public class PackingTapeMod
             @Override
             protected void addTags(HolderLookup.Provider lookup)
             {
-                tag(BLACKLIST_CHEATY).add(BlockItemIds.END_PORTAL_FRAME.block(), Blocks.END_GATEWAY.builtInRegistryHolder().getKey(), BlockItemIds.SPAWNER.block(), BlockItemIds.TRIAL_SPAWNER.block());
-                tag(BLACKLIST_MULTIBLOCK).addTags(BlockTags.DOORS).add(BlockItemIds.PISTON.block(), Blocks.PISTON_HEAD.builtInRegistryHolder().getKey());
+                tag(BLACKLIST_CHEATY).add(BlockItemIds.END_PORTAL_FRAME.block(), Blocks.END_GATEWAY.builtInRegistryHolder().key(), BlockItemIds.SPAWNER.block(), BlockItemIds.TRIAL_SPAWNER.block());
+                tag(BLACKLIST_MULTIBLOCK).addTags(BlockTags.DOORS).add(BlockItemIds.PISTON.block(), Blocks.PISTON_HEAD.builtInRegistryHolder().key());
                 tag(BLACKLIST_POINTLESS).add(
                         BlockItemIds.ENCHANTING_TABLE.block(), BlockItemIds.BELL.block(), BlockItemIds.COMPARATOR.block(),
                         BlockItemIds.DAYLIGHT_DETECTOR.block(), BlockItemIds.POTENT_SULFUR.block(),
-                        PACKAGED_BLOCK.getKey());
+                        PACKAGED_BLOCK.key());
                 tag(BLACKLIST_PROBLEMATIC).addTags(Tags.Blocks.SKULLS, BlockTags.BANNERS).add(BlockItemIds.CONDUIT.block());
                 tag(BLACKLIST_UNSAFE).add(BlockItemIds.COMMAND_BLOCK.block(), BlockItemIds.CHAIN_COMMAND_BLOCK.block(), BlockItemIds.REPEATING_COMMAND_BLOCK.block(),
                         BlockItemIds.STRUCTURE_BLOCK.block(), BlockItemIds.JIGSAW.block(), BlockItemIds.TEST_BLOCK.block(), BlockItemIds.TEST_INSTANCE_BLOCK.block()).addTags(BlockTags.ALL_SIGNS);
@@ -210,7 +217,7 @@ public class PackingTapeMod
                 tag(BLACKLIST_MULTIBLOCK).add(BlockEntityTypeIds.PISTON);
                 tag(BLACKLIST_POINTLESS).add(BlockEntityTypeIds.ENCHANTING_TABLE, BlockEntityTypeIds.BELL,
                         BlockEntityTypeIds.COMPARATOR, BlockEntityTypeIds.DAYLIGHT_DETECTOR, BlockEntityTypeIds.POTENT_SULFUR,
-                        PACKAGED_BLOCK_ENTITY.getKey());
+                        PACKAGED_BLOCK_ENTITY.key());
                 tag(BLACKLIST_PROBLEMATIC).add(BlockEntityTypeIds.SKULL, BlockEntityTypeIds.BANNER, BlockEntityTypeIds.CONDUIT);
                 tag(BLACKLIST_UNSAFE).add(BlockEntityTypeIds.COMMAND_BLOCK, BlockEntityTypeIds.STRUCTURE_BLOCK, BlockEntityTypeIds.JIGSAW, BlockEntityTypeIds.SIGN, BlockEntityTypeIds.HANGING_SIGN);
                 tag(ConfigValues.TE_BLACKLIST).addTags(
@@ -220,53 +227,40 @@ public class PackingTapeMod
             }
         }
 
-        private static class Recipes extends RecipeProvider.Runner
+        private static class Recipes extends RecipeProvider
         {
-            public Recipes(PackOutput output, CompletableFuture<HolderLookup.Provider> lookup)
+            public Recipes(BootstrapContext<Recipe<?>> recipeOutput, BootstrapContext<Advancement> advancementOutput)
             {
-                super(output, lookup);
+                super(recipeOutput, advancementOutput);
             }
 
             @Override
-            protected RecipeProvider createRecipeProvider(HolderLookup.Provider lookup, RecipeOutput output)
+            protected void buildRecipes()
             {
-                return new VanillaRecipeProvider(lookup, output)
-                {
-                    @Override
-                    protected void buildRecipes()
-                    {
-                        shapeless(RecipeCategory.TOOLS, PackingTapeMod.TAPE.get())
-                                .requires(Tags.Items.SLIME_BALLS)
-                                .requires(Tags.Items.STRINGS)
-                                .requires(Items.PAPER)
-                                .unlockedBy("has_slime_ball", has(Items.SLIME_BALL))
-                                .save(output);
-                    }
-                };
-            }
 
-            @Override
-            public String getName()
-            {
-                return "Packing Tape Recipes";
+                shapeless(RecipeCategory.TOOLS, PackingTapeMod.TAPE.get())
+                        .requires(Tags.Items.SLIME_BALLS)
+                        .requires(Tags.Items.STRINGS)
+                        .requires(Items.PAPER)
+                        .unlockedBy("has_slime_ball", has(Items.SLIME_BALL))
+                        .save(output);
             }
         }
 
         private static class Loot
         {
-            public static LootTableProvider create(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookup)
+            public static LootTableProvider create()
             {
-                return new LootTableProvider(packOutput, Set.of(), List.of(
+                return new LootTableProvider(Set.of(), List.of(
                         new LootTableProvider.SubProviderEntry(BlockTables::new, LootContextParamSets.BLOCK)
-                ), lookup);
+                ));
             }
-
 
             public static class BlockTables extends BlockLootSubProvider
             {
-                public BlockTables(HolderLookup.Provider provider)
+                public BlockTables(Context context)
                 {
-                    super(Set.of(), FeatureFlags.REGISTRY.allFlags(), provider);
+                    super(Set.of(), FeatureFlags.REGISTRY.allFlags(), context);
                 }
 
                 @Override
@@ -279,7 +273,7 @@ public class PackingTapeMod
                 {
                     return LootTable.lootTable()
                             .withPool(applyExplosionCondition(block, LootPool.lootPool()
-                                    .setRolls(ConstantValue.exactly(1))
+                                    .setRolls(ContextIntProviders.exactly(1))
                                     .add(LootItem.lootTableItem(block)
                                             .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
                                                     .include(DataComponents.CUSTOM_NAME)
@@ -297,22 +291,6 @@ public class PackingTapeMod
                             .collect(Collectors.toList());
                 }
             }
-        }
-    }
-
-    private static class PackagedBlockItem extends BlockItem
-    {
-
-        public PackagedBlockItem(PackagedBlock block, Properties properties)
-        {
-            super(block, properties);
-        }
-
-        @Deprecated
-        @Override
-        public void appendHoverText(ItemStack p_41421_, TooltipContext p_339594_, TooltipDisplay p_399753_, Consumer<Component> p_399884_, TooltipFlag p_41424_)
-        {
-            ((PackagedBlock) getBlock()).appendHoverText(p_41421_, p_399884_);
         }
     }
 }

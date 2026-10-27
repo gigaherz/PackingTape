@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
@@ -118,7 +119,7 @@ public class TapeItem extends Item
                 split.setCount(1);
                 if (consumeRoll(split))
                 {
-                    player.getInventory().placeItemBackInInventory(split);
+                    player.getInventory().placeItemBackInInventory(split, Prediction.PREDICTED);
                 }
                 stack.shrink(1);
             }

@@ -11,18 +11,18 @@ description = '''
 Adds a simple means to carry thigns with you
 '''
 displayURL = "https://github.com/gigaherz/PackingTape"
-logoFile = "logo.png"
+iconFile = "logo.png"
 authors = "gigaherz"
 
 [[dependencies.packingtape]]
 modId = "neoforge"
 type = "required"
-versionRange = "[21.11.6-beta,)"
+versionRange = "[26.3,)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.packingtape]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21.11,)"
+versionRange = "[26.3,)"
 ordering = "NONE"
 side = "BOTH"

@@ -1,0 +1,4 @@
+// 26.3	2026-10-27T19:41:42.3660566	Registries for Reloadable (packingtape[1]): [packingtape]
+68c51412c09fa6bad2adbe7ddc976c8ccc1a400a data/packingtape/advancement/recipes/tools/tape.json
+0a5bcc07405e2a04aed9ad10afc5c7656f50ec08 data/packingtape/loot_table/blocks/packaged_block.json
+3ea91bfea9572227ba86a2f665b46717d86537fb data/packingtape/recipe/tape.json
